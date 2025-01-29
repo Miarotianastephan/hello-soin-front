@@ -1,12 +1,14 @@
-import './App.css'
+// src/App.jsx
+import React from 'react';
+import AppRouter from './routes/AppRouter';
+import './App.css';
 
 function App() {
-
   return (
-    <>
-    <h1>Bonjour a tous</h1>
-    </>
-  )
+    <div className="app">
+      <AppRouter /> Hey you
+    </div>
+  );
 }
 
-export default App
+export default App;
