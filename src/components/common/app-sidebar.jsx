@@ -21,23 +21,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { useEffect, useState } from "react";
+import { getLocalData } from "@/services/api";
 
-const user = {
-  name: "shadcn",
-  email: "m@example.com",
-  avatar: "/avatars/shadcn.jpg",
-}
 // Menu items.
 const items = [
   {
-    title: "Information sur le patient",
-    url: "/",
-    icon: Home,
-  },
-  {
     title: "Acceuil",
     url: "/about",
-    icon: Inbox,
+    icon: Home,
   },
   {
     title: "Historique du patient",
@@ -45,8 +37,13 @@ const items = [
     icon: Calendar,
   },
   {
-    title: "Search",
-    url: "#",
+    title: "Information sur le patient",
+    url: "/",
+    icon: Inbox,
+  },
+  {
+    title: "Agenda",
+    url: "/agenda",
     icon: Search,
   },
   {
@@ -57,6 +54,20 @@ const items = [
 ]
 
 const AppSidebar = () => {
+
+  const [user_info, setUserInfo] = useState({});
+
+  // const user = {
+  //   name: "shadcn",
+  //   email: "m@example.com",
+  //   avatar: "/avatars/shadcn.jpg",
+  // }
+
+  useEffect(() => {
+    const data = getLocalData('user_data');
+    setUserInfo(data);
+  },[])
+
   return (
     <Sidebar variant="floating" collapsible="icon">
       <SidebarContent>
@@ -77,7 +88,7 @@ const AppSidebar = () => {
       </SidebarContent>
       {/* SIDEBAR FOOTER */}
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser user={user_info} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

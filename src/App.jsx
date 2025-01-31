@@ -10,6 +10,7 @@ import DashboardPatient from './pages/patients/DashboardPatient';
 import HistoriqueRdvCard from './components/rdv/HistoriqueRdvCard';
 import Login from './pages/auth/Login';
 import LoginPage from '@/app/login/page';
+import Agenda from './pages/agenda/Angeda';
 
 function App() {  
   const location = useLocation(); // route actuelle
@@ -31,6 +32,7 @@ function App() {
             <Route path="/historique/rdv/:id" element={<HistoriqueRdvCard />} />
             {/* Route pour la page de connexion */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/agenda" element={<Agenda />} />
           </Routes>
         </div>
       </SidebarInset>
