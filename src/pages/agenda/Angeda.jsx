@@ -1,8 +1,9 @@
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import './Agenda.css'; // Fichier CSS pour le style
+import './Agenda.css';
 import { useEffect, useState } from 'react';
+import { API_URL } from '@/services/api';
 
 const localizer = momentLocalizer(moment);
 
@@ -14,28 +15,13 @@ const idPratiqueColors = {
   8: '#795548', // Marron
 };
 
-const splitTimeSlots = (start, end, dureePratique) => {
-  let slots = [];
-  let current = moment(start);
-  let finalEnd = moment(end);
-  while (current.isBefore(finalEnd)) {
-    let next = moment(current).add(dureePratique, 'minutes');
-    if (next.isAfter(finalEnd)) next = finalEnd;
-    slots.push({
-      start: current.toDate(),
-      end: next.toDate(),
-    });
-    current = next;
-  }
-  return slots;
-};
-
 const Agenda = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [rendezvous, setRendezvous] = useState([]);
+
   const [formData, setFormData] = useState({
     date_rdv: '',
     heure_rdv: '',
@@ -45,6 +31,7 @@ const Agenda = () => {
     id_users: 2,
     id_users_1: 2,
   });
+
   const [disponibilite, setDisponibilite] = useState({
     date_dispo: '',
     heure_debut_dispo: '',
@@ -53,18 +40,13 @@ const Agenda = () => {
     id_pratique: 2,
   });
 
-  const isSlotBooked = (slotStart, slotEnd, rendezvous) => {
+  const isSlotBooked = (slotStart, rendezvous) => {
     return rendezvous.some((rdv) => {
       const rdvStart = moment(`${rdv.date_rdv} ${rdv.heure_rdv}`);
-      const rdvEnd = moment(rdvStart).add(1, 'hour'); // Assuming each appointment is 1 hour long
-      return (
-        moment(slotStart).isBetween(rdvStart, rdvEnd, null, '[]') ||
-        moment(slotEnd).isBetween(rdvStart, rdvEnd, null, '[]')
-      );
+      return moment(slotStart).isSame(rdvStart);
     });
   };
 
-  // Récupérer les rendez-vous depuis l'API
   useEffect(() => {
     fetch('http://192.168.137.1:3000/api/rdv/user/2')
       .then((response) => response.json())
@@ -73,70 +55,49 @@ const Agenda = () => {
           setRendezvous(data.data);
         }
       })
-      .catch((error) => console.error('Erreur de chargement des rendez-vous :', error));
+      .catch((error) => console.error('Erreur chargement RDV:', error));
   }, []);
 
-  // Récupérer les disponibilités depuis l'API
   useEffect(() => {
     fetch('http://192.168.137.1:3000/api/agenda/praticien/1')
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          let allSlots = [];
-          data.data.forEach((item) => {
-            const slots = splitTimeSlots(
-              `${item.date_dispo} ${item.heure_debut_dispo}`,
-              `${item.date_dispo} ${item.heure_fin_dispo}`,
-              item.duree * 60 // Convertir la durée en minutes
-            );
-            slots.forEach((slot) => {
-              const isBooked = isSlotBooked(slot.start, slot.end, rendezvous);
-
-              allSlots.push({
-                title: isBooked
-                  ? `Rendez-vous (${item.nom_pratique})`
-                  : `${item.nom_pratique} - ${item.nom_dsp}`,
-                start: slot.start,
-                end: slot.end,
-                allDay: false,
-                description: `Tarif: ${item.tarif} €\nAdresse: ${item.adresse}`,
-                user_name: `${item.user_name} ${item.user_forname}`,
-                backgroundColor: isBooked ? '#FF0000' : idPratiqueColors[item.id_pratique] || '#000',
-                isBooked,
-                id_pratique: item.id_pratique,
-              });
-            });
+          const allSlots = data.data.map((item) => {
+            const isBooked = isSlotBooked(`${item.date_dispo} ${item.heure_debut_dispo}`, rendezvous);
+            return {
+              title: isBooked ? `RDV (${item.nom_pratique})` : `${item.nom_pratique} - ${item.nom_dsp}`,
+              start: moment(`${item.date_dispo} ${item.heure_debut_dispo}`).toDate(),
+              end: moment(`${item.date_dispo} ${item.heure_fin_dispo}`).toDate(),
+              allDay: false,
+              backgroundColor: isBooked ? '#FF0000' : idPratiqueColors[item.id_pratique] || '#000',
+              isBooked,
+              id_pratique: item.id_pratique,
+            };
           });
           setEvents(allSlots);
         }
       })
-      .catch((error) => console.error('Erreur de chargement des disponibilités :', error))
+      .catch((error) => console.error('Erreur chargement disponibilités:', error))
       .finally(() => setLoading(false));
   }, [rendezvous]);
-
-
 
   const handleSlotSelect = (slotInfo) => {
     if (slotInfo.isBooked) {
       alert('Ce créneau est déjà réservé.');
       return;
     }
-  
-    const selectedDate = moment(slotInfo.start).format('YYYY-MM-DD');
-    const selectedTime = moment(slotInfo.start).format('HH:mm:ss');
-  
     setFormData((prev) => ({
       ...prev,
-      date_rdv: selectedDate,
-      heure_rdv: selectedTime,
+      date_rdv: moment(slotInfo.start).format('YYYY-MM-DD'),
+      heure_rdv: moment(slotInfo.start).format('HH:mm:ss'),
       id_pratique: slotInfo.id_pratique,
     }));
-  
     setSelectedSlot(slotInfo);
     setOpenModal(true);
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmitDisponibilite = async (event) => {
     event.preventDefault();
     try {
       const response = await fetch('http://192.168.137.1:3000/api/agenda/add', {
@@ -145,17 +106,13 @@ const Agenda = () => {
         body: JSON.stringify(disponibilite),
       });
       const result = await response.json();
-      if (result.success) {
-        alert('Disponibilité ajoutée avec succès !');
-      } else {
-        alert('Erreur lors de l\'ajout');
-      }
+      alert(result.success ? 'Disponibilité ajoutée avec succès !' : result.message);
     } catch (error) {
-      console.error('Erreur d\'envoi :', error);
+      console.error('Erreur d\'ajout disponibilité:', error);
     }
   };
 
-  const handleSubmit2 = async (event) => {
+  const handleSubmitRdv = async (event) => {
     event.preventDefault();
     try {
       const response = await fetch('http://192.168.137.1:3000/api/rdv/create', {
@@ -168,10 +125,10 @@ const Agenda = () => {
         alert('Rendez-vous pris avec succès !');
         setOpenModal(false);
       } else {
-        alert('Erreur lors de la prise de rendez-vous.');
+        alert('Erreur prise RDV.');
       }
     } catch (error) {
-      console.error("Erreur d'envoi :", error);
+      console.error('Erreur prise RDV:', error);
     }
   };
 
@@ -179,7 +136,7 @@ const Agenda = () => {
     <div className="agenda-container">
       <div className="sidebar">
         <h2>Ajouter une Disponibilité</h2>
-        <form onSubmit={handleSubmit} className="form">
+        <form onSubmit={handleSubmitDisponibilite} className="form">
           <label>Date</label>
           <input
             type="date"
@@ -201,21 +158,10 @@ const Agenda = () => {
             value={disponibilite.heure_fin_dispo}
             onChange={(e) => setDisponibilite({ ...disponibilite, heure_fin_dispo: e.target.value })}
           />
-          <label>ID Pratique</label>
-          <select
-            required
-            value={disponibilite.id_pratique}
-            onChange={(e) => setDisponibilite({ ...disponibilite, id_pratique: parseInt(e.target.value) })}
-          >
-            {[1, 2, 3, 9, 8].map((id) => (
-              <option key={id} value={id}>
-                {id}
-              </option>
-            ))}
-          </select>
           <button type="submit">Ajouter</button>
         </form>
       </div>
+
       <div className="calendar-container">
         <h1>Agenda des Disponibilités</h1>
         <Calendar
@@ -227,10 +173,7 @@ const Agenda = () => {
           min={moment().set({ hour: 9, minute: 0 }).toDate()}
           max={moment().set({ hour: 19, minute: 0 }).toDate()}
           eventPropGetter={(event) => ({
-            style: {
-              backgroundColor: event.backgroundColor,
-              color: 'white',
-            },
+            style: { backgroundColor: event.backgroundColor, color: 'white' },
           })}
           selectable
           onSelectEvent={handleSlotSelect}
@@ -241,18 +184,16 @@ const Agenda = () => {
         <div className="modal-overlay">
           <div className="modal">
             <h2>Prendre un Rendez-vous</h2>
-            <form onSubmit={handleSubmit2} className="form">
-              <label>Motif du rendez-vous</label>
+            <form onSubmit={handleSubmitRdv} className="form">
+              <label>Motif</label>
               <input
                 type="text"
                 required
                 value={formData.motif_rdv}
                 onChange={(e) => setFormData({ ...formData, motif_rdv: e.target.value })}
               />
-              <button type="submit">Confirmer le RDV</button>
-              <button type="button" onClick={() => setOpenModal(false)}>
-                Annuler
-              </button>
+              <button type="submit">Confirmer</button>
+              <button type="button" onClick={() => setOpenModal(false)}>Annuler</button>
             </form>
           </div>
         </div>

@@ -8,14 +8,14 @@ import About from './pages/patients/Acceuil';
 import ProfilPatient from './pages/patients/ProfilPatient';
 import DashboardPatient from './pages/patients/DashboardPatient';
 import HistoriqueRdvCard from './components/rdv/HistoriqueRdvCard';
-import Login from './pages/auth/Login';
-import LoginPage from '@/app/login/page';
 import Agenda from './pages/agenda/Angeda';
+import LoginPage from '@/app/login/login-page';
+import SignInPage from './app/login/signin-page';
 
 function App() {  
   const location = useLocation(); // route actuelle
 
-  const isLoginPage = location.pathname === '/login';
+  const isLoginPage = location.pathname === '/login' || location.pathname === '/signin';
 
 
   return (
@@ -25,13 +25,14 @@ function App() {
         {!isLoginPage && <AppHeader />}
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <Routes>
+            {/* Route pour la page de connexion et inscription */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signin" element={<SignInPage />} />
             {/* Routes existantes */}
             <Route path="/" element={<ProfilPatient />} />
             <Route path="/about" element={<About />} />
             <Route path="/historique/rdv" element={<DashboardPatient />} />
             <Route path="/historique/rdv/:id" element={<HistoriqueRdvCard />} />
-            {/* Route pour la page de connexion */}
-            <Route path="/login" element={<LoginPage />} />
             <Route path="/agenda" element={<Agenda />} />
           </Routes>
         </div>
