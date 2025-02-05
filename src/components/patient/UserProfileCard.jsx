@@ -30,11 +30,11 @@ const UserProfileCard = () => {
   // État temporaire pour modifier les informations
   const [editUser, setEditUser] = useState(user);
 
-  useEffect(() => {
-    const data = getLocalData('user_data');
-    setUser(data);
-    setEditUser(user);
-  },[])
+  // useEffect(() => {
+  //   const data = F('user_data');
+  //   setUser(data);
+  //   setEditUser(user);
+  // },[])
 
   // Gérer la mise à jour des champs
   const handleChange = (e) => {

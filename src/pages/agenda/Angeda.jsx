@@ -47,40 +47,40 @@ const Agenda = () => {
     });
   };
 
-  useEffect(() => {
-    fetch('http://192.168.137.1:3000/api/rdv/user/2')
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setRendezvous(data.data);
-        }
-      })
-      .catch((error) => console.error('Erreur chargement RDV:', error));
-  }, []);
+  // useEffect(() => {
+  //   fetch('http://192.168.137.1:3000/api/rdv/user/2')
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       if (data.success) {
+  //         setRendezvous(data.data);
+  //       }
+  //     })
+  //     .catch((error) => console.error('Erreur chargement RDV:', error));
+  // }, []);
 
-  useEffect(() => {
-    fetch('http://192.168.137.1:3000/api/agenda/praticien/1')
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          const allSlots = data.data.map((item) => {
-            const isBooked = isSlotBooked(`${item.date_dispo} ${item.heure_debut_dispo}`, rendezvous);
-            return {
-              title: isBooked ? `RDV (${item.nom_pratique})` : `${item.nom_pratique} - ${item.nom_dsp}`,
-              start: moment(`${item.date_dispo} ${item.heure_debut_dispo}`).toDate(),
-              end: moment(`${item.date_dispo} ${item.heure_fin_dispo}`).toDate(),
-              allDay: false,
-              backgroundColor: isBooked ? '#FF0000' : idPratiqueColors[item.id_pratique] || '#000',
-              isBooked,
-              id_pratique: item.id_pratique,
-            };
-          });
-          setEvents(allSlots);
-        }
-      })
-      .catch((error) => console.error('Erreur chargement disponibilités:', error))
-      .finally(() => setLoading(false));
-  }, [rendezvous]);
+  // useEffect(() => {
+  //   fetch('http://192.168.137.1:3000/api/agenda/praticien/1')
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       if (data.success) {
+  //         const allSlots = data.data.map((item) => {
+  //           const isBooked = isSlotBooked(`${item.date_dispo} ${item.heure_debut_dispo}`, rendezvous);
+  //           return {
+  //             title: isBooked ? `RDV (${item.nom_pratique})` : `${item.nom_pratique} - ${item.nom_dsp}`,
+  //             start: moment(`${item.date_dispo} ${item.heure_debut_dispo}`).toDate(),
+  //             end: moment(`${item.date_dispo} ${item.heure_fin_dispo}`).toDate(),
+  //             allDay: false,
+  //             backgroundColor: isBooked ? '#FF0000' : idPratiqueColors[item.id_pratique] || '#000',
+  //             isBooked,
+  //             id_pratique: item.id_pratique,
+  //           };
+  //         });
+  //         setEvents(allSlots);
+  //       }
+  //     })
+  //     .catch((error) => console.error('Erreur chargement disponibilités:', error))
+  //     .finally(() => setLoading(false));
+  // }, [rendezvous]);
 
   const handleSlotSelect = (slotInfo) => {
     if (slotInfo.isBooked) {

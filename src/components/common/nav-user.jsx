@@ -61,7 +61,7 @@ const { isMobile } = useSidebar()
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.user_photo} alt={user.user_name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">USR</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{user.user_name} {user.user_forname}</span>
@@ -88,13 +88,13 @@ const { isMobile } = useSidebar()
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell />
-                Notifications
+                Messages
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut />
-              Log out
+              Se deconnecter
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
