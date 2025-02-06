@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { User, Lock, CheckCircle } from "lucide-react";
-import { Label } from "./ui/label";
+import { Label } from "../ui/label";
 import { Link } from "react-router-dom";
 
 const steps = [

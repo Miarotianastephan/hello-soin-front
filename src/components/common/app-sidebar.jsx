@@ -28,50 +28,26 @@ import { getLocalData } from "@/services/api";
 // Menu items.
 const items = [
   {
-    title: "Acceuil",
-    url: "/",
-    icon: LayoutDashboard,
+    title: "Acceuil", url: "/", icon: LayoutDashboard,
   },
   {
-    title: "Agenda",
-    url: "/historique/rdv",
-    icon: CalendarDays,
+    title: "Agenda", url: "/historique/rdv", icon: CalendarDays,
   },
   {
-    title: "Disponibilite",
-    url: "/about",
-    icon: CalendarFold,
+    title: "Disponibilite", url: "/about", icon: CalendarFold,
   },
   {
-    title: "Creneaux",
-    url: "/agenda",
-    icon: CalendarClock,
+    title: "Creneaux", url: "/agenda", icon: CalendarClock,
   },
   {
-    title: "Pratique",
-    url: "#",
-    icon: Activity,
+    title: "Pratique", url: "/pratiques", icon: Activity,
   },
   {
-    title: "Profil",
-    url: "#",
-    icon: User,
+    title: "Patient", url: "#", icon: Users,
   },
   {
-    title: "Patient",
-    url: "#",
-    icon: Users,
-  },
-  {
-    title: "Message",
-    url: "#",
-    icon: Inbox,
-  },
-  {
-    title: "Parametre",
-    url: "#",
-    icon: Settings,
-  },
+    title: "Message", url: "#", icon: Inbox,
+  }
 ]
 
 const AppSidebar = () => {
@@ -105,7 +81,7 @@ const AppSidebar = () => {
   // },[])
 
   return (
-    <Sidebar  collapsible="icon">
+    <Sidebar collapsible="icon" className="z-20">
       <AppSidebarHeader/>
       <SidebarContent>
         <SidebarGroup>

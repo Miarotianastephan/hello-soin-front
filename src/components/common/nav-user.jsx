@@ -2,9 +2,10 @@ import {
   BadgeCheck,
   Bell,
   ChevronsUpDown,
-  CreditCard,
+  Inbox,
   LogOut,
-  Sparkles,
+  Settings,
+  User,
 } from "lucide-react"
 
 import {
@@ -72,29 +73,22 @@ const { isMobile } = useSidebar()
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
+                <User />
+                Profil
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell />
-                Messages
+                Notifications
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings />
+                Parametres
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut />
-              Se deconnecter
+              Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

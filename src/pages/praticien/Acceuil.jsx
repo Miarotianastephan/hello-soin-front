@@ -1,4 +1,4 @@
-import { ListTable } from "@/components/list-table";
+import { ListTable } from "@/components/praticienComponents/list-table";
 
 const Acceuil = () => {
 

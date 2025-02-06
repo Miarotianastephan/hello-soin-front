@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "./ui/label"
+import { Label } from "../ui/label"
 
 import { useState } from "react"
 import { useForm  } from "react-hook-form"

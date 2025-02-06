@@ -1,5 +1,5 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { PencilIcon, UserPlusIcon } from "@heroicons/react/24/solid";
+import { PencilIcon } from "@heroicons/react/24/solid";
 import {
   Card,
   CardHeader,
@@ -16,6 +16,7 @@ import {
   IconButton,
   Tooltip,
 } from "@material-tailwind/react";
+import { useEffect } from "react";
  
 const TABS = [
   {
@@ -83,8 +84,9 @@ const TABLE_ROWS = [
 ];
  
 export function ListTable() {
+
   return (
-    <Card className="">
+    <Card >
       <CardHeader floated={false} shadow={false} className="rounded-none">
         <div className="mb-8 flex items-center justify-between gap-8">
           <div>
@@ -102,7 +104,7 @@ export function ListTable() {
           </div>
         </div>
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-          <Tabs value="all" className="w-full md:w-max">
+          <Tabs value="all" className="z-0 w-full md:w-max">
             <TabsHeader>
               {TABS.map(({ label, value }) => (
                 <Tab key={value} value={value}>
