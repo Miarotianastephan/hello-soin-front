@@ -12,6 +12,7 @@ import Pratiques from './pages/praticien/Pratiques';
 import Agenda from './pages/agenda/Angeda';
 import ProfilPatient from './pages/patients/ProfilPatient';
 import DashboardPatient from './pages/patients/DashboardPatient';
+import PraticienProfil from './pages/praticien/PraticienProfil';
 
 function App() {  
   const location = useLocation(); // route actuelle
@@ -35,6 +36,7 @@ function App() {
             <Route path="/" element={<Acceuil />} />
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/pratiques" element={<Pratiques />} />
+            <Route path="/profil" element={<PraticienProfil />} />
 
             {/* PATIENTS */}
             <Route path="/about" element={<ProfilPatient />} />

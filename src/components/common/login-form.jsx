@@ -11,6 +11,7 @@ import { Label } from "../ui/label"
 import { useState } from "react"
 import { useForm  } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
+import { Checkbox } from '../ui/checkbox'
 
 export const LoginForm = ({ className, ...props }) => {
 
@@ -19,8 +20,10 @@ export const LoginForm = ({ className, ...props }) => {
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, formState: { errors }, } = useForm();
   const resetForm = () => {} // a completer
+
   const onSubmit =  (data) => { 
     console.log(data) 
+    navigate("/");
     // alert("Login submited !!");
     // setLoading(true);
     // try {
@@ -90,6 +93,15 @@ export const LoginForm = ({ className, ...props }) => {
                       type="password" 
                     />
                     <p className="text-balance text-left text-xs text-muted-foreground">{errors.mot_de_passe?.message}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="terms" />
+                  <label
+                    htmlFor="terms"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Se souvenir de moi
+                  </label>
                 </div>
                 <Button type="submit" className="w-full">
                   {loading ? '...Connexion' : 'Se connecter' }

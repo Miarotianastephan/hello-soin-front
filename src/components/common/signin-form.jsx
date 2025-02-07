@@ -32,8 +32,7 @@ const SignInForm = () => {
     <Card className="max-w-3xl mx-auto w-full p-4 sm:p-6 md:p-8">
       <CardHeader className="text-center text-2xl font-bold">
         <CardTitle >Creer un compte - Étape {step}/{steps.length}</CardTitle>
-        <Progress value={(step / steps.length) * 100} className="mt-2" />
-      </CardHeader>
+        <Progress value={(step / steps.length) * 100} className="sm:hidden mt-2" />
         <div className="text-center text-sm mt-4">
             Vous avez deja un compte?{" "}
             <Link to="/login" className="underline underline-offset-4">
@@ -42,7 +41,7 @@ const SignInForm = () => {
         </div>
       
       {/* Indicateur des étapes - Visible seulement sur écrans larges */}
-      <div className="hidden md:flex justify-between items-center mt-2 p-6">
+      <div className="hidden md:flex justify-between items-center mt-2 p-6  gap-4">
         {steps.map(({ id, title }) => (
           <div key={id} className="flex flex-col items-center">
             <div
@@ -65,12 +64,13 @@ const SignInForm = () => {
           </div>
         ))}
       </div>
+      </CardHeader>
 
       <CardContent >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 md:p-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="">
           {/* Étape 1 */}
           {step === 1 && (
-            <div className="flex flex-col space-y-4 gap-3 md:p-6">
+            <div className="flex flex-col space-y-3">
               <h2 className="text-lg font-bold text-blue-500">Infos Personnelles</h2>
               <div className="grid gap-2">
                 <Label>Nom</Label>
@@ -87,13 +87,13 @@ const SignInForm = () => {
                 <Input {...register("date_naissance", { required: "Email requis" })} type="date" className="w-full" />
                 {errors.date_naissance && <p className="text-red-500 text-sm">{errors.date_naissance.message}</p>}
               </div>
-              <Button onClick={nextStep} type="button" className="w-full">Suivant</Button>
+              <Button onClick={nextStep} type="button" className="w-max">Suivant</Button>
             </div>
           )}
 
           {/* Étape 2 */}
           {step === 2 && (
-            <div className="flex flex-col space-y-4 gap-3 md:p-6">
+            <div className="flex flex-col space-y-3">
               <h2 className="text-lg font-bold text-blue-500">Coordonnees</h2>
               
               <div className="grid gap-2">
@@ -126,7 +126,7 @@ const SignInForm = () => {
           )}
           {/* Étape 3 */}
           {step === 3 && (
-            <div className="flex flex-col space-y-4 gap-3 md:p-6">
+            <div className="flex flex-col space-y-3">
               <h2 className="text-lg font-bold text-blue-500">Securite et Authetification</h2>
               
               <div className="grid gap-2">
@@ -160,7 +160,7 @@ const SignInForm = () => {
 
           {/* Étape 4 */}
           {step === 4 && (
-            <div className="space-y-4">
+            <div className="flex flex-col space-y-3">
               <h2 className="text-lg font-bold text-blue-500">✅ Confirmation</h2>
               <p><strong>Nom :</strong> {watch("nom")}</p>
               <p><strong>Email :</strong> {watch("email")}</p>
