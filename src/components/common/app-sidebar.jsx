@@ -31,13 +31,13 @@ const items = [
     title: "Acceuil", url: "/", icon: LayoutDashboard,
   },
   {
-    title: "Agenda", url: "/historique/rdv", icon: CalendarDays,
+    title: "Disponibilite", url: "/disponibilite", icon: CalendarFold,
   },
   {
-    title: "Disponibilite", url: "/about", icon: CalendarFold,
+    title: "Creneaux", url: "/creneaux", icon: CalendarClock,
   },
   {
-    title: "Creneaux", url: "/agenda", icon: CalendarClock,
+    title: "Agenda", url: "/agenda", icon: CalendarDays,
   },
   {
     title: "Pratique", url: "/pratiques", icon: Activity,

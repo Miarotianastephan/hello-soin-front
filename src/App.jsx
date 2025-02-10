@@ -9,10 +9,12 @@ import LoginPage from '@/pages/login/login-page';
 import SignInPage from './pages/login/signin-page';
 import Acceuil from './pages/praticien/Acceuil';
 import Pratiques from './pages/praticien/Pratiques';
-import Agenda from './pages/agenda/Angeda';
+import Agenda from './pages/disponibilite/agenda/agenda';
 import ProfilPatient from './pages/patients/ProfilPatient';
 import DashboardPatient from './pages/patients/DashboardPatient';
 import PraticienProfil from './pages/praticien/PraticienProfil';
+import Disponibilités from './pages/disponibilite/disponibilite';
+import Crenaux from './pages/crenaux/crenaux';
 
 function App() {  
   const location = useLocation(); // route actuelle
@@ -37,6 +39,8 @@ function App() {
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/pratiques" element={<Pratiques />} />
             <Route path="/profil" element={<PraticienProfil />} />
+            <Route path="/disponibilite" element={<Disponibilités />} />
+            <Route path="/creneaux" element={<Crenaux />} />
 
             {/* PATIENTS */}
             <Route path="/about" element={<ProfilPatient />} />

@@ -80,3 +80,33 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Masquer la barre de scroll pour WebKit (Chrome, Safari) */
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* Masquer la barre de scroll pour Firefox */
+.scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+.scrollbar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent; /* Masque la scrollbar par défaut */
+}
+
+/* Webkit : cacher la barre par défaut */
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+
+/* Webkit : afficher la barre au survol */
+.scrollbar-custom:hover {
+  scrollbar-color: #11293a #f1f1f1;
+}
+
+.scrollbar-custom:hover::-webkit-scrollbar-thumb {
+  background-color: #3498db;
+}
+
