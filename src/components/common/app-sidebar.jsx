@@ -12,7 +12,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,} from "@/components/ui/sidebar";
-import { Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { LayoutDashboard, CalendarDays, CalendarFold, CalendarClock, Inbox, Activity, Settings, User, Users } from "lucide-react";
 import { NavUser } from "@/components/common/nav-user";
 import AppSidebarHeader from "./app-sidebar-header";
@@ -51,7 +51,7 @@ const items = [
 ]
 
 const AppSidebar = () => {
-
+  const location = useLocation();
   const [user_info, setUserInfo] = useState({
     id_users: undefined,
     user_name: "Jean",
@@ -82,8 +82,9 @@ const AppSidebar = () => {
 
   return (
     <Sidebar collapsible="icon" className="z-20">
-      <AppSidebarHeader/>
-      <SidebarContent>
+      {/* Pour l'en tete du sidebar */}
+      <AppSidebarHeader />
+      <SidebarContent className="bg-white">
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -91,7 +92,13 @@ const AppSidebar = () => {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link to={item.url} className={({ isActive }) => isActive ? "font-bold text-blue-500" : ""}><item.icon /> <span>{item.title}</span></Link>
+                    <Link to={item.url}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition hover:text-helloSoin active:text-helloSoin ${
+                      location.pathname === item.url ? "text-helloSoin bg-gray-100" : "text-gray-700"
+                    }`}
+                    >
+                      <item.icon /> <span>{item.title}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

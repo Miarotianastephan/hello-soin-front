@@ -16,6 +16,11 @@ export default withMT({
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
+			helloSoin: '#5DA781',
+			helloBlue: '#405969',
+			helloBeige: '#D9CAB3',
+			helloOrange: '#FFC700',
+			helloPurple: '#7239EA',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

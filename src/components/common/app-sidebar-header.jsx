@@ -1,20 +1,19 @@
 import { GalleryVerticalEnd } from "lucide-react";
 import { SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "../ui/sidebar";
-
+import hello_soin from "@/assets/main_logo.png";
 
 const AppSidebarHeader = () => {
     return(
-        <SidebarHeader>
+        <SidebarHeader className="bg-white">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
+            <SidebarMenuButton className="hover:bg-white" size="lg" asChild>
               <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                {/* <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <GalleryVerticalEnd className="size-4" />
-                </div>
+                </div> */}
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">Hello Soin</span>
-                  <span className="">Back Office</span>
+                  <img src={hello_soin} alt="Hello Soin" className="h-auto w-auto rounded-lg object-cover object-center" />
                 </div>
               </a>
             </SidebarMenuButton>

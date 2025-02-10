@@ -81,6 +81,7 @@
   }
 }
 
+
 /* Masquer la barre de scroll pour WebKit (Chrome, Safari) */
 .scrollbar-hidden::-webkit-scrollbar {
   display: none;
