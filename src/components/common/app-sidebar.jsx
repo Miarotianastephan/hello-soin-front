@@ -69,12 +69,6 @@ const AppSidebar = () => {
     mot_de_passe: ""
   });
 
-  // const user = {
-  //   name: "shadcn",
-  //   email: "m@example.com",
-  //   avatar: "/avatars/shadcn.jpg",
-  // }
-
   // useEffect(() => {
   //   const data = getLocalData('user_data');
   //   setUserInfo(data);
