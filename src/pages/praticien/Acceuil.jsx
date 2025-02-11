@@ -4,7 +4,7 @@ const Acceuil = () => {
 
     return(
       <>
-        <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="flex flex-1 flex-col gap-4 p-4 bg-muted/50 rounded-xl">
             <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
                 {/* First Card */}
                 <div className="flex items-center justify-between p-5 bg-helloSoin rounded-xl shadow-sm">

@@ -93,7 +93,7 @@ const AppSidebar = () => {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link to={item.url}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition hover:text-helloSoin active:text-helloSoin ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition hover:text-green-400 active:text-helloSoin  ${
                       location.pathname === item.url ? "text-helloSoin bg-gray-100" : "text-gray-700"
                     }`}
                     >
