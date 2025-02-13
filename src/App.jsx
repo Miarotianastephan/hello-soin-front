@@ -39,8 +39,8 @@ function App() {
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/pratiques" element={<Pratiques />} />
             <Route path="/profil" element={<PraticienProfil />} />
-            <Route path="/disponibilite" element={<Disponibilités />} />
-            <Route path="/creneaux" element={<Crenaux />} />
+            <Route path="/plage-horaire" element={<Disponibilités />} />
+            <Route path="/type-rendez-vous" element={<Crenaux />} />
 
             {/* PATIENTS */}
             <Route path="/about" element={<ProfilPatient />} />

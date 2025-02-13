@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
+import { Button } from "@material-tailwind/react";
 import { 
   format, addDays, subDays, startOfWeek, startOfMonth, 
   eachDayOfInterval, isSameDay, subWeeks, addWeeks, subMonths, addMonths, 
@@ -19,18 +20,19 @@ const backgroundColors = {
   acuponcture: "bg-blue-800",
   hypnose: "bg-yellow-800"
 };
-
+// Les details des disponibilties pour chaque dates
 const eventsData = {
-  "2025-02-03": [
-    { start: "13:00", type: "naturopathie", date: "2025-02-03", details: "Consultation de naturopathie avec Jean Dupont." },
-    { start: "16:00", type: "acuponcture", date: "2025-02-03", details: "Séance d'acuponcture avec Marie Curie." },
-    { start: "15:01", type: "acuponcture", date: "2025-02-03", details: "Séance d'acuponcture avec Lucie Martin." },
-    { start: "10:00", type: "naturopathie", date: "2025-02-03", details: "Consultation de naturopathie avec Alice Durand." },
+  "2025-02-10": [
+    { start: "13:00", type: "naturopathie", date: "2025-02-10", details: "Consultation de naturopathie avec Jean Dupont." },
+    { start: "16:00", type: "acuponcture", date: "2025-02-10", details: "Séance d'acuponcture avec Marie Curie." },
+    { start: "15:01", type: "acuponcture", date: "2025-02-10", details: "Séance d'acuponcture avec Lucie Martin." },
+    { start: "10:00", type: "naturopathie", date: "2025-02-10", details: "Consultation de naturopathie avec Alice Durand." },
   ],
   "2025-02-04": [
     { start: "09:00", type: "hypnose", date: "2025-02-04", details: "Séance d'hypnose avec Paul Smith." },
   ],
 };
+// fin details disponibilites de chaque dates
 
 const getDurationInMinutes = (type) => {
   switch (type) {
@@ -52,23 +54,24 @@ const Agenda = () => {
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
   const [patientInfo, setPatientInfo] = useState({ name: "", details: "" });
 
+// Pour gerer la navigation entre les affichages
   const handlePrev = () => {
     if (view === "day") setCurrentDate(subDays(currentDate, 1));
     if (view === "week") setCurrentDate(subWeeks(currentDate, 1));
     if (view === "month") setCurrentDate(subMonths(currentDate, 1));
   };
-
   const handleNext = () => {
     if (view === "day") setCurrentDate(addDays(currentDate, 1));
     if (view === "week") setCurrentDate(addWeeks(currentDate, 1));
     if (view === "month") setCurrentDate(addMonths(currentDate, 1));
   };
-
   const handleToday = () => setCurrentDate(new Date());
-
+// fin navigation entre affichage
+// Manipulation du vue de la calendrier
+  // Vue en semaines 
   const startOfWeekDate = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = eachDayOfInterval({ start: startOfWeekDate, end: addDays(startOfWeekDate, 6) });
-
+  // Vue en mois
   const startOfMonthDate = startOfMonth(currentDate);
   const monthDays = eachDayOfInterval({ start: startOfMonthDate, end: endOfMonth(startOfMonthDate) });
 
@@ -84,7 +87,7 @@ const Agenda = () => {
     endDate.setMinutes(endDate.getMinutes() + duration);
     return format(endDate, "HH:mm");
   };
-
+// Pour la creation d'un RDV
   const handleCreateAppointment = () => {
     if (!selectedEvent) return;
 
@@ -103,7 +106,7 @@ const Agenda = () => {
     setIsCreatingAppointment(false);
     setPatientInfo({ name: "", details: "" });
   };
-
+// Fonction maka ny event rehetra anio ???
   const allEvents = Object.entries(eventsData)
     .flatMap(([date, events]) => 
       events.map(event => ({ 
@@ -116,26 +119,30 @@ const Agenda = () => {
     .filter(event => isAfter(event.datetime, new Date()));
 
   return (
-    <div className="p-4">
-      <div className="flex gap-2 mb-4">
-        <Button onClick={() => setView("day")} className={view === "day" ? "bg-green-500 text-white" : "bg-gray-600"}>
+    <div className="p-6 bg-gray-100 rounded-lg">
+      {/* Section pour les bouton differentes vues */}
+      <div className="bg-white flex gap-2 mb-4 p-2 rounded-lg">
+        <Button onClick={() => setView("day")} className={`flex h-max bg-white hover:shadow-none shadow-none ${view === "day" ? "bg-green-500 text-white" : "text-gray-600"}`}>
           <Clock className="mr-2" size={16} /> Jour
         </Button>
-        <Button onClick={() => setView("week")} className={view === "week" ? "bg-green-500 text-white" : "bg-gray-600"}>
+        <Button onClick={() => setView("week")} className={`flex h-max bg-white hover:shadow-none shadow-none ${view === "week" ? "bg-green-500 text-white" : "text-gray-600"}`}>
           <List className="mr-2" size={16} /> Semaine
         </Button>
-        <Button onClick={() => setView("month")} className={view === "month" ? "bg-green-500 text-white" : "bg-gray-600"}>
+        <Button onClick={() => setView("month")} className={`flex h-max bg-white hover:shadow-none shadow-none ${view === "month" ? "bg-green-500 text-white" : "text-gray-600"}`}>
           <Calendar className="mr-2" size={16} /> Mois
         </Button>
       </div>
-      <div className="flex justify-between items-center mb-4">
-        <Button onClick={handlePrev}><ChevronLeft /></Button>
-        <h2 className="text-xl font-bold">
-          {view === "day" && format(currentDate, "EEEE dd/MM/yyyy", { locale: fr })}
-          {view === "week" && `Semaine du ${format(startOfWeekDate, "dd/MM/yyyy", { locale: fr })}`}
-          {view === "month" && format(currentDate, "MMMM yyyy", { locale: fr })}
-        </h2>
-        <Button onClick={handleNext}><ChevronRight /></Button>
+      {/* Pour les manipulation sur aller et retour dans les VUes  */}
+      <div className="flex justify-between items-center mb-4 bg-white p-2">
+        <div className="flex-1 flex gap-5 items-center">
+          <Button onClick={handlePrev}><ChevronLeft /></Button>
+          <h2 className="text-xl font-bold">
+            {view === "day" && format(currentDate, "EEEE dd/MM/yyyy", { locale: fr })}
+            {view === "week" && `Semaine du ${format(startOfWeekDate, "dd/MM/yyyy", { locale: fr })}`}
+            {view === "month" && format(currentDate, "MMMM yyyy", { locale: fr })}
+          </h2>
+          <Button onClick={handleNext}><ChevronRight /></Button>
+        </div>
         <Button onClick={handleToday} className="bg-blue-600 text-white ml-4">Aujourd’hui</Button>
       </div>
 

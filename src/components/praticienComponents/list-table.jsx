@@ -33,52 +33,52 @@ const TABS = [
   },
 ];
  
-const TABLE_HEAD = ["Patients", "Adresse", "Pratique", "Date", ""];
+const TABLE_HEAD = ["Date", "Patient", "Duree", "Heures", ""];
  
 const TABLE_ROWS = [
   {
     img: "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-3.jpg",
     name: "John Michael",
     email: "john@creative-tim.com",
-    adresse: "12 Rue des Lilas",
-    code_postal_ville: "12345 Paris,France",
-    pratique: "Dentisterie",
+    heure_debut: "10:00",
+    heure_fin: "10:30",
+    duree: "30",
     date: "23/04/18",
   },
   {
     img: "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-2.jpg",
     name: "Alexa Liras",
     email: "alexa@creative-tim.com",
-    adresse: "13 Rue Faillete",
-    code_postal_ville: "90234, Lyon",
-    pratique: "Naturopatie",
+    heure_debut: "11:00",
+    heure_fin: "12:00",
+    duree: "60",
     date: "23/04/18",
   },
   {
     img: "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-1.jpg",
     name: "Laurent Perrier",
     email: "laurent@creative-tim.com",
-    adresse: "12 Rue des Lilas",
-    code_postal_ville: "12345 Paris,France",
-    pratique: "Acuponcteur",
+    heure_debut: "14:15",
+    heure_fin: "14:30",
+    duree: "15",
     date: "19/09/17",
   },
   {
     img: "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-4.jpg",
     name: "Michael Levi",
     email: "michael@creative-tim.com",
-    adresse: "12 Rue des Lilas",
-    code_postal_ville: "12345 Paris,France",
-    pratique: "Massagiste",
+    heure_debut: "16:15",
+    heure_fin: "16:30",
+    duree: "15",
     date: "24/12/08",
   },
   {
     img: "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-5.jpg",
     name: "Richard Gran",
     email: "richard@creative-tim.com",
-    adresse: "12 Rue des Coco",
-    code_postal_ville: "23612 Paris,France",
-    pratique: "unknown",
+    heure_debut: "17:00",
+    heure_fin: "17:35",
+    duree: "35",
     date: "04/10/21",
   },
 ];
@@ -91,16 +91,16 @@ export function ListTable() {
         <div className=" flex items-center justify-between gap-8">
           <div>
             <Typography variant="h5" color="blue-gray">
-              Rendez-vous recentes
+              Mes rendez-vous pour aujourd'hui
             </Typography>
             <Typography color="gray" className="mt-1 font-normal">
-              Voir les rendez-vous prises
+              Liste des prise de rendez-vous des patients aujourd'hui
             </Typography>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
             <div className="w-full md:w-72">
               <Input
-                label="Rechercher un nom, une adresse, ..."
+                label="Rechercher un patient par son nom"
                 icon={<MagnifyingGlassIcon className="h-5 w-5" />}
               />
             </div>
@@ -129,7 +129,7 @@ export function ListTable() {
           </thead>
           <tbody>
             {TABLE_ROWS.map(
-              ({ img, name, email, adresse, code_postal_ville, pratique, date }, index) => {
+              ({ img, name, email, heure_debut, heure_fin, duree, date }, index) => {
                 const isLast = index === TABLE_ROWS.length - 1;
                 const classes = isLast
                   ? "p-4"
@@ -137,6 +137,19 @@ export function ListTable() {
  
                 return (
                   <tr key={name}>
+                    {/* Date du rendez-vous */}
+                    <td className={classes}>
+                      <div className="w-max">
+                        <Chip
+                            variant="ghost"
+                            size="lg"
+                            value={date}
+                            className="font-bold"
+                            color="purple"
+                        />
+                      </div>
+                    </td>
+                    {/* Detail Patient */}
                     <td className={classes}>
                       <div className="flex items-center gap-3">
                         <Avatar src={img} alt={name} size="sm" />
@@ -158,6 +171,17 @@ export function ListTable() {
                         </div>
                       </div>
                     </td>
+                    {/* Pratique => Duree du rendez-vous */}
+                    <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal opacity-70"
+                        >
+                          {duree}
+                        </Typography>
+                    </td>
+                    {/* Adresse => Heure debut et fin */}
                     <td className={classes}>
                       <div className="flex flex-col">
                         <Typography
@@ -165,35 +189,15 @@ export function ListTable() {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {adresse}
+                          De {heure_debut}
                         </Typography>
                         <Typography
                           variant="small"
                           color="blue-gray"
                           className="font-normal opacity-70"
                         >
-                          {code_postal_ville}
+                          à {heure_fin}
                         </Typography>
-                      </div>
-                    </td>
-                    <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal opacity-70"
-                        >
-                          {pratique}
-                        </Typography>
-                    </td>
-                    <td className={classes}>
-                      <div className="w-max">
-                        <Chip
-                            variant="ghost"
-                            size="lg"
-                            value={date}
-                            className="font-bold"
-                            color="purple"
-                        />
                       </div>
                     </td>
                     <td className={classes}>

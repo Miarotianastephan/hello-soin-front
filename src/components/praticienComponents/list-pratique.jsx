@@ -13,12 +13,13 @@ import {
 } from "@material-tailwind/react";
 import { Separator } from "@/components/ui/separator"
 import { BookKey } from "lucide-react";
+import { useEffect, useState } from "react";
  
-const TABLE_HEAD = ["Type de pratique", "Tarif(en euro)", "Duree", "Pratique depuis", ""];
+const TABLE_HEAD = ["Type de pratique", "Tarif(en euro)", "Duree", ""];
  
 const TABLE_ROWS = [
   {
-    code_couleur: "red",
+    code_couleur: "blue",
     type: "Naturopathie",
     tarif: "150",
     duree: "3 heures",
@@ -41,39 +42,42 @@ const TITLE_DETAIL_PRATIQUE = {
     commentaire: "Description",
     rdv_total: "Total Rdv",
 }
-const DETAIL_PRATIQUE = {
-    code_couleur: "#5DA781",
-    type: "Naturopathie",
-    tarif: "150",
-    duree: "3 heures",
-    date: "23/04/18",
-    commentaire: "Cette pratique a été réalisée avec succès",
-    rdv_total: 22,
-}
 const DetailPratiqueCard = ({titles,details}) => {
     return(
-        Object.entries(details).map(([key, value]) => (
-            titles[key] !== undefined && (
-            <div key={key} className="flex items-start justify-between gap-5">
-                <Typography variant="small" className="mb-5 font-bold" color="blue-gray"> 
-                {titles[key] || ""}
-                </Typography>
-                <Typography variant="small" color="gray" className="text-end">
-                {value || "N/A"}
-                </Typography>
-            </div>
-            )
-        ))
+        <>
+        { !details ? 
+            (<p>Choisissez un detail a afficher</p>) 
+            :   (
+                    Object.entries(details).map(([key, value]) => (
+                    titles[key] !== undefined && (
+                    <div key={key} className="flex items-start justify-between gap-5">
+                        <Typography variant="small" className="mb-5 font-bold" color="blue-gray"> 
+                        {titles[key] || ""}
+                        </Typography>
+                        <Typography variant="small" color="gray" className="text-end">
+                        {value || "N/A"}
+                        </Typography>
+                    </div>
+                )
+            )))
+        }
+        </>
     );
 }
 
  
-export function ListPratique() {
+export function ListPratique({myAction}) {
 
-  return (
+    const [selectedPratique,setSelectedPratique] = useState(null);
+
+    useEffect( () => {
+        console.log(selectedPratique);
+    },[selectedPratique])
+
+    return (
     <>
         <div className="flex bg-gray-100 p-2 rounded-xl gap-2 flex-col md:flex-row">
-            <Card className="">
+            <Card className="w-2/3">
                 <CardHeader floated={false} shadow={false} className="rounded-none">
                     <div className="mt-4 flex items-center justify-between">
                         <div>
@@ -113,14 +117,16 @@ export function ListPratique() {
                     </thead>
                     <tbody>
                         {TABLE_ROWS.map(
-                        ({ code_couleur, type, tarif, duree, date }, index) => {
+                        ({ code_couleur, type, tarif, duree, date }, index, allData) => {
                             const isLast = index === TABLE_ROWS.length - 1;
                             const classes = isLast
                             ? "p-4"
                             : "p-4 border-b border-blue-gray-50";
             
                             return (
-                            <tr key={type}>
+                            <tr key={type} className="cursor-pointer hover:bg-gray-100"
+                                onClick={() => setSelectedPratique(allData[index])}
+                            >
                                 {/* Type de pratique */}
                                 <td className={classes}>
                                 <div className="flex items-center gap-3">
@@ -158,17 +164,6 @@ export function ListPratique() {
                                     </Typography>
                                 </td>
                                 <td className={classes}>
-                                <div className="w-max">
-                                    <Chip
-                                        variant="ghost"
-                                        size="lg"
-                                        value={date}
-                                        className="font-bold"
-                                        color="purple"
-                                    />
-                                </div>
-                                </td>
-                                <td className={classes}>
                                 <Tooltip content="Edit User">
                                     <IconButton variant="text">
                                     <PencilIcon className="h-4 w-4" />
@@ -196,7 +191,8 @@ export function ListPratique() {
                     </div>
                 </CardFooter>
             </Card>
-            <Card className="bg-white w-full max-h-max">
+            {/* Detail du pratiques choisis */}
+            <Card className="bg-white w-1/3 max-h-max">
                 <CardHeader floated={false} shadow={false} className="rounded-none">
                     <Typography variant="h6" color="blue-gray">
                         Details pratique
@@ -204,7 +200,7 @@ export function ListPratique() {
                     <Separator orientation="horizontal" className="bg-gray-500" />
                 </CardHeader>
                 <CardBody>
-                    <DetailPratiqueCard titles={TITLE_DETAIL_PRATIQUE} details={DETAIL_PRATIQUE} />
+                    <DetailPratiqueCard titles={TITLE_DETAIL_PRATIQUE} details={selectedPratique} />
                 </CardBody>
             </Card>
         </div>

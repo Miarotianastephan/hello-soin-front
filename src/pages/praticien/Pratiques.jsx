@@ -11,7 +11,8 @@ import { useEffect, useState } from "react";
 
 const Pratiques = () => {
     const [actualTab, setActualTab] = useState("list");
-    const data = [
+    const [listPratique, setListePratique] = useState(1);
+    const tabs_sections = [
         {
           label: "Mes pratiques",
           value: "list",
@@ -27,20 +28,25 @@ const Pratiques = () => {
     useEffect(()=>{
         console.log("Sous-page actuel : "+actualTab);
     },[actualTab])
+
+    function handleNewData(newData){
+        setListePratique(newData);
+        console.log("New data setted : " + newData);
+    }
     
     return(
         <Tabs value={actualTab}>
             <TabsHeader>
-            {data.map(({ label, value }) => (
+            {tabs_sections.map(({ label, value }) => (
                 <Tab key={value} value={value} onClick={() => {setActualTab(value)}}>
                 {label}
                 </Tab>
             ))}
             </TabsHeader>
             <TabsBody>
-            {data.map((d) => (
+            {tabs_sections.map((d) => (
                 <TabPanel key={d.value} value={d.value} >
-                < d.desc />
+                < d.desc myAction={handleNewData}/>
                 </TabPanel>
             ))}
             </TabsBody>

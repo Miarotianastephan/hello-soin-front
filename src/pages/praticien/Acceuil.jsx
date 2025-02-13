@@ -7,11 +7,11 @@ const Acceuil = () => {
         <div className="flex flex-1 flex-col gap-4 p-4 bg-muted/50 rounded-xl">
             <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
                 {/* First Card */}
-                <div className="flex items-center justify-between p-5 bg-helloSoin rounded-xl shadow-sm">
-                    <div>
-                        <div className="text-sm text-gray-100">Total <br/>rendez-vous</div>
+                <div className="flex items-start justify-between p-5 bg-helloSoin rounded-xl shadow-sm">
+                    <div className="flex flex-col justify-between h-full">
+                        <div className="text-sm text-gray-100">Rendez-vous <br/>du jour</div>
                         <div className="flex items-center pt-1">
-                            <div className="text-xl font-medium text-gray-100 ">22</div>
+                            <div className="text-xl font-medium text-gray-100">4</div>
                         </div>
                     </div>
                     <div className="text-gray-100">
@@ -22,11 +22,11 @@ const Acceuil = () => {
                     </div>
                 </div>
                 {/* Second card */}
-                <div className="flex gap-2 items-center justify-between p-5 bg-helloBeige rounded-xl shadow-sm">
-                    <div>
-                        <div className="text-sm text-white ">Rendez-vous aujourd'hui</div>
+                <div className="flex gap-2 items-start justify-between p-5 bg-helloOrange rounded-xl shadow-sm">
+                    <div className="flex flex-col justify-between h-full">
+                        <div className="text-sm text-white">Rendez-vous <br/> 7 prochaines jours</div>
                         <div className="flex items-center pt-1">
-                            <div className="text-xl font-medium text-white ">5</div>
+                            <div className="text-xl font-medium text-white ">21</div>
                         </div>
                     </div>
                     <div className="text-white">
@@ -37,11 +37,11 @@ const Acceuil = () => {
                     </div>
                 </div>
                 {/* third cart */}
-                <div className="flex items-center justify-between p-5 bg-helloPurple rounded-xl shadow-sm">
-                    <div>
-                        <div className="text-sm text-white ">Total <br/>patient</div>
+                <div className="flex items-start justify-between p-5 bg-helloPurple rounded-xl shadow-sm">
+                    <div className="flex flex-col justify-between h-full">
+                        <div className="text-sm text-white ">Heures libres <br/>Aujourd’hui</div>
                         <div className="flex items-center pt-1">
-                            <div className="text-xl font-medium text-white">25</div>
+                            <div className="text-xl font-medium text-white">2</div>
                         </div>
                     </div>
                     <div className="text-white">
@@ -51,11 +51,11 @@ const Acceuil = () => {
                     </div>
                 </div>
                 {/* fourth cart */}
-                <div className="flex items-center justify-between p-5 bg-helloBlue rounded-xl shadow-sm">
-                    <div>
-                        <div className="text-sm text-white ">Total <br/>pratique</div>
+                <div className="flex items-start justify-between p-5 bg-helloBlue rounded-xl shadow-sm">
+                    <div className="flex flex-col justify-between h-full">
+                        <div className="text-sm text-white ">Revenu <br/>du jour (en $)</div>
                         <div className="flex items-center pt-1">
-                            <div className="text-xl font-medium text-white ">6</div>
+                            <div className="text-xl font-medium text-white ">600</div>
                         </div>
                     </div>
                     <div className="text-white">

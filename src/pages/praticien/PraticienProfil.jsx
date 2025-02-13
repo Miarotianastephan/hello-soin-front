@@ -55,7 +55,11 @@ const PraticienProfil = () => {
                 <div className="md:w-2/3 md:pl-8">
                   <div className="flex items-center justify-between mb-4">
                     <Typography variant="h5" className="mt-1 font-bold">
-                    Jean Bosco
+                    {user.user_forname && user.user_name ? (
+                      <p>{user.user_name} {user.user_forname}</p>
+                    ) : (
+                      <p>Aucune infromation trouvée</p>
+                    )}
                     </Typography>
                     <Chip
                       variant="ghost"
@@ -71,11 +75,19 @@ const PraticienProfil = () => {
                   <ul className="space-y-2 text-gray-700 dark:text-gray-300">
                     <li className="flex items-center gap-2">
                       <Phone className="h-5 w-5"/>
-                      jean@example.com
+                      {user.user_phone ? (
+                        user.user_phone
+                      ) : (
+                        <p>Aucune infromation trouvée</p>
+                      )}
                     </li>
                     <li className="flex items-center gap-2">
                       <MailIcon className="h-5 w-5"/>
-                      +1 (555) 123-4567
+                      {user.user_mail ? (
+                        user.user_mail
+                      ) : (
+                        <p>Aucune infromation trouvée</p>
+                      )}
                     </li>
                   </ul>
                   <div className="flex flex-wrap gap-2 mt-6">

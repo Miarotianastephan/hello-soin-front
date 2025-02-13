@@ -28,13 +28,13 @@ import { getLocalData } from "@/services/api";
 // Menu items.
 const items = [
   {
-    title: "Acceuil", url: "/", icon: LayoutDashboard,
+    title: "Accueil", url: "/", icon: LayoutDashboard,
   },
   {
-    title: "Disponibilite", url: "/disponibilite", icon: CalendarFold,
+    title: "Plage horaire", url: "/plage-horaire", icon: CalendarFold,
   },
   {
-    title: "Creneaux", url: "/creneaux", icon: CalendarClock,
+    title: "Type de rendez-vous", url: "/type-rendez-vous", icon: CalendarClock,
   },
   {
     title: "Agenda", url: "/agenda", icon: CalendarDays,

@@ -12,31 +12,59 @@ import {
     Checkbox,
   } from "@material-tailwind/react";
 import { useState } from "react";
+import { useForm, Controller  } from "react-hook-form";
 
-const ColorPicker = ({ label, color, setColor }) => {
+const ColorPicker = ({ control, name, label, rules }) => {
     return (
-        <div className="flex flex-col gap-2">
-            <label className="text-gray-700 font-semibold">{label}</label>
-            <div className="flex items-center gap-2">
-                <input
+        <Controller
+            name={name}
+            control={control}
+            rules={rules}
+            render={({ field, fieldState }) => (
+                <div className="flex flex-col gap-2">
+                <label className="text-gray-700 font-semibold">{label}</label>
+                <div className="flex items-center gap-2">
+                    <input
                     type="color"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
+                    value={field.value ? field.value : "#ffffff"}
+                    onChange={(e) => field.onChange(e.target.value)}
                     className="w-10 h-10 border rounded-lg cursor-pointer"
-                />
-                <Input
+                    onBlur={field.onBlur} // Important for validation
+                    />
+                    <Input
                     type="text"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
+                    value={field.value ? field.value : "#ffffff"}
+                    onChange={(e) => field.onChange(e.target.value)}
                     className="w-full"
-                />
-            </div>
-        </div>
+                    onBlur={field.onBlur} // Important for validation
+                    error={!!fieldState.error} // Display error state
+                    />
+                </div>
+                {fieldState.error && (
+                    <p className="text-red-500 text-sm">{fieldState.error.message}</p>
+                )}
+                </div>
+            )}
+        />
     );
 };
 
-export function FormAjoutPratique (){
+export function FormAjoutPratique ({myAction}){
     const [color, setColor] = useState("#ff0000");
+    const { control, register, handleSubmit, formState: { errors }, } = useForm({
+        defaultValues: {
+            code_couleur: "#ffffff", // Assurez-vous d'avoir une valeur par défaut ici!
+        },});
+    
+    // handle form submission
+    function onSubmittingForm(data){
+        console.log(data);
+        // Submit your data
+        myAction(JSON.stringify(data)); // replace with your function to handle form submission
+        // clear form inputs
+        // handleReset();
+    }
+
     return(
         <>
             <Card className="max-w-max">
@@ -53,15 +81,43 @@ export function FormAjoutPratique (){
                     </div>
                 </CardHeader>
                 <CardBody className="">
-                <form className="mt-8 mb-2 max-w-auto">
+                <form 
+                    className="mt-8 mb-2 max-w-auto" 
+                    onSubmit={handleSubmit(onSubmittingForm)}
+                >
                     <div className="mb-1 grid grid-cols-2 xs:grid-cols-1 gap-6">
-                        <Input variant="outlined" label="Type de pratique" placeholder="Choisissez une type de pratique"/>
-                        <Input variant="outlined" label="Duree" placeholder="Entrer une duree en minutes"/>
-                        <Input variant="outlined" label="Tarifs" placeholder="Entrer un tarif"/>
-                        <Input variant="outlined" label="Date premiere xp" placeholder="Date validation du pratique"/>
-                        <ColorPicker label="Choisir une couleur" color={color} setColor={setColor} />
+                        <Input 
+                            variant="outlined" 
+                            label="Type de pratique" 
+                            placeholder="Choisissez une type de pratique"
+                            {...register("type")}
+                        />
+                        <Input 
+                            variant="outlined" 
+                            label="Duree" 
+                            placeholder="Entrer une duree en minutes"
+                            {...register("duree")}    
+                        />
+                        <Input 
+                            variant="outlined" 
+                            label="Tarifs" 
+                            placeholder="Entrer un tarif"
+                            {...register("tarif")}
+                        />
+                        <Input 
+                            variant="outlined" 
+                            label="Date premiere xp" 
+                            placeholder="Date validation du pratique"
+                            {...register("date")}    
+                        />
+                        <ColorPicker 
+                            control={control}
+                            name="code_couleur"
+                            label="Choisir une couleur" 
+                            rules={{required: 'La couleur est requise'}} 
+                        />
                     </div>
-                    <Button className="mt-6" fullWidth>
+                    <Button type="submit" className="mt-6" fullWidth>
                         Valider
                     </Button>
                 </form>
