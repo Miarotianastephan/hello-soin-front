@@ -14,6 +14,9 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { BookKey } from "lucide-react";
 import { useEffect, useState } from "react";
+
+// Clés pour le LocalStorage
+const STORAGE_KEY = "pratiques";
  
 const TABLE_HEAD = ["Type de pratique", "Tarif(en euro)", "Duree", ""];
  
@@ -35,7 +38,7 @@ const TABLE_ROWS = [
 ];
 // Pour le detail d'une pratiques
 const TITLE_DETAIL_PRATIQUE = {
-    type: "Type",
+    nom: "Type",
     tarif: "Tarif",
     duree: "Duree",
     date: "Annee XP",
@@ -66,17 +69,12 @@ const DetailPratiqueCard = ({titles,details}) => {
 }
 
  
-export function ListPratique({myAction}) {
-
+export function ListPratique({listpratiques}) {
+    const pratiques = Array.isArray(listpratiques) ? listpratiques : [];
     const [selectedPratique,setSelectedPratique] = useState(null);
 
-    useEffect( () => {
-        console.log(selectedPratique);
-    },[selectedPratique])
-
     return (
-    <>
-        <div className="flex bg-gray-100 p-2 rounded-xl gap-2 flex-col md:flex-row">
+        <div className="max-w-full flex bg-gray-100 md:p-2 rounded-xl gap-2 flex-col md:flex-row">
             <Card className="w-2/3">
                 <CardHeader floated={false} shadow={false} className="rounded-none">
                     <div className="mt-4 flex items-center justify-between">
@@ -116,15 +114,15 @@ export function ListPratique({myAction}) {
                         </tr>
                     </thead>
                     <tbody>
-                        {TABLE_ROWS.map(
-                        ({ code_couleur, type, tarif, duree, date }, index, allData) => {
-                            const isLast = index === TABLE_ROWS.length - 1;
+                        {pratiques.map(
+                        ({ code_couleur, nom, tarif, duree, date }, index, allData) => {
+                            const isLast = index === pratiques.length - 1;
                             const classes = isLast
                             ? "p-4"
                             : "p-4 border-b border-blue-gray-50";
             
                             return (
-                            <tr key={type} className="cursor-pointer hover:bg-gray-100"
+                            <tr key={nom} className="cursor-pointer hover:bg-gray-100"
                                 onClick={() => setSelectedPratique(allData[index])}
                             >
                                 {/* Type de pratique */}
@@ -137,7 +135,7 @@ export function ListPratique({myAction}) {
                                         color="blue-gray"
                                         className="font-normal"
                                     >
-                                        {type}
+                                        {nom}
                                     </Typography>
                                     </div>
                                 </div>
@@ -192,7 +190,7 @@ export function ListPratique({myAction}) {
                 </CardFooter>
             </Card>
             {/* Detail du pratiques choisis */}
-            <Card className="bg-white w-1/3 max-h-max">
+            <Card className="bg-white md:w-1/3 w-full max-h-max">
                 <CardHeader floated={false} shadow={false} className="rounded-none">
                     <Typography variant="h6" color="blue-gray">
                         Details pratique
@@ -204,6 +202,5 @@ export function ListPratique({myAction}) {
                 </CardBody>
             </Card>
         </div>
-    </>
   );
 }

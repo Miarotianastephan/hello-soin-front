@@ -111,3 +111,6 @@
   background-color: #3498db;
 }
 
+.leaflet-container {
+  z-index: 0 !important;
+}

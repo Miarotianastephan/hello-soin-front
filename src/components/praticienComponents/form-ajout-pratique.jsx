@@ -4,61 +4,48 @@ import {
     Typography,
     Button,
     CardBody,
-    Chip,
-    CardFooter,
-    IconButton,
-    Tooltip,
     Input,
-    Checkbox,
+    Select,
+    Option,
+    Textarea,
   } from "@material-tailwind/react";
-import { useState } from "react";
-import { useForm, Controller  } from "react-hook-form";
+import { useForm  } from "react-hook-form";
+import DatePicker from "./date-picker";
+import ColorPicker from "./color-picker";
+import MapPicker from "./map-picker";
+import { useEffect, useState } from "react";
 
-const ColorPicker = ({ control, name, label, rules }) => {
-    return (
-        <Controller
-            name={name}
-            control={control}
-            rules={rules}
-            render={({ field, fieldState }) => (
-                <div className="flex flex-col gap-2">
-                <label className="text-gray-700 font-semibold">{label}</label>
-                <div className="flex items-center gap-2">
-                    <input
-                    type="color"
-                    value={field.value ? field.value : "#ffffff"}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    className="w-10 h-10 border rounded-lg cursor-pointer"
-                    onBlur={field.onBlur} // Important for validation
-                    />
-                    <Input
-                    type="text"
-                    value={field.value ? field.value : "#ffffff"}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    className="w-full"
-                    onBlur={field.onBlur} // Important for validation
-                    error={!!fieldState.error} // Display error state
-                    />
-                </div>
-                {fieldState.error && (
-                    <p className="text-red-500 text-sm">{fieldState.error.message}</p>
-                )}
-                </div>
-            )}
-        />
-    );
-};
 
 export function FormAjoutPratique ({myAction}){
-    const [color, setColor] = useState("#ff0000");
-    const { control, register, handleSubmit, formState: { errors }, } = useForm({
-        defaultValues: {
-            code_couleur: "#ffffff", // Assurez-vous d'avoir une valeur par défaut ici!
-        },});
+    const { 
+        control, 
+        register, 
+        handleSubmit, 
+        setValue, 
+        formState: { errors }, 
+        watch
+    } = useForm({
+    defaultValues: {
+        code_couleur: "#ffffff",
+        latitude: "",
+        longitude: "",
+    },});
+    const [pratiques, setPratiques] = useState([]);
     
+    useEffect(() => {
+        const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
+        setPratiques(storedPratiques);
+    }, []);
+
     // handle form submission
     function onSubmittingForm(data){
         console.log(data);
+        
+        const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
+        const newPratiques = [...storedPratiques, data];
+        setPratiques(newPratiques);
+        localStorage.setItem("pratiques", JSON.stringify(newPratiques)); // Sauvegarde en local
+
         // Submit your data
         myAction(JSON.stringify(data)); // replace with your function to handle form submission
         // clear form inputs
@@ -66,8 +53,8 @@ export function FormAjoutPratique ({myAction}){
     }
 
     return(
-        <>
-            <Card className="max-w-max">
+        <div className="md:p-2 bg-gray-100 rounded-lg">
+            <Card className="max-w-full">
                 <CardHeader floated={false} shadow={false} className="rounded-none">
                     <div className="mt-4 flex items-center justify-between">
                         <div>
@@ -85,37 +72,80 @@ export function FormAjoutPratique ({myAction}){
                     className="mt-8 mb-2 max-w-auto" 
                     onSubmit={handleSubmit(onSubmittingForm)}
                 >
-                    <div className="mb-1 grid grid-cols-2 xs:grid-cols-1 gap-6">
-                        <Input 
-                            variant="outlined" 
-                            label="Type de pratique" 
-                            placeholder="Choisissez une type de pratique"
-                            {...register("type")}
-                        />
-                        <Input 
-                            variant="outlined" 
-                            label="Duree" 
-                            placeholder="Entrer une duree en minutes"
-                            {...register("duree")}    
-                        />
-                        <Input 
-                            variant="outlined" 
-                            label="Tarifs" 
-                            placeholder="Entrer un tarif"
-                            {...register("tarif")}
-                        />
-                        <Input 
-                            variant="outlined" 
-                            label="Date premiere xp" 
-                            placeholder="Date validation du pratique"
-                            {...register("date")}    
-                        />
-                        <ColorPicker 
-                            control={control}
-                            name="code_couleur"
-                            label="Choisir une couleur" 
-                            rules={{required: 'La couleur est requise'}} 
-                        />
+                    <div className="mb-1 flex flex-wrap gap-6">
+                        <div className="w-full flex flex-col md:flex-row gap-4">
+                            {/* type de dscipline */}
+                            <Select 
+                                label="Type de Discipline"
+                                onChange={(value) => setValue("discipline", value)}
+                            >
+                                <Option value="disp_1">Acuponcteur</Option>
+                                <Option value="disp_2">Orthopediste</Option>
+                                <Option value="disp_3">Naturopathe</Option>
+                            </Select>
+                            {/* nom du pratique */}
+                            <Input 
+                                variant="outlined" 
+                                label="Nom du Pratique" 
+                                placeholder="Entrer un nom a votre pratique"
+                                {...register("nom")}
+                            />
+                        </div>
+                        {/* Description du pratique */}
+                        <div className="w-full">
+                            <Textarea 
+                                label="Description du pratique"
+                                onChange={(e) => setValue("description", e.target.value)}
+                                value={watch("description")}
+                            />
+                        </div>
+                        {/* Tarif et Duree */}
+                        <div className="w-full flex flex-col md:flex-row gap-4">
+                            <Input 
+                                variant="outlined" 
+                                label="Tarifs" 
+                                placeholder="Entrer le tarif"
+                                {...register("tarif")}
+                            />
+                            <Input 
+                                variant="outlined" 
+                                label="Duree" 
+                                placeholder="Entrer le duree"
+                                {...register("duree")}    
+                            />
+                        </div>
+                        {/* Date debut du pratique */}
+                        <div className="w-full flex flex-col md:flex-row gap-4">
+                            <div className="w-1/2">
+                                <Typography
+                                    variant="small"
+                                    color="blue-gray"
+                                    className="mb-1 font-medium"
+                                >
+                                    Date debut du pratique
+                                </Typography>
+                                <DatePicker control={control} name="date_debut" />
+                            </div>
+                            <ColorPicker 
+                                control={control}
+                                name="code_couleur"
+                                label="Choisir une couleur" 
+                                rules={{required: 'La couleur est requise'}} 
+                            />
+                        </div>
+                        {/* Choix du lat/long */}
+                        <div className="w-full">
+                            <Typography variant="small" color="blue-gray" className="mb-1 font-medium">
+                            Choisir un lieu sur la carte
+                            </Typography>
+                            <MapPicker 
+                            value={{ lat: watch("latitude") || 48.8566, lng: watch("longitude") || 2.3522 }}
+                            onChange={(coords) => {
+                                setValue("latitude", coords.lat);
+                                setValue("longitude", coords.lng);
+                            }} 
+                            />
+                        </div>
                     </div>
                     <Button type="submit" className="mt-6" fullWidth>
                         Valider
@@ -123,6 +153,6 @@ export function FormAjoutPratique ({myAction}){
                 </form>
                 </CardBody>
             </Card>
-        </>
+        </div>
     );
 }
