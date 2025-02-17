@@ -52,14 +52,14 @@ const Filters = ({
               .flatMap(pratique => 
                 (pratique.appointments || []).map((appt, index) => (
                   <div 
-                    key={index} 
+                    key={`${appt.start}_${index}`} 
                     className="mb-2 p-2 rounded" 
                     style={{
                       borderLeft: `4px solid ${getColorByType(pratique.type)}`
                     }}
                   >
                     <div className="text-sm font-medium">{appt.name}</div>
-                    <div className="text-xs">{pratique.start}</div>
+                    <div className="text-xs">{appt.start}</div>
                     <div className="text-xs">{PRACTICE_TYPES[pratique.type]}</div>
                   </div>
                 ))

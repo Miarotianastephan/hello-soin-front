@@ -8,7 +8,7 @@ export const PRACTICE_TYPES = {
 
 export const getDurationInMinutes = (type) => {
   switch (type) {
-    case 'naturopathie': return 120;
+    case 'naturopathie': return 60;
     case 'acuponcture': return 30;
     case 'hypnose': return 90;
     default: return 0;

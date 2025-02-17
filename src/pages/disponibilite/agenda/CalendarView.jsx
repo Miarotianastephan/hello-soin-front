@@ -29,7 +29,7 @@ import {
           <Button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="bg-[#0B2839FF]"><ChevronRight /></Button>
         </div>
         <div className="grid grid-cols-7 gap-1">
-          {["L", "M", "M", "J", "V", "S", "D"].map(day => (
+          {["L", "Ma", "Mer", "Je", "Ve", "Sa", "Di"].map(day => (
             <div key={day} className="text-center font-semibold">{day}</div>
           ))}
           {days.map(day => {

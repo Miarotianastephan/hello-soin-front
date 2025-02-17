@@ -40,8 +40,8 @@ const initialSlotsData = [
     ]
   },
   {
-    date: "2025-02-17",
-    day: "Lundi",
+    date: "2025-02-18",
+    day: "Mardi",
     slots: [
       {
         start: 9,
@@ -51,15 +51,23 @@ const initialSlotsData = [
             start: "9:00",
             type: "naturopathie",
             date: "2025-02-17",
-            appointments: [
+            appointments: [ // pour mon heure de travail de 9/11h voici les redndev-vous prise pour telle pratique
               {
                 name: "Alice Dupont",
                 age: 30,
                 telephone: "0123456789",
                 motif: "Consultation initiale",
-                start: "9:00",
-                end: "11:00"
-              }
+                start: "9:00", // heure debut du rendez-vous
+                end: "10:00" // heure fin doit etre dynamique
+              },
+              {
+                name: "Jean Dupont",
+                age: 25,
+                telephone: "0123456789",
+                motif: "Consultation initiale",
+                start: "10:00", // heure debut du rendez-vous
+                end: "11:00" // heure fin doit etre dynamique
+              },
             ]
           }
         ]
@@ -88,8 +96,8 @@ const initialSlotsData = [
     ]
   },
   {
-    date: "2025-02-18",
-    day: "Mardi",
+    date: "2025-02-17",
+    day: "Lundi",
     slots: [
       {
         start: 10,
@@ -210,7 +218,13 @@ const Agenda = () => {
     const duration = getDurationInMinutes(type);
     const endMinutes = startHour * 60 + startMinute + duration;
 
-    if (startHour < slot.start || endMinutes > slot.end * 60) {
+    if (startHour < slot.start || endMinutes > slot.end * 60) { //mila reverifiena ilay eto : comparaison 
+      console.log({
+        "Start Hour":startHour,
+        "Start Slot":slot.start,
+        "End minute":endMinutes,
+        "End Slot":slot.end,
+      })
       alert("La pratique dépasse la plage horaire.");
       return;
     }
