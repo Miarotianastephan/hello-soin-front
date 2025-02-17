@@ -1,264 +1,402 @@
+// /src/components/Agenda/Agenda.jsx
+
 import { useState } from "react";
-// import { Button } from "@/components/ui/button";
-import { Button } from "@material-tailwind/react";
-import { 
-  format, addDays, subDays, startOfWeek, startOfMonth, 
-  eachDayOfInterval, isSameDay, subWeeks, addWeeks, subMonths, addMonths, 
-  endOfMonth, parseISO, addMinutes, isAfter
+import {
+  format,
+  addDays,
+  subDays,
+  addWeeks,
+  subWeeks,
+  addMonths,
+  subMonths,
+  parseISO
 } from "date-fns";
-import { fr } from "date-fns/locale";
-import { Calendar, Clock, List, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, List, Calendar as CalendarIcon, Search } from "lucide-react";
 
-const colors = {
-  naturopathie: "border-green-800", 
-  acuponcture: "border-blue-800",
-  hypnose: "border-yellow-800"
-};
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-const backgroundColors = {
-  naturopathie: "bg-green-800", 
-  acuponcture: "bg-blue-800",
-  hypnose: "bg-yellow-800"
-};
-// Les details des disponibilties pour chaque dates
-const eventsData = {
-  "2025-02-10": [
-    { start: "13:00", type: "naturopathie", date: "2025-02-10", details: "Consultation de naturopathie avec Jean Dupont." },
-    { start: "16:00", type: "acuponcture", date: "2025-02-10", details: "Séance d'acuponcture avec Marie Curie." },
-    { start: "15:01", type: "acuponcture", date: "2025-02-10", details: "Séance d'acuponcture avec Lucie Martin." },
-    { start: "10:00", type: "naturopathie", date: "2025-02-10", details: "Consultation de naturopathie avec Alice Durand." },
-  ],
-  "2025-02-04": [
-    { start: "09:00", type: "hypnose", date: "2025-02-04", details: "Séance d'hypnose avec Paul Smith." },
-  ],
-};
-// fin details disponibilites de chaque dates
+import CalendarView from "./CalendarView";
+import DayView from "./DayView";
+import WeekView from "./WeekView";
+import ListView from "./ListView";
+import Filters from "./Filters";
+import PracticeDialog from "./PracticeDialog";
+import AppointmentDialog from "./AppointmentDialog";
+import { PRACTICE_TYPES, getDurationInMinutes, getColorByType } from "./utils/calendarUtils";
 
-const getDurationInMinutes = (type) => {
-  switch (type) {
-    case 'naturopathie':
-      return 120;
-    case 'acuponcture':
-      return 30;
-    case 'hypnose': 
-      return 75;
-    default:
-      return 0;
+// Exemple de données initiales (vous pouvez les adapter)
+// Exemple de fake data pour les rendez-vous
+const initialSlotsData = [
+  {
+    date: "2025-02-16",
+    day: "Dimanche",
+    slots: [
+      {
+        start: 14,
+        end: 18,
+        pratiques: [] // Pas de rendez-vous ce jour-là
+      }
+    ]
+  },
+  {
+    date: "2025-02-17",
+    day: "Lundi",
+    slots: [
+      {
+        start: 9,
+        end: 11,
+        pratiques: [
+          {
+            start: "9:00",
+            type: "naturopathie",
+            date: "2025-02-17",
+            appointments: [
+              {
+                name: "Alice Dupont",
+                age: 30,
+                telephone: "0123456789",
+                motif: "Consultation initiale",
+                start: "9:00",
+                end: "11:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        start: 14,
+        end: 16,
+        pratiques: [
+          {
+            start: "14:15",
+            type: "acuponcture",
+            date: "2025-02-17",
+            appointments: [
+              {
+                name: "Bob Martin",
+                age: 45,
+                telephone: "0987654321",
+                motif: "Suivi traitement",
+                start: "14:15",
+                end: "14:45"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    date: "2025-02-18",
+    day: "Mardi",
+    slots: [
+      {
+        start: 10,
+        end: 12,
+        pratiques: [
+          {
+            start: "10:00",
+            type: "acuponcture",
+            date: "2025-02-18",
+            appointments: [] // Créneau sans rendez-vous
+          },
+          {
+            start: "11:00",
+            type: "hypnose",
+            date: "2025-02-18",
+            appointments: [
+              {
+                name: "Charlie Leblanc",
+                age: 37,
+                telephone: "0147258369",
+                motif: "Gestion stress",
+                start: "11:00",
+                end: "12:30"
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
-};
+];
+
 
 const Agenda = () => {
+  // États principaux
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState("week");
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
-  const [patientInfo, setPatientInfo] = useState({ name: "", details: "" });
+  const [selectedTypes, setSelectedTypes] = useState(['all']);
+  const [selectedTimeRanges, setSelectedTimeRanges] = useState(['all']);
+  const [viewMode, setViewMode] = useState("day");
+  const [searchQuery, setSearchQuery] = useState("");
 
-// Pour gerer la navigation entre les affichages
-  const handlePrev = () => {
-    if (view === "day") setCurrentDate(subDays(currentDate, 1));
-    if (view === "week") setCurrentDate(subWeeks(currentDate, 1));
-    if (view === "month") setCurrentDate(subMonths(currentDate, 1));
-  };
+  // États pour les boîtes de dialogue
+  const [isPracticeDialogOpen, setIsPracticeDialogOpen] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [newPractice, setNewPractice] = useState({ start: "", type: "" });
+  const [selectedPractice, setSelectedPractice] = useState(null);
+  const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
+  const [appointmentDetails, setAppointmentDetails] = useState({
+    name: '',
+    age: '',
+    telephone: '',
+    motif: ''
+  });
+
+  // Données des créneaux horaires
+  const [slotsData, setSlotsData] = useState(initialSlotsData);
+
+  // Navigation dans le temps
   const handleNext = () => {
-    if (view === "day") setCurrentDate(addDays(currentDate, 1));
-    if (view === "week") setCurrentDate(addWeeks(currentDate, 1));
-    if (view === "month") setCurrentDate(addMonths(currentDate, 1));
-  };
-  const handleToday = () => setCurrentDate(new Date());
-// fin navigation entre affichage
-// Manipulation du vue de la calendrier
-  // Vue en semaines 
-  const startOfWeekDate = startOfWeek(currentDate, { weekStartsOn: 1 });
-  const weekDays = eachDayOfInterval({ start: startOfWeekDate, end: addDays(startOfWeekDate, 6) });
-  // Vue en mois
-  const startOfMonthDate = startOfMonth(currentDate);
-  const monthDays = eachDayOfInterval({ start: startOfMonthDate, end: endOfMonth(startOfMonthDate) });
-
-  const getEventsForDay = (day) => {
-    const dayString = format(day, "yyyy-MM-dd");
-    return eventsData[dayString] || [];
+    switch (viewMode) {
+      case "day":
+        setCurrentDate(addDays(currentDate, 1));
+        break;
+      case "week":
+        setCurrentDate(addWeeks(currentDate, 1));
+        break;
+      case "month":
+        setCurrentDate(addMonths(currentDate, 1));
+        break;
+      default:
+        break;
+    }
   };
 
-  const getEndTime = (startTime, duration) => {
-    const [hours, minutes] = startTime.split(":").map(Number);
-    const endDate = new Date();
-    endDate.setHours(hours, minutes);
-    endDate.setMinutes(endDate.getMinutes() + duration);
-    return format(endDate, "HH:mm");
+  const handlePrev = () => {
+    switch (viewMode) {
+      case "day":
+        setCurrentDate(subDays(currentDate, 1));
+        break;
+      case "week":
+        setCurrentDate(subWeeks(currentDate, 1));
+        break;
+      case "month":
+        setCurrentDate(subMonths(currentDate, 1));
+        break;
+      default:
+        break;
+    }
   };
-// Pour la creation d'un RDV
+
+  const handleToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  // Sélection d’une date via le calendrier
+  const handleDateSelect = (date) => {
+    setCurrentDate(date);
+  };
+
+  // Ouvrir la boîte de dialogue pour ajouter une pratique
+  const handleSlotClick = (day, slot) => {
+    setSelectedSlot({ day, slot });
+    setIsPracticeDialogOpen(true);
+  };
+
+  // Ajout d'une pratique (logique à compléter selon votre besoin)
+  const handleAddPractice = () => {
+    // Extrait de la logique initiale…
+    const { day, slot } = selectedSlot;
+    const { start, type } = newPractice;
+
+    if (!start || !type) {
+      alert("Veuillez remplir tous les champs.");
+      return;
+    }
+
+    const [startHour, startMinute] = start.split(':').map(Number);
+    const duration = getDurationInMinutes(type);
+    const endMinutes = startHour * 60 + startMinute + duration;
+
+    if (startHour < slot.start || endMinutes > slot.end * 60) {
+      alert("La pratique dépasse la plage horaire.");
+      return;
+    }
+
+    const isOverlap = slot.pratiques.some(p => {
+      const [pStartHour, pStartMinute] = p.start.split(':').map(Number);
+      const pEndMinutes = pStartHour * 60 + pStartMinute + getDurationInMinutes(p.type);
+      return (
+        (startHour * 60 + startMinute < pEndMinutes) &&
+        (endMinutes > pStartHour * 60 + pStartMinute)
+      );
+    });
+
+    if (isOverlap) {
+      alert("Chevauchement détecté. Veuillez choisir une autre plage.");
+      return;
+    }
+
+    const updatedSlotsData = slotsData.map(data => {
+      if (data.date === day) {
+        return {
+          ...data,
+          slots: data.slots.map(s => {
+            if (s.start === slot.start && s.end === slot.end) {
+              return {
+                ...s,
+                pratiques: [...s.pratiques, { start, type, date: day }]
+              };
+            }
+            return s;
+          })
+        };
+      }
+      return data;
+    });
+
+    setSlotsData(updatedSlotsData);
+    setIsPracticeDialogOpen(false);
+    setNewPractice({ start: "", type: "" });
+  };
+
+  // Création d’un rendez-vous (logique similaire à l’original)
   const handleCreateAppointment = () => {
-    if (!selectedEvent) return;
+    if (!appointmentDetails.name || !appointmentDetails.age || !appointmentDetails.telephone || !appointmentDetails.motif) {
+      alert("Veuillez remplir tous les champs");
+      return;
+    }
 
-    const newEvent = {
-      ...selectedEvent,
-      details: `Rendez-vous avec ${patientInfo.name}. ${patientInfo.details}`,
-      isCreated: true
-    };
+    const updatedSlotsData = slotsData.map(slotData => {
+      if (slotData.date === selectedPractice.date) {
+        return {
+          ...slotData,
+          slots: slotData.slots.map(slot => {
+            return {
+              ...slot,
+              pratiques: slot.pratiques.map(p => {
+                if (p.start === selectedPractice.start && p.type === selectedPractice.type) {
+                  return {
+                    ...p,
+                    appointments: [
+                      ...(p.appointments || []),
+                      {
+                        ...appointmentDetails,
+                        start: selectedPractice.start,
+                        end: selectedPractice.end,
+                        type: selectedPractice.type
+                      }
+                    ]
+                  };
+                }
+                return p;
+              })
+            };
+          })
+        };
+      }
+      return slotData;
+    });
 
-    const dayString = selectedEvent.date;
-    eventsData[dayString] = eventsData[dayString].map(event => 
-      event.start === selectedEvent.start && event.type === selectedEvent.type ? newEvent : event
-    );
-
-    setSelectedEvent(newEvent);
-    setIsCreatingAppointment(false);
-    setPatientInfo({ name: "", details: "" });
+    setSlotsData(updatedSlotsData);
+    setIsAppointmentDialogOpen(false);
+    setAppointmentDetails({
+      name: '',
+      age: '',
+      telephone: '',
+      motif: ''
+    });
   };
-// Fonction maka ny event rehetra anio ???
-  const allEvents = Object.entries(eventsData)
-    .flatMap(([date, events]) => 
-      events.map(event => ({ 
-        ...event, 
-        datetime: parseISO(`${date}T${event.start}:00`),
-        endTime: getEndTime(event.start, getDurationInMinutes(event.type))
-      }))
-    )
-    .sort((a, b) => a.datetime - b.datetime)
-    .filter(event => isAfter(event.datetime, new Date()));
 
   return (
-    <div className="p-6 bg-gray-100 rounded-lg">
-      {/* Section pour les bouton differentes vues */}
-      <div className="bg-white flex gap-2 mb-4 p-2 rounded-lg">
-        <Button onClick={() => setView("day")} className={`flex h-max bg-white hover:shadow-none shadow-none ${view === "day" ? "bg-green-500 text-white" : "text-gray-600"}`}>
-          <Clock className="mr-2" size={16} /> Jour
-        </Button>
-        <Button onClick={() => setView("week")} className={`flex h-max bg-white hover:shadow-none shadow-none ${view === "week" ? "bg-green-500 text-white" : "text-gray-600"}`}>
-          <List className="mr-2" size={16} /> Semaine
-        </Button>
-        <Button onClick={() => setView("month")} className={`flex h-max bg-white hover:shadow-none shadow-none ${view === "month" ? "bg-green-500 text-white" : "text-gray-600"}`}>
-          <Calendar className="mr-2" size={16} /> Mois
-        </Button>
-      </div>
-      {/* Pour les manipulation sur aller et retour dans les VUes  */}
-      <div className="flex justify-between items-center mb-4 bg-white p-2">
-        <div className="flex-1 flex gap-5 items-center">
-          <Button onClick={handlePrev}><ChevronLeft /></Button>
-          <h2 className="text-xl font-bold">
-            {view === "day" && format(currentDate, "EEEE dd/MM/yyyy", { locale: fr })}
-            {view === "week" && `Semaine du ${format(startOfWeekDate, "dd/MM/yyyy", { locale: fr })}`}
-            {view === "month" && format(currentDate, "MMMM yyyy", { locale: fr })}
-          </h2>
-          <Button onClick={handleNext}><ChevronRight /></Button>
-        </div>
-        <Button onClick={handleToday} className="bg-blue-600 text-white ml-4">Aujourd’hui</Button>
+    <div className="p-4 flex gap-4">
+      {/* Panneau latéral */}
+      <div className="w-72">
+        <CalendarView 
+          currentDate={currentDate} 
+          setCurrentDate={setCurrentDate} 
+          onDateSelect={handleDateSelect}
+        />
+        <Filters 
+          selectedTypes={selectedTypes} 
+          setSelectedTypes={setSelectedTypes}
+          selectedTimeRanges={selectedTimeRanges}
+          setSelectedTimeRanges={setSelectedTimeRanges}
+          PRACTICE_TYPES={PRACTICE_TYPES}
+          getColorByType={getColorByType}
+          slotsData={slotsData}
+        />
       </div>
 
-      <div className="flex gap-4">
-        {/* Bloc principal (Agenda) */}
-        <div className="flex-1">
-          {view === "day" && (
-            <div className="p-4 border rounded">
-              <h3 className="text-lg font-bold mb-2">Événements du {format(currentDate, "EEEE dd/MM/yyyy", { locale: fr })}</h3>
-              {getEventsForDay(currentDate).length > 0 ? (
-                <ul>
-                  {getEventsForDay(currentDate).map((event, idx) => (
-                    <li 
-                      key={idx} 
-                      className={`p-2 mt-2 rounded ${event.isCreated ? backgroundColors[event.type] : `bg-gray-300 border-2 ${colors[event.type]}`} cursor-pointer hover:bg-gray-400`}
-                      onClick={() => setSelectedEvent(event)}
-                    >
-                      {event.type} ({event.start} - {getEndTime(event.start, getDurationInMinutes(event.type))})
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500">Aucun événement pour ce jour.</p>
-              )}
-            </div>
-          )}
-
-          {view === "week" && (
-            <div className="grid grid-cols-7 gap-2">
-              {weekDays.map((day, index) => (
-                <div key={index} className="p-2 border rounded text-center">
-                  <div className="font-bold">{format(day, "EEEE", { locale: fr })}</div>
-                  <div>{format(day, "dd", { locale: fr })}</div>
-                  {getEventsForDay(day).map((event, idx) => (
-                    <div 
-                      key={idx} 
-                      className={`p-1 mt-1 rounded text-sm ${event.isCreated ? backgroundColors[event.type] : `bg-gray-300 border-2 ${colors[event.type]}`} cursor-pointer hover:bg-gray-400`}
-                      onClick={() => setSelectedEvent(event)}
-                    >
-                      {event.type} ({event.start} - {getEndTime(event.start, getDurationInMinutes(event.type))})
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {view === "month" && (
-            <div className="grid grid-cols-7 gap-2">
-              {monthDays.map((day, index) => (
-                <div key={index} className="p-2 border rounded">
-                  <div className="font-bold">{format(day, "dd")}</div>
-                  {getEventsForDay(day).map((event, idx) => (
-                    <div 
-                      key={idx} 
-                      className={`p-1 mt-1 rounded ${event.isCreated ? backgroundColors[event.type] : `bg-blue-100 border-2 ${colors[event.type]}`} cursor-pointer hover:bg-blue-200`}
-                      onClick={() => setSelectedEvent(event)}
-                    >
-                      {event.type} ({event.start} - {getEndTime(event.start, getDurationInMinutes(event.type))})
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Bloc de détails à droite */}
-        {selectedEvent && (
-          <div className="w-1/3 p-4 border-l">
-            <h3 className="text-lg font-bold mb-2">Détails du créneau</h3>
-            <p><strong>Type :</strong> {selectedEvent.type}</p>
-            <p><strong>Date :</strong> {selectedEvent.date}</p>
-            <p><strong>Heure :</strong> {selectedEvent.start} - {getEndTime(selectedEvent.start, getDurationInMinutes(selectedEvent.type))}</p>
-            <p><strong>Détails :</strong> {selectedEvent.details}</p>
-
-            {!selectedEvent.isCreated && (
-              <div className="mt-4">
-                <h3 className="text-lg font-bold mb-2">Créer un rendez-vous</h3>
-                <input
-                  type="text"
-                  placeholder="Nom du patient"
-                  value={patientInfo.name}
-                  onChange={(e) => setPatientInfo({ ...patientInfo, name: e.target.value })}
-                  className="w-full p-2 border rounded mb-2"
-                />
-                <textarea
-                  placeholder="Détails supplémentaires"
-                  value={patientInfo.details}
-                  onChange={(e) => setPatientInfo({ ...patientInfo, details: e.target.value })}
-                  className="w-full p-2 border rounded mb-2"
-                />
-                <Button onClick={handleCreateAppointment} className="bg-green-500 text-white">
-                  Créer le rendez-vous
-                </Button>
-              </div>
-            )}
+      {/* Zone principale */}
+      <div className="flex-1 h-[730px]">
+        <div className="flex items-center justify-between mb-4 border-2 px-2 py-5">
+          <div className="flex gap-2">
+            <Button onClick={handlePrev} className="bg-[#307853FF] rounded"><ChevronLeft /></Button>
+            <Button onClick={handleToday} className="bg-[#307853FF]">Aujourd'hui</Button>
+            <Button onClick={handleNext} className="bg-[#307853FF]"><ChevronRight /></Button>
           </div>
+          <div className="flex gap-2">
+            <Button onClick={() => setViewMode("day")} className="bg-[#0B2839FF]"><Clock /> Jour</Button>
+            <Button onClick={() => setViewMode("week")} className="bg-[#0B2839FF]"><List /> Semaine</Button>
+            <Button onClick={() => setViewMode("list")} className="bg-[#0B2839FF]"><CalendarIcon /> Liste</Button>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              type="text" 
+              placeholder="Rechercher..."
+              className="w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button type="submit" className="bg-[#307853FF]">
+              <Search className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {viewMode === "day" && (
+          <DayView 
+            currentDate={currentDate}
+            slotsData={slotsData}
+            handleSlotClick={handleSlotClick}
+            selectedTypes={selectedTypes}
+            selectedTimeRanges={selectedTimeRanges}
+            setSelectedPractice={setSelectedPractice}
+            setIsAppointmentDialogOpen={setIsAppointmentDialogOpen}
+          />
+        )}
+        {viewMode === "week" && (
+          <WeekView 
+            currentDate={currentDate}
+            slotsData={slotsData}
+            handleSlotClick={handleSlotClick}
+            selectedTypes={selectedTypes}
+            selectedTimeRanges={selectedTimeRanges}
+            setSelectedPractice={setSelectedPractice}
+            setIsAppointmentDialogOpen={setIsAppointmentDialogOpen}
+          />
+        )}
+
+        {viewMode === "list" && (
+          <ListView 
+            slotsData={slotsData}
+            searchQuery={searchQuery}
+            PRACTICE_TYPES={PRACTICE_TYPES}
+            getColorByType={getColorByType}
+          />
         )}
       </div>
 
-      {/* Bloc des prochains rendez-vous en bas */}
-      <div className="mt-8">
-        <h3 className="text-lg font-bold mb-2">Prochains rendez-vous</h3>
-        {allEvents.length > 0 ? (
-          <ul>
-            {allEvents.map((event, idx) => (
-              <li key={idx} className="bg-gray-100 p-2 mt-2 rounded">
-                <strong>{format(event.datetime, "dd/MM/yyyy HH:mm")}</strong> - {event.type} ({event.start} - {event.endTime})
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-gray-500">Aucun rendez-vous à venir.</p>
-        )}
-      </div>
+      {/* Boîtes de dialogue */}
+      <PracticeDialog 
+        open={isPracticeDialogOpen} 
+        setOpen={setIsPracticeDialogOpen}
+        newPractice={newPractice}
+        setNewPractice={setNewPractice}
+        handleAddPractice={handleAddPractice}
+      />
+      <AppointmentDialog 
+        open={isAppointmentDialogOpen} 
+        setOpen={setIsAppointmentDialogOpen}
+        selectedPractice={selectedPractice}
+        appointmentDetails={appointmentDetails}
+        setAppointmentDetails={setAppointmentDetails}
+        handleCreateAppointment={handleCreateAppointment}
+        PRACTICE_TYPES={PRACTICE_TYPES}
+      />
     </div>
   );
 };
