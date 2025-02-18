@@ -1,21 +1,20 @@
 // components/Disponibilite/DaySelector.jsx
 import React, { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { daysOfWeek } from "../utils/constants";
-
-const defaultSelectedDays = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
+import { daysOfWeek, defaultSelectedDays } from "../utils/constants";
 
 export const DaySelector = ({ selectedDays, toggleDay }) => {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (!initialized) {
-      defaultSelectedDays.forEach((day) => {
+    if (!initialized && defaultSelectedDays.length > 0) {
+      defaultSelectedDays.forEach((day) => { // si la valeur par defaut est non vide
         if (!selectedDays.includes(day)) {
           toggleDay(day);
         }
       });
       setInitialized(true);
+      console.log("Valeur par defaut ajouter")
     }
   }, [initialized, selectedDays, toggleDay]);
 

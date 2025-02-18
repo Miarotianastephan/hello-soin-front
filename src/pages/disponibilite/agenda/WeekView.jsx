@@ -3,7 +3,9 @@ import { format, startOfWeek, addDays, isSameDay, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { mergeConsecutiveSlots, getDurationInMinutes, getColorByType } from "./utils/calendarUtils";
 import { Timer, UserCheck, PhoneCall, Notebook } from "lucide-react";
+
 const WeekView = ({
+  workDaysData,
   currentDate,
   slotsData,
   handleSlotClick,
@@ -15,7 +17,7 @@ const WeekView = ({
   const startOfCurrentWeek = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(startOfCurrentWeek, i));
   const hours = Array.from({ length: 10 }, (_, i) => i + 8);
-  const dayAvailable = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "dimanche"];
+  const dayAvailable = workDaysData;
 
   // Rendu des créneaux fusionnés pour un jour (cellule) de la vue semaine
   const renderMergedSlots = (pratiques, dayStart, totalMinutes, cellDate) => {

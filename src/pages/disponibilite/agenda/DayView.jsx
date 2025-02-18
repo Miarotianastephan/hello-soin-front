@@ -3,7 +3,9 @@ import { format, parseISO, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { mergeConsecutiveSlots, getDurationInMinutes, getColorByType } from "./utils/calendarUtils";
 import { Timer, UserCheck, PhoneCall, Notebook } from "lucide-react";
+
 const DayView = ({
+  workDaysData,
   currentDate,
   slotsData,
   handleSlotClick,
@@ -14,7 +16,7 @@ const DayView = ({
 }) => {
   const hours = Array.from({ length: 10 }, (_, i) => i + 8);
   const currentDay = format(currentDate, "EEEE", { locale: fr }).toLowerCase();
-  const dayAvailable = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "dimanche"];
+  const dayAvailable = workDaysData;
   const isDayAvailable = dayAvailable.includes(currentDay);
   const currentDaySlots = slotsData.find(slot => isSameDay(parseISO(slot.date), currentDate))?.slots || [];
 

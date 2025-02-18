@@ -15,11 +15,11 @@ import {
   import { ChevronLeft, ChevronRight } from "lucide-react";
   
   
-  const CalendarView = ({ currentDate, setCurrentDate, onDateSelect }) => {
+  const CalendarView = ({ currentDate, setCurrentDate, onDateSelect, workDaysData }) => {
     const startDate = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 1 });
     const endDate = endOfMonth(currentDate);
     const days = eachDayOfInterval({ start: startDate, end: endDate });
-    const dayAvailable = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "dimanche"];
+    const dayAvailable = workDaysData;
   
     return (
       <div className="border-2 p-2">
