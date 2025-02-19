@@ -112,46 +112,37 @@ const AgendaContent = ({workDaysData}) => {
 
   // Ajout d'une pratique (logique à compléter selon votre besoin)
   const handleAddPractice = () => {
-    // Extrait de la logique initiale…
     const { day, slot } = selectedSlot;
     const { start, type } = newPractice;
-
+  
     if (!start || !type) {
       alert("Veuillez remplir tous les champs.");
       return;
     }
-
+  
     const [startHour, startMinute] = start.split(":").map(Number);
     const duration = getDurationInMinutes(type);
     const endMinutes = startHour * 60 + startMinute + duration;
-
+  
     if (startHour < slot.start || endMinutes > slot.end * 60) {
-      //mila reverifiena ilay eto : comparaison
-      console.log({
-        "Start Hour": startHour,
-        "Start Slot": slot.start,
-        "End minute": endMinutes,
-        "End Slot": slot.end,
-      });
       alert("La pratique dépasse la plage horaire.");
       return;
     }
-
+  
     const isOverlap = slot.pratiques.some((p) => {
       const [pStartHour, pStartMinute] = p.start.split(":").map(Number);
-      const pEndMinutes =
-        pStartHour * 60 + pStartMinute + getDurationInMinutes(p.type);
+      const pEndMinutes = pStartHour * 60 + pStartMinute + getDurationInMinutes(p.type);
       return (
         startHour * 60 + startMinute < pEndMinutes &&
         endMinutes > pStartHour * 60 + pStartMinute
       );
     });
-
+  
     if (isOverlap) {
       alert("Chevauchement détecté. Veuillez choisir une autre plage.");
       return;
     }
-
+  
     const updatedSlotsData = slotsData.map((data) => {
       if (data.date === day) {
         return {
@@ -160,7 +151,7 @@ const AgendaContent = ({workDaysData}) => {
             if (s.start === slot.start && s.end === slot.end) {
               return {
                 ...s,
-                pratiques: [...s.pratiques, { start, type, date: day }],
+                pratiques: [...s.pratiques, { start, type, date: day, appointments: [] }],
               };
             }
             return s;
@@ -169,70 +160,72 @@ const AgendaContent = ({workDaysData}) => {
       }
       return data;
     });
-
+  
     setSlotsData(updatedSlotsData);
+    localStorage.setItem("programmedDays", JSON.stringify(updatedSlotsData)); // Mise à jour du localStorage
     setIsPracticeDialogOpen(false);
     setNewPractice({ start: "", type: "" });
   };
 
-  // Création d’un rendez-vous (logique similaire à l’original)
+
+
   const handleCreateAppointment = () => {
-    if (
-      !appointmentDetails.name ||
-      !appointmentDetails.age ||
-      !appointmentDetails.telephone ||
-      !appointmentDetails.motif
-    ) {
-      alert("Veuillez remplir tous les champs");
-      return;
+  if (
+    !appointmentDetails.name ||
+    !appointmentDetails.age ||
+    !appointmentDetails.telephone ||
+    !appointmentDetails.motif
+  ) {
+    alert("Veuillez remplir tous les champs");
+    return;
+  }
+
+  const updatedSlotsData = slotsData.map((slotData) => {
+    if (slotData.date === selectedPractice.date) {
+      return {
+        ...slotData,
+        slots: slotData.slots.map((slot) => {
+          return {
+            ...slot,
+            pratiques: slot.pratiques.map((p) => {
+              if (
+                p.start === selectedPractice.start &&
+                p.type === selectedPractice.type
+              ) {
+                return {
+                  ...p,
+                  appointments: [
+                    ...(p.appointments || []),
+                    {
+                      ...appointmentDetails,
+                      start: selectedPractice.start,
+                      end: selectedPractice.end,
+                      type: selectedPractice.type,
+                    },
+                  ],
+                };
+              }
+              return p;
+            }),
+          };
+        }),
+      };
     }
+    return slotData;
+  });
 
-    const updatedSlotsData = slotsData.map((slotData) => {
-      if (slotData.date === selectedPractice.date) {
-        return {
-          ...slotData,
-          slots: slotData.slots.map((slot) => {
-            return {
-              ...slot,
-              pratiques: slot.pratiques.map((p) => {
-                if (
-                  p.start === selectedPractice.start &&
-                  p.type === selectedPractice.type
-                ) {
-                  return {
-                    ...p,
-                    appointments: [
-                      ...(p.appointments || []),
-                      {
-                        ...appointmentDetails,
-                        start: selectedPractice.start,
-                        end: selectedPractice.end,
-                        type: selectedPractice.type,
-                      },
-                    ],
-                  };
-                }
-                return p;
-              }),
-            };
-          }),
-        };
-      }
-      return slotData;
-    });
-
-    setSlotsData(updatedSlotsData);
-    setIsAppointmentDialogOpen(false);
-    setAppointmentDetails({
-      name: "",
-      age: "",
-      telephone: "",
-      motif: "",
-    });
-  };
-  
+  setSlotsData(updatedSlotsData);
+  localStorage.setItem("programmedDays", JSON.stringify(updatedSlotsData)); // Mise à jour du localStorage
+  setIsAppointmentDialogOpen(false);
+  setAppointmentDetails({
+    name: "",
+    age: "",
+    telephone: "",
+    motif: "",
+  });
+};
   return(
-    <div className="p-4 flex gap-4">
+    <div className="flex gap-4 p-4">
       {/* Panneau latéral */}
       <div className="w-72">
         <CalendarView
@@ -254,7 +247,7 @@ const AgendaContent = ({workDaysData}) => {
 
       {/* Zone principale */}
       <div className="flex-1 h-[730px]">
-        <div className="flex items-center justify-between mb-4 border-2 px-2 py-5">
+        <div className="flex items-center justify-between px-2 py-5 mb-4 border-2">
           <div className="flex gap-2">
             <Button onClick={handlePrev} className="bg-[#307853FF] rounded">
               <ChevronLeft />

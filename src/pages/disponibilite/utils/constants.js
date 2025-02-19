@@ -116,3 +116,5 @@ export const initialSlotsData = [
     ]
   }
 ];
+
+// export const initialSlotsData = JSON.parse(localStorage.getItem('programmedDays')) || []
