@@ -129,8 +129,8 @@ export const initialSlotsData = [
         end: 18,
         pratiques: [
           {
-            start: "16:30",
-            type: "réflexologie",
+            start: "15:00",
+            type: "hypnose",
             date: "2025-02-14",
             appointments: [
               {
@@ -153,17 +153,11 @@ export const initialSlotsData = [
         end: 12,
         pratiques: [
           {
-            start: "9:30",
-            type: "kinésithérapie",
+            start: "9:00",
+            type: "naturopathie",
             date: "2025-02-17",
             appointments: []
           },
-          {
-            start: "11:00",
-            type: "ostéopathie",
-            date: "2025-02-17",
-            appointments: []
-          }
         ]
       }
     ]
@@ -173,17 +167,17 @@ export const initialSlotsData = [
     day: "Mardi",
     slots: [
       {
-        start: 14,
+        start: 13,
         end: 17,
         pratiques: [
           {
-            start: "14:30",
+            start: "13:00",
             type: "hypnose",
             date: "2025-02-18",
             appointments: []
           },
           {
-            start: "16:00",
+            start: "15:00",
             type: "naturopathie",
             date: "2025-02-18",
             appointments: []
@@ -202,13 +196,13 @@ export const initialSlotsData = [
         pratiques: [
           {
             start: "10:30",
-            type: "acuponcture",
+            type: "hypnose",
             date: "2025-02-19",
             appointments: []
           },
           {
             start: "12:15",
-            type: "massage thérapeutique",
+            type: "acuponcture",
             date: "2025-02-19",
             appointments: []
           }
@@ -225,8 +219,8 @@ export const initialSlotsData = [
         end: 18,
         pratiques: [
           {
-            start: "15:30",
-            type: "réflexologie",
+            start: "15:00",
+            type: "hypnose",
             date: "2025-02-21",
             appointments: []
           }
@@ -243,17 +237,11 @@ export const initialSlotsData = [
         end: 12,
         pratiques: [
           {
-            start: "9:30",
-            type: "kinésithérapie",
-            date: "2025-02-24",
+            start: "9:00",
+            type: "naturopathie",
+            date: "2025-02-17",
             appointments: []
           },
-          {
-            start: "11:00",
-            type: "ostéopathie",
-            date: "2025-02-24",
-            appointments: []
-          }
         ]
       }
     ]
@@ -263,19 +251,19 @@ export const initialSlotsData = [
     day: "Mardi",
     slots: [
       {
-        start: 14,
+        start: 13,
         end: 17,
         pratiques: [
           {
-            start: "14:30",
+            start: "13:00",
             type: "hypnose",
-            date: "2025-02-25",
+            date: "2025-02-18",
             appointments: []
           },
           {
-            start: "16:00",
+            start: "15:00",
             type: "naturopathie",
-            date: "2025-02-25",
+            date: "2025-02-18",
             appointments: []
           }
         ]
@@ -292,14 +280,14 @@ export const initialSlotsData = [
         pratiques: [
           {
             start: "10:30",
-            type: "acuponcture",
-            date: "2025-02-26",
+            type: "hypnose",
+            date: "2025-02-19",
             appointments: []
           },
           {
             start: "12:15",
-            type: "massage thérapeutique",
-            date: "2025-02-26",
+            type: "acuponcture",
+            date: "2025-02-19",
             appointments: []
           }
         ]
@@ -312,11 +300,11 @@ export const initialSlotsData = [
     slots: [
       {
         start: 15,
-        end: 18,
+        end: 17,
         pratiques: [
           {
-            start: "15:30",
-            type: "réflexologie",
+            start: "15:00",
+            type: "hypnose",
             date: "2025-02-28",
             appointments: []
           }
