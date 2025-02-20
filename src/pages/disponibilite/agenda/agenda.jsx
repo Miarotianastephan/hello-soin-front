@@ -38,7 +38,7 @@ import {
 import { initialSlotsData, SELECTED_DAYS_KEYS } from "../utils/constants";
 
 
-const AgendaContent = ({workDaysData}) => {
+const AgendaContent = ({workDaysData, dataAgenda}) => {
   
   // États principaux
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -60,7 +60,7 @@ const AgendaContent = ({workDaysData}) => {
     motif: "",
   });
   // Données des créneaux horaires
-  const [slotsData, setSlotsData] = useState(initialSlotsData);
+  const [slotsData, setSlotsData] = useState(dataAgenda);
 
   // Navigation dans le temps
   const handleNext = () => {
@@ -353,12 +353,15 @@ const Agenda = () => {
   const [isLoading, setLoading] = useState(true);
   // Donnees des jours de travails
   const [workDays, setWorkDays] = useState([]);
+  const [myAgenda, setMyAgenda] = useState({});
 
   useEffect(() => {
     const fetchDaysAvalaible = async () => {
       try {
         const work_days = JSON.parse(localStorage.getItem(SELECTED_DAYS_KEYS));
         setWorkDays(work_days.map(day => day.toLowerCase()));
+        const agenda_data = JSON.parse(localStorage.getItem("programmedDays"));
+        setMyAgenda(agenda_data);
       } catch (error) {
         console.error("Erreur lors de la récupération des plages horaires :", error);
       } finally{
@@ -372,7 +375,7 @@ const Agenda = () => {
     <>
       { isLoading ? 
         (<p>En cours de chargement</p>) : (
-          <AgendaContent workDaysData={workDays}/>
+          <AgendaContent workDaysData={workDays} dataAgenda={myAgenda}/>
         )
       }
     </>

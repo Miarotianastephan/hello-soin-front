@@ -4,7 +4,7 @@ export const heures = Array.from({ length: 10 }, (_, i) => 8 + i); // Plages hor
 export const pratiques = {
   naturopathie: 120,
   acuponcture: 30,
-  hypnose: 90,
+  hypnose: 92,
 };
 
 // Les constantes de manipulation des CLEs des donnees
@@ -313,3 +313,90 @@ export const initialSlotsData = [
     ]
   }
 ];
+
+
+// Correction 
+export const DEFAULT_SLOT_TIME = {
+  time_start : 8,
+  time_end : 10,
+}
+
+export function calculerHeureFin(heureDebut, dureeMinutes) {
+  let heures = Math.floor(dureeMinutes / 60);
+  let minutes = dureeMinutes % 60;
+  
+  let heureFin = heureDebut + heures;
+  let minuteFin = minutes;
+
+  // Formatage de l'affichage (ex: "8:00" au lieu de "8:0")
+  let heureDebutFormat = `${heureDebut}:00`;
+  let heureFinFormat = `${heureFin}:${minuteFin.toString().padStart(2, '0')}`;
+
+  return {
+      heure_debut: heureDebutFormat,
+      heure_fin: heureFinFormat
+  };
+}
+
+export function comparerHeures(heure1, heure2) {
+  // Convertir "8:00" en heures et minutes
+  const [h1, m1] = heure1.split(":").map(Number);
+  const [h2, m2] = heure2.split(":").map(Number);
+
+  // Convertir en minutes depuis minuit
+  const totalMinutes1 = h1 * 60 + m1;
+  const totalMinutes2 = h2 * 60 + m2;
+  if (totalMinutes1 == totalMinutes2) {
+    return "equal"
+  }else if (totalMinutes1 < totalMinutes2){
+    return "inf";
+  }else if (totalMinutes1 > totalMinutes2){
+    return "sup";
+  }
+}
+
+function showOverLapTest(val1, val2, val3, testMessage){
+  console.log(val1 + " "+ testMessage + ". Detail: start:" + val2 + " end:" + val3)
+}
+// Test 1
+export function isStartOverLapIn(newPratique, pratique) {
+  const newStart = newPratique.start;
+  const pratStart = pratique.start;
+  const pratEnd = pratique.end;
+
+  if ( (comparerHeures(newStart, pratStart)==="equal" || comparerHeures(newStart, pratStart)==="sup")  && (comparerHeures(newStart, pratEnd)==="inf") ){
+    showOverLapTest(newStart, pratStart, pratEnd, "start inside");
+    return true;
+  }
+  showOverLapTest(newStart, pratStart, pratEnd, "start OK");
+  return false;
+}
+// Test 2
+export function isEndOverLapIn(newPratique, pratique) {
+  const newEnd = newPratique.end;
+  const pratStart = pratique.start;
+  const pratEnd = pratique.end;
+
+  if ( (comparerHeures(newEnd, pratStart)==="sup") && (comparerHeures(newEnd, pratEnd)==="inf" || comparerHeures(newEnd, pratEnd)==="equal" )){
+    showOverLapTest(newEnd, pratStart, pratEnd, "end inside");
+    return true;
+  }
+  showOverLapTest(newEnd, pratStart, pratEnd, "end OK");
+  return false;
+}
+// Test 3
+export function isFullOverLap(newPratique, pratique) {
+  const newStart = newPratique.start;
+  const newEnd = newPratique.end;
+  const pratStart = pratique.start;
+  const pratEnd = pratique.end;
+
+  if ((comparerHeures(newStart, pratStart)==="inf") && (comparerHeures(newEnd, pratEnd)==="sup") || 
+      (comparerHeures(newStart, pratStart)==="equal") && (comparerHeures(newEnd, pratEnd)==="equal") ||
+      (comparerHeures(newStart, pratStart)==="sup") && (comparerHeures(newEnd, pratEnd)==="inf")){
+    console.log("full overlap")
+    return true;
+  }
+  console.log("Time not full overlap")
+  return false;
+}

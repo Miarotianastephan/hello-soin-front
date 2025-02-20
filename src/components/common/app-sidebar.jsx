@@ -33,9 +33,9 @@ const items = [
   {
     title: "Plage horaire", url: "/plage-horaire", icon: CalendarFold,
   },
-  {
-    title: "Type de rendez-vous", url: "/type-rendez-vous", icon: CalendarClock,
-  },
+  // {
+  //   title: "Type de rendez-vous", url: "/type-rendez-vous", icon: CalendarClock,
+  // },
   {
     title: "Agenda", url: "/agenda", icon: CalendarDays,
   },

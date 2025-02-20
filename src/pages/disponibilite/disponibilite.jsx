@@ -12,7 +12,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Play } from "lucide-react";
-import { daysOfWeek, pratiques, AVALAIBLE_DAYS_KEYS, SELECTED_DAYS_KEYS } from "./utils/constants";
+import { daysOfWeek, pratiques, AVALAIBLE_DAYS_KEYS, SELECTED_DAYS_KEYS, DEFAULT_SLOT_TIME, calculerHeureFin, isStartOverLapIn, isEndOverLapIn, isFullOverLap } from "./utils/constants";
 
 const Disponibilite = () => {
   const [selectedDays, setSelectedDays] = useState([]); //tableau des jours
@@ -26,6 +26,7 @@ const Disponibilite = () => {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+  // A suivre : Resolu
   const [programmedDays, setProgrammedDays] = useState([]);
   const [editMode, setEditMode] = useState({
     day: "",
@@ -54,20 +55,21 @@ const Disponibilite = () => {
 
   // Fonction pour basculer la sélection d'un jour
   const toggleDay = (day) => {
-    // Pour inserer/enlever un jour dans l'etat selectionner
-    setSelectedDays(
+    setSelectedDays(// etat des jours => "Lundi"... etc
       (prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
-    // Pour ajouter un plage d'heure et une liste de pratique
-    if (!timeSlots[day]) {// Nouveau jour pour le plage horaire
+    if (!timeSlots[day]) {
+      // etat des slots => { start: "heure_debut",end: "heure_fin",liste de pratiques defaut vide [] }
       setTimeSlots(
         (prev) => (
-          {...prev, [day]: [{ start: 8, end: 10, pratiques: [] }],}
+          {...prev, [day]: [{ 
+            start: DEFAULT_SLOT_TIME.time_start, 
+            end: DEFAULT_SLOT_TIME.time_end, 
+            pratiques: [] 
+          }],}
         ));
     }
-    if (timeSlots[day]) { // pour enlever le jour dans l'objet
-      removeDay(day)
-    }
+    if (timeSlots[day]) { removeDay(day) }
   };
   const removeDay = (dayToRemove) => {
     setTimeSlots((prev) => {
@@ -143,15 +145,14 @@ const Disponibilite = () => {
   };
 
   // Fonction pour vérifier les chevauchements de pratiques
-  const checkOverlap = (pratiques, newPratique) => {
-    return pratiques.some(
-      (pratique) =>
-        (newPratique.start >= pratique.start &&
-          newPratique.start < pratique.end) ||
-        (newPratique.end > pratique.start && newPratique.end <= pratique.end) ||
-        (newPratique.start <= pratique.start && newPratique.end >= pratique.end)
-    );
-  };
+  const checkTimeOverLaps = (listPratique, newPratique) => { // pour remplacer le fonction checkOverlap
+    return listPratique.some(
+      (prat) =>
+      ( isStartOverLapIn(newPratique,prat) ) ||
+      ( isEndOverLapIn(newPratique, prat) ) ||
+      ( isFullOverLap(newPratique, prat) )
+    )
+  }
 
   // Fonction pour sauvegarder une pratique
   const handleSavePratique = () => {
@@ -159,8 +160,8 @@ const Disponibilite = () => {
       setError("Veuillez sélectionner un type de pratique.");
       return;
     }
-
-    const endTime = startTime + pratiques[selectedPratique] / 60;
+    const dureeMinute = pratiques[selectedPratique];
+    const endTime = startTime + dureeMinute / 60;
 
     // Vérifier que la pratique ne dépasse pas la plage horaire
     const slot = timeSlots[currentDay][currentSlotIndex];
@@ -170,12 +171,13 @@ const Disponibilite = () => {
     }
 
     // Vérifier qu'il n'y a pas de chevauchement avec d'autres pratiques
+    const newTimeLap = calculerHeureFin(startTime, dureeMinute);
     const newPratique = {
-      start: startTime,
-      end: endTime,
+      start: newTimeLap.heure_debut,
+      end: newTimeLap.heure_fin,
       type: selectedPratique,
     };
-    if (checkOverlap(slot.pratiques, newPratique)) {
+    if (checkTimeOverLaps(slot.pratiques, newPratique)) {
       setError("Chevauchement détecté avec une autre pratique.");
       return;
     }
@@ -221,7 +223,7 @@ const Disponibilite = () => {
         daysOfWeek[currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1]; // Ajustement pour Dimanche
       if (selectedDays.includes(dayOfWeek)) {
         daysList.push({
-          date: new Date(currentDate),
+          date: (new Date(currentDate)).toLocaleDateString('fr-CA'), // Correction pour avoir la date "YYYY-MM-DD"
           day: dayOfWeek,
           slots: timeSlots[dayOfWeek] || [],
         });

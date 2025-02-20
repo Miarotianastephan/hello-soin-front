@@ -25,6 +25,7 @@ export const PracticeDialog = ({
           <DialogTitle>{isEditMode ? "Modifier" : "Ajouter"} une pratique</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4">
+          {/* Modification en heure String mintsy */}
           <Select value={String(startTime)} onValueChange={(val) => setStartTime(Number(val))}>
             <SelectTrigger aria-label="Sélectionner l'heure de début" className={error ? "border-red-500" : ""}>
               {startTime ? `${startTime}h` : "Heure de début"}

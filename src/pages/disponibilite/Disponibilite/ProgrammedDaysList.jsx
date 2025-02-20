@@ -21,7 +21,7 @@ export const ProgrammedDaysList = ({
         pratiques: slot.pratiques.map(pratique => ({
           start: pratique.start,
           type: pratique.type,
-          date: pratique.date,
+          date: day.date,
           appointments: pratique.appointments ? pratique.appointments.map(appointment => ({
             name: appointment.name,
             age: appointment.age,
@@ -39,7 +39,7 @@ export const ProgrammedDaysList = ({
     // Stockage dans localStorage
     try {
       localStorage.setItem("programmedDays", JSON.stringify(formattedData));
-      const data = localstorage.getItem("programmedDays")
+      const data = localStorage.getItem("programmedDays")
       console.log(`data saved : ${data}`)
     } catch (error) {
       console.log(error)
