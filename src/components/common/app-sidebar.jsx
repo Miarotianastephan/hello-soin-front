@@ -55,7 +55,7 @@ const AppSidebar = () => {
   const [user_info, setUserInfo] = useState({
     id_users: undefined,
     user_name: "Jean",
-    user_forname: "Bosco",
+    user_forname: "Dupont",
     adresse: "Ambiatibe",
     code_postal: "12344",
     ville: "Tsy hay",
