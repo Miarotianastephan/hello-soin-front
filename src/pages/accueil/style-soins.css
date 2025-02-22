@@ -1,0 +1,40 @@
+/* Ajout de quelques styles personnalisés */
+body {
+  font-family: 'poppins', sans-serif;
+}
+
+h1, h2, h3 {
+  color: #ffffff;
+} 
+
+button {
+  transition: background-color 0.3s ease;
+
+}
+
+button:hover {
+  background-color: #2b7a72; /* Changer la couleur lors du survol */
+}
+header {
+    transition: top 5s ease-in-out;
+
+}
+.bg-custom-bg {
+    background-color: #0f2b3d;
+}
+
+.aling-left{
+    align-content: center;
+}
+.text-left{
+    text-align: left;
+
+}
+.right{
+    right: 0;
+}
+.nav>ul>li>a{
+    font-family: 'poppins';
+    font-size: 16px;
+    font-weight: 400;
+}
