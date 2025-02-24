@@ -1,7 +1,7 @@
-import { 
+import {
   Sidebar,
   SidebarContent,
-  SidebarFooter, 
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -11,44 +11,21 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarRail,} from "@/components/ui/sidebar";
-import { useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, CalendarDays, CalendarFold, CalendarClock, Inbox, Activity, Settings, User, Users } from "lucide-react";
+  SidebarRail,
+} from "@/components/ui/sidebar";
 import { NavUser } from "@/components/common/nav-user";
-import AppSidebarHeader from "./app-sidebar-header";
-
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from "@/components/ui/collapsible";
+import { useLocation, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { getLocalData } from "@/services/api";
 
-// Menu items.
-const items = [
-  {
-    title: "Accueil", url: "/praticien/dashboard", icon: LayoutDashboard,
-  },
-  {
-    title: "Plage horaire", url: "/plage-horaire", icon: CalendarFold,
-  },
-  // {
-  //   title: "Type de rendez-vous", url: "/type-rendez-vous", icon: CalendarClock,
-  // },
-  {
-    title: "Agenda", url: "/agenda", icon: CalendarDays,
-  },
-  {
-    title: "Pratique", url: "/pratiques", icon: Activity,
-  },
-  {
-    title: "Patient", url: "#", icon: Users,
-  },
-  {
-    title: "Message", url: "#", icon: Inbox,
-  }
-]
+import { menu_principale, menu_secondaire } from "./constant";
+import AppSidebarHeader from "./app-sidebar-header";
 
 const AppSidebar = () => {
   const location = useLocation();
@@ -64,9 +41,10 @@ const AppSidebar = () => {
     user_mail: "jean@mail.jean",
     user_password: "xxxxxxx",
     user_phone: "34 21 245 21",
-    user_photo_url: "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-3.jpg",
+    user_photo_url:
+      "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-3.jpg",
     id_type_user: undefined,
-    mot_de_passe: ""
+    mot_de_passe: "",
   });
 
   // useEffect(() => {
@@ -80,16 +58,19 @@ const AppSidebar = () => {
       <AppSidebarHeader />
       <SidebarContent className="bg-white">
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Navigation Principale</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {menu_principale.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link to={item.url}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition hover:text-green-400 active:text-helloSoin  ${
-                      location.pathname === item.url ? "text-helloSoin bg-gray-100" : "text-gray-700"
-                    }`}
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link
+                      to={item.url}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition hover:text-green-400 active:text-helloSoin  ${
+                        location.pathname === item.url
+                          ? "text-helloSoin bg-gray-100"
+                          : "text-gray-700"
+                      }`}
                     >
                       <item.icon /> <span>{item.title}</span>
                     </Link>
@@ -99,13 +80,57 @@ const AppSidebar = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {/* Menu secondaire  */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Parametrages</SidebarGroupLabel>
+          <SidebarMenu>
+            {menu_secondaire.map((item) => (
+              <Collapsible
+                key={item.title}
+                asChild
+                defaultOpen={item.isActive}
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip={item.title}>
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {item.items?.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link
+                              to={subItem.url}
+                              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition hover:text-green-400 active:text-helloSoin  ${
+                                location.pathname === subItem.url
+                                  ? "text-helloSoin bg-gray-100"
+                                  : "text-gray-700"
+                              }`}
+                            >
+                               <span>{subItem.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user_info} />
       </SidebarFooter>
-      <SidebarRail />
+      <SidebarRail title="" className="hover:bg-gray-50" />
     </Sidebar>
   );
-}
+};
 
 export default AppSidebar;
