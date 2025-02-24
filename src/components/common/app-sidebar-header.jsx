@@ -13,7 +13,7 @@ const AppSidebarHeader = () => {
                   <GalleryVerticalEnd className="size-4" />
                 </div> */}
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <img src={hello_soin} alt="Hello Soin" className="h-auto w-auto rounded-lg object-cover object-center" />
+                  <img src={hello_soin} alt="Hello Soin Logo" className="h-auto w-auto rounded-lg object-cover object-center" />
                 </div>
               </a>
             </SidebarMenuButton>

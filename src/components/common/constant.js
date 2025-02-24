@@ -34,17 +34,17 @@ const menu_secondaire = [
     isActive: true,
     items: [
       {
-        title: "Pratiques",
-        url: "/pratiques",
-        icon: Activity,
-      },
-      {
         title: "Plage horaire",
         url: "/plage-horaire",
         icon: CalendarFold,
       },
       {
-        title: "Patients",
+        title: "Type de pratique",
+        url: "/pratiques",
+        icon: Activity,
+      },
+      {
+        title: "Mes patients",
         url: "#",
         icon: Users,
       },
