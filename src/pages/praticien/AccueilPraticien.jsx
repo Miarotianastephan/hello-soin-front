@@ -1,6 +1,6 @@
 import { ListTable } from "@/components/praticienComponents/list-table";
 
-const Acceuil = () => {
+const AccueilPraticien = () => {
 
     return(
       <>
@@ -75,4 +75,4 @@ const Acceuil = () => {
     );
 }
 
-export default Acceuil;
+export default AccueilPraticien;

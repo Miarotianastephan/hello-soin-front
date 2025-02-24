@@ -29,16 +29,23 @@ const SignInForm = () => {
   const prevStep = () => setStep((prev) => prev - 1);
 
   return (
-    <Card className="max-w-3xl mx-auto w-full p-4 sm:p-6 md:p-8">
-      <CardHeader className="text-center text-2xl font-bold">
-        <CardTitle >Creer un compte - Étape {step}/{steps.length}</CardTitle>
-        <Progress value={(step / steps.length) * 100} className="sm:hidden mt-2" />
-        <div className="text-center text-sm mt-4">
-            Vous avez deja un compte?{" "}
+    <Card className="max-w-3xl mx-auto w-full p-4 sm:p-6 md:p-4">
+      <CardHeader className="text-center text-2xl font-normal">
+        <div className='flex flex-col items-center justify-center mb-3 gap-2'>
+          <div className="text-center text-sm font-bold">
+              <Link to="/" className="underline underline-offset-4">
+              Retour à l'accueil{" "}
+              </Link>
+          </div>
+          <div className="text-center text-sm">
+            Déjà inscrit ? {" "}
             <Link to="/login" className="underline underline-offset-4">
                 Connectez-vous
             </Link>
+          </div>
         </div>
+        <CardTitle className="" >Inscription – Étape {step}</CardTitle>
+        <Progress value={(step / steps.length) * 100} className="sm:hidden mt-2" />
       
       {/* Indicateur des étapes - Visible seulement sur écrans larges */}
       <div className="hidden md:flex justify-between items-center mt-2 p-6  gap-4">

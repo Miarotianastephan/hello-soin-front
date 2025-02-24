@@ -28,7 +28,7 @@ import { getLocalData } from "@/services/api";
 // Menu items.
 const items = [
   {
-    title: "Accueil", url: "/", icon: LayoutDashboard,
+    title: "Accueil", url: "/praticien/dashboard", icon: LayoutDashboard,
   },
   {
     title: "Plage horaire", url: "/plage-horaire", icon: CalendarFold,

@@ -23,7 +23,7 @@ export const LoginForm = ({ className, ...props }) => {
 
   const onSubmit =  (data) => { 
     console.log(data) 
-    navigate("/");
+    navigate("/praticien/dashboard");
     // alert("Login submited !!");
     // setLoading(true);
     // try {
@@ -34,7 +34,7 @@ export const LoginForm = ({ className, ...props }) => {
     //     setLocalData("token",response.token);
     //     setLocalData("user_data",response.user);
     //     setLoading(false);
-    //     navigate("/"); // page d'acceuil
+    //     navigate("/"); // page d'AccueilPraticien
     //   }, 1000);
       
 
@@ -107,11 +107,18 @@ export const LoginForm = ({ className, ...props }) => {
                   {loading ? '...Connexion' : 'Se connecter' }
                 </Button>
             </div>
-            <div className="text-center text-sm mt-4">
-                Vous n&apos;avez pas de compte?{" "}
-                <Link to="/signin" className="underline underline-offset-4">
-                    Inscrivez-vous
-                </Link>
+            <div className='flex flex-col items-center justify-center mt-2 gap-2'>
+              <div className="text-center text-sm">
+                  Vous n&apos;avez pas de compte? {" "}
+                  <Link to="/signin" className="underline underline-offset-4">
+                      Inscrivez-vous{" "}
+                  </Link>
+              </div>
+              <div className="text-center text-sm">
+                  <Link to="/" className="underline underline-offset-4">
+                  Retour à l'accueil{" "}
+                  </Link>
+              </div>
             </div>
           </form>
           {/* Fin section Login */}

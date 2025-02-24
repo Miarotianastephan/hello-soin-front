@@ -1,5 +1,6 @@
 // App.jsx
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import "./style-soins.css";
@@ -136,9 +137,11 @@ const Header = () => {
           <Button className="text-white border-none shadow-none bg-[#2b7a72] text-sm">
             <BetweenHorizonalEnd /> S'inscrire
           </Button>
-          <Button className="text-white border-none shadow-none bg-[#2b7a72] text-sm">
-            <UserCheck /> Êtes-vous praticien ?
-          </Button>
+          <Link to="/login">
+            <Button className="text-white border-none shadow-none bg-[#2b7a72] text-sm">
+                <UserCheck /> Êtes-vous praticien ?
+            </Button>
+          </Link>
         </div>
         <div className="md:hidden">
           <button onClick={() => setMenuOpen(!menuOpen)} className="text-white focus:outline-none">
