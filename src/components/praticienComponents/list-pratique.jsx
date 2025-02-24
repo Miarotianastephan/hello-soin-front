@@ -69,7 +69,7 @@ const DetailPratiqueCard = ({titles,details}) => {
 }
 
  
-export function ListPratique({listpratiques}) {
+export function ListPratique({listpratiques, switchTabFunction}) {
     const pratiques = Array.isArray(listpratiques) ? listpratiques : [];
     const [selectedPratique,setSelectedPratique] = useState(null);
 
@@ -87,7 +87,7 @@ export function ListPratique({listpratiques}) {
                             </Typography>
                         </div>
                         <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-                            <Button className="flex items-center gap-3" size="sm">
+                            <Button className="flex items-center gap-3" size="sm" onClick={() => switchTabFunction("add")}>
                             ajouter
                             </Button>
                         </div>

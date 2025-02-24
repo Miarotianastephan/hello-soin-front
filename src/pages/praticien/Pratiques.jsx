@@ -1,10 +1,11 @@
-import {
-    Tabs,
-    TabsHeader,
-    TabsBody,
-    Tab,
-    TabPanel,
-  } from "@material-tailwind/react";
+// import {
+//     Tabs,
+//     TabsHeader,
+//     TabsBody,
+//     Tab,
+//     TabPanel,
+//   } from "@material-tailwind/react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ListPratique } from "@/components/praticienComponents/list-pratique";
 import { FormAjoutPratique } from "@/components/praticienComponents/form-ajout-pratique";
 import { useEffect, useState } from "react";
@@ -42,21 +43,19 @@ const Pratiques = () => {
     
     return(
         <Tabs value={actualTab}>
-            <TabsHeader className="z-0">
-            {tabs_sections.map(({ label, value }) => (
-                <Tab key={value} value={value} onClick={() => {setActualTab(value)}}>
-                {label}
-                </Tab>
-            ))}
-            </TabsHeader>
-            <TabsBody>
+            {/* <TabsList className="z-0">
+                {tabs_sections.map(({ label, value }) => (
+                    <TabsTrigger className="text-[16px] w-full" key={value} value={value} onClick={() => {setActualTab(value)}}>
+                    {label}
+                    </TabsTrigger>
+                ))}
+            </TabsList> */}
             {tabs_sections.map((d) => (
-                <TabPanel key={d.value} value={d.value} >
-                {d.value === "list" && < d.desc  listpratiques={listPratique} />}
-                {d.value === "add" &&  < d.desc  myAction={handleNewData} />}
-                </TabPanel>
+                <TabsContent key={d.value} value={d.value} >
+                {d.value === "list" && < d.desc  listpratiques={listPratique} switchTabFunction={setActualTab} />}
+                {d.value === "add" &&  < d.desc  myAction={handleNewData} switchTabFunction={setActualTab}/>}
+                </TabsContent>
             ))}
-            </TabsBody>
         </Tabs>
     );
 }

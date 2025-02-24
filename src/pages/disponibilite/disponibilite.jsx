@@ -259,7 +259,7 @@ const Disponibilite = () => {
 
   return (
     <div className="flex flex-col gap-4 p-4 w-full">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab}>
         <TabsList className="w-max bg-gray-100">
           <TabsTrigger value="planifier" className="text-[16px] w-full">Planifier</TabsTrigger>
           <TabsTrigger value="programmed" className="text-[16px] w-full">Jours Programmes</TabsTrigger>

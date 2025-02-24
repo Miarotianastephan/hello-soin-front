@@ -16,7 +16,7 @@ import MapPicker from "./map-picker";
 import { useEffect, useState } from "react";
 
 
-export function FormAjoutPratique ({myAction}){
+export function FormAjoutPratique ({myAction, switchTabFunction}){
     const { 
         control, 
         register, 
@@ -64,6 +64,11 @@ export function FormAjoutPratique ({myAction}){
                             <Typography color="gray" className="mt-1 font-normal">
                             Veuillez remplir toutes les champs
                             </Typography>
+                        </div>
+                        <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                            <Button className="flex items-center gap-3" size="sm" onClick={() => switchTabFunction("list")}>
+                            Mes pratiques
+                            </Button>
                         </div>
                     </div>
                 </CardHeader>

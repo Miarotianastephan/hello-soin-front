@@ -22,7 +22,7 @@ const fakeDoctors = [
     specialty: "Cardiologue",
     address: "123 Rue de Paris, 75001 Paris, France",
     gps: { lat: 48.8566, lng: 2.3522 },
-    photo: "https://randomuser.me/api/portraits/men/10.jpg"
+    photo: "https://randomuser.me/api/portraits/men/10.jpg",
   },
   {
     id: 2,
@@ -31,7 +31,7 @@ const fakeDoctors = [
     specialty: "Dermatologue",
     address: "456 Rue de Lyon, 69001 Lyon, France",
     gps: { lat: 45.764, lng: 4.8357 },
-    photo: "https://randomuser.me/api/portraits/women/20.jpg"
+    photo: "https://randomuser.me/api/portraits/women/20.jpg",
   },
   {
     id: 3,
@@ -40,8 +40,8 @@ const fakeDoctors = [
     specialty: "Généraliste",
     address: "789 Rue de Marseille, 13001 Marseille, France",
     gps: { lat: 43.2965, lng: 5.3698 },
-    photo: "https://randomuser.me/api/portraits/men/30.jpg"
-  }
+    photo: "https://randomuser.me/api/portraits/men/30.jpg",
+  },
 ];
 
 /* ================================
@@ -75,7 +75,7 @@ const MapComponent = ({ searchResults }) => {
 
   const containerStyle = {
     width: "100%",
-    height: "100%"
+    height: "100%",
   };
 
   // Centre initial de la carte
@@ -118,49 +118,69 @@ const Header = () => {
 
   return (
     <header
+      style={{
+        transition: "top 5s ease-in-out",
+        position: "relative",
+        top: "0px",
+      }}
       id="header"
-      className={`${headerBg} fixed w-full top-0 left-0 z-50 transition-all duration-300 text-white`}
+      className={`${headerBg} fixed w-full top-0 left-0 z-50 transition-all duration-300 text-white accueil-header-animation`}
     >
       <div className="container flex items-center justify-between h-20 mx-auto ">
         <div className="flex items-center space-x-4">
           <img src={logo} alt="Logo" className="h-10" />
         </div>
         <nav className="justify-start hidden space-x-6 md:flex">
-          <Button className="text-white bg-transparent border-none shadow-none">Accueil</Button>
-          <Button className="text-white bg-transparent border-none shadow-none">Services</Button>
-          <Button className="text-white bg-transparent border-none shadow-none">Contact</Button>
+          <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white bg-transparent border-none shadow-none">
+            Accueil
+          </Button>
+          <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white bg-transparent border-none shadow-none">
+            Services
+          </Button>
+          <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white bg-transparent border-none shadow-none">
+            Contact
+          </Button>
         </nav>
         <div className="hidden space-x-4 md:flex">
-          <Button className="text-white border-none shadow-none bg-[#2b7a72] text-sm">
+          <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white border-none shadow-none bg-[#2b7a72] text-sm">
             <LogIn /> Se connecter
           </Button>
-          <Button className="text-white border-none shadow-none bg-[#2b7a72] text-sm">
+          <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white border-none shadow-none bg-[#2b7a72] text-sm">
             <BetweenHorizonalEnd /> S'inscrire
           </Button>
           <Link to="/login">
-            <Button className="text-white border-none shadow-none bg-[#2b7a72] text-sm">
-                <UserCheck /> Êtes-vous praticien ?
+            <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white border-none shadow-none bg-[#2b7a72] text-sm">
+              <UserCheck /> Êtes-vous praticien ?
             </Button>
           </Link>
         </div>
         <div className="md:hidden">
-          <button onClick={() => setMenuOpen(!menuOpen)} className="text-white focus:outline-none">
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="text-white focus:outline-none"
+          >
             {menuOpen ? <X size={30} /> : <Menu size={30} />}
           </button>
         </div>
       </div>
       {menuOpen && (
         <div className="md:hidden bg-[#2b7a72] absolute top-20 left-0 w-full flex flex-col items-center py-4 space-y-4">
-          <Button className="text-white bg-transparent border-none shadow-none">Accueil</Button>
-          <Button className="text-white bg-transparent border-none shadow-none">Services</Button>
-          <Button className="text-white bg-transparent border-none shadow-none">Contact</Button>
-          <Button className="text-white border-none shadow-none bg-[#1e5e56] text-sm">
+          <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white bg-transparent border-none shadow-none">
+            Accueil
+          </Button>
+          <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white bg-transparent border-none shadow-none">
+            Services
+          </Button>
+          <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white bg-transparent border-none shadow-none">
+            Contact
+          </Button>
+          <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white border-none shadow-none bg-[#1e5e56] text-sm">
             <LogIn /> Se connecter
           </Button>
-          <Button className="text-white border-none shadow-none bg-[#1e5e56] text-sm">
+          <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white border-none shadow-none bg-[#1e5e56] text-sm">
             <BetweenHorizonalEnd /> S'inscrire
           </Button>
-          <Button className="text-white border-none shadow-none bg-[#1e5e56] text-sm">
+          <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white border-none shadow-none bg-[#1e5e56] text-sm">
             <UserCheck /> Êtes-vous praticien ?
           </Button>
         </div>
@@ -220,14 +240,19 @@ const Hero = ({ onSearch }) => {
       <div className="absolute inset-0 bg-custom-bg"></div>
       {/* L'image de fond est masquée sur mobile et tablette */}
       <div className="absolute hidden md:block right">
-        <img src={background} alt="Pratique fond" className="h-screen bg-right" />
+        <img
+          src={background}
+          alt="Pratique fond"
+          className="h-screen bg-right"
+        />
       </div>
       <div className="container relative flex flex-col items-center justify-center h-screen pt-10 mx-auto md:items-start">
-        <h1 className="w-full mb-4 text-5xl font-bold text-center md:w-2/4 md:text-start">
+        <h1 className="w-full mb-4 text-5xl font-bold text-center text-white md:w-2/4 md:text-start">
           Votre rendez-vous Bien-être
         </h1>
         <h6 className="w-full text-2xl text-center text-white md:w-2/4 md:text-start">
-          Professionnels vérifiés &amp; certifiés de la santé au rendez-vous pour votre bien-être
+          Professionnels vérifiés &amp; certifiés de la santé au rendez-vous
+          pour votre bien-être
         </h6>
         <div className="mt-20 w-full md:w-[60%]">
           <SearchForm onSearch={onSearch} />
@@ -269,7 +294,7 @@ const SearchResultsLayout = ({ searchResults, onSearch, onReset }) => {
                   <p className="text-gray-600">{doctor.specialty}</p>
                   <p className="text-gray-600">{doctor.address}</p>
                 </div>
-                <Button className="mt-2 md:mt-0 text-white bg-[#2b7a72]">
+                <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  mt-2 md:mt-0 text-white bg-[#2b7a72]">
                   Consulter
                 </Button>
               </div>
