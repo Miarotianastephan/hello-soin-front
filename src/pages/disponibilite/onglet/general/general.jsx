@@ -639,7 +639,7 @@ handleTimelineClick = (e) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Erreur</DialogTitle>
-            <DialogDescription>{errorDialog.message}</DialogDescription>
+            <DialogDescription className="text-red-700">{errorDialog.message}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
