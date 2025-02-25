@@ -72,7 +72,6 @@ function YearMonthSelector({ month, year, fromYear, toYear, onMonthChange, onYea
   );
 }
 
-// 🗓️ Composant DatePicker amélioré
 function DatePicker({ control, name }) {
   const currentYear = new Date().getFullYear();
   const fromYear = currentYear - 100;
@@ -83,6 +82,12 @@ function DatePicker({ control, name }) {
       control={control}
       name={name}
       render={({ field: { onChange, value } }) => {
+        if(typeof(value) === "string"){
+          value = new Date(value);
+        }else{
+          value = value ?? new Date();
+        }
+        // A verifier puisqu'il y a un re render
         const [selectedMonth, setSelectedMonth] = useState(value ? value.getMonth() : new Date().getMonth());
         const [selectedYear, setSelectedYear] = useState(value ? value.getFullYear() : currentYear);
         

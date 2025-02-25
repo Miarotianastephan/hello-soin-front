@@ -1,5 +1,5 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { PencilIcon } from "@heroicons/react/24/solid";
+import { Info, Pencil } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -12,7 +12,6 @@ import {
   Tooltip,
 } from "@material-tailwind/react";
 import { Separator } from "@/components/ui/separator"
-import { BookKey } from "lucide-react";
 import { useEffect, useState } from "react";
 
 // Clés pour le LocalStorage
@@ -20,22 +19,6 @@ const STORAGE_KEY = "pratiques";
  
 const TABLE_HEAD = ["Type de pratique", "Tarif(en euro)", "Duree", ""];
  
-const TABLE_ROWS = [
-  {
-    code_couleur: "blue",
-    type: "Naturopathie",
-    tarif: "150",
-    duree: "3 heures",
-    date: "23/04/18",
-  },
-  {
-    code_couleur: "#5DA781",
-    type: "Massage",
-    tarif: "150",
-    duree: "3 heures",
-    date: "23/04/18",
-  },
-];
 // Pour le detail d'une pratiques
 const TITLE_DETAIL_PRATIQUE = {
     nom: "Type",
@@ -45,6 +28,7 @@ const TITLE_DETAIL_PRATIQUE = {
     commentaire: "Description",
     rdv_total: "Total Rdv",
 }
+
 const DetailPratiqueCard = ({titles,details}) => {
     return(
         <>
@@ -69,9 +53,14 @@ const DetailPratiqueCard = ({titles,details}) => {
 }
 
  
-export function ListPratique({listpratiques, switchTabFunction}) {
+export function ListPratique({listpratiques, switchTabFunction, setEditedPratique}) {
     const pratiques = Array.isArray(listpratiques) ? listpratiques : [];
     const [selectedPratique,setSelectedPratique] = useState(null);
+
+    function handleUpdatePratique(dataPratique){
+        setEditedPratique(dataPratique);
+        switchTabFunction("add");
+    }
 
     return (
         <div className="max-w-full flex bg-gray-100 md:p-2 rounded-xl gap-2 flex-col md:flex-row">
@@ -122,9 +111,7 @@ export function ListPratique({listpratiques, switchTabFunction}) {
                             : "p-4 border-b border-blue-gray-50";
             
                             return (
-                            <tr key={nom} className="cursor-pointer hover:bg-gray-100"
-                                onClick={() => setSelectedPratique(allData[index])}
-                            >
+                            <tr key={nom} className="cursor-normal hover:bg-gray-100">
                                 {/* Type de pratique */}
                                 <td className={classes}>
                                 <div className="flex items-center gap-3">
@@ -162,11 +149,16 @@ export function ListPratique({listpratiques, switchTabFunction}) {
                                     </Typography>
                                 </td>
                                 <td className={classes}>
-                                <Tooltip content="Edit User">
-                                    <IconButton variant="text">
-                                    <PencilIcon className="h-4 w-4" />
-                                    </IconButton>
-                                </Tooltip>
+                                    <Tooltip content="Details">
+                                        <IconButton variant="text" onClick={() => setSelectedPratique(allData[index])}>
+                                        <Info className="h-5 w-5" />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip content="Modifier">
+                                        <IconButton variant="text" onClick={() => handleUpdatePratique(allData[index])}>
+                                        <Pencil className="h-5 w-5"/>
+                                        </IconButton>
+                                    </Tooltip>
                                 </td>
                             </tr>
                             );

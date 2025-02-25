@@ -16,14 +16,15 @@ import MapPicker from "./map-picker";
 import { useEffect, useState } from "react";
 
 
-export function FormAjoutPratique ({myAction, switchTabFunction}){
+export function FormAjoutPratique ({handleAddPratique, switchTabFunction, editedPratique}){
     const { 
         control, 
         register, 
         handleSubmit, 
         setValue, 
         formState: { errors }, 
-        watch
+        watch,
+        reset
     } = useForm({
     defaultValues: {
         code_couleur: "#ffffff",
@@ -37,19 +38,32 @@ export function FormAjoutPratique ({myAction, switchTabFunction}){
         setPratiques(storedPratiques);
     }, []);
 
-    // handle form submission
-    function onSubmittingForm(data){
-        console.log(data);
-        
-        const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
-        const newPratiques = [...storedPratiques, data];
-        setPratiques(newPratiques);
-        localStorage.setItem("pratiques", JSON.stringify(newPratiques)); // Sauvegarde en local
+    useEffect(() => {
+        if (editedPratique) {
+            reset(editedPratique);
+        }
+    }, [editedPratique, reset]);
 
-        // Submit your data
-        myAction(JSON.stringify(data)); // replace with your function to handle form submission
-        // clear form inputs
-        // handleReset();
+    function onSubmittingForm(data) {
+        console.log(data);
+        const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
+        // Pour UPDATE
+        if (editedPratique) {
+            // Comparer avec l'ID du pratiques rehefa manmao integration avec backend
+            const updatedPratiques = storedPratiques.map(p =>
+                p.nom === editedPratique.nom ? data : p
+            );
+            localStorage.setItem("pratiques", JSON.stringify(updatedPratiques));
+            setPratiques(updatedPratiques);
+        } 
+        // Pour INSERT
+        else {
+            const newPratiques = [...storedPratiques, data];
+            localStorage.setItem("pratiques", JSON.stringify(newPratiques));
+            setPratiques(newPratiques);
+        }
+        // Submit action
+        handleAddPratique(JSON.stringify(data)); 
     }
 
     return(
@@ -67,7 +81,7 @@ export function FormAjoutPratique ({myAction, switchTabFunction}){
                         </div>
                         <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
                             <Button className="flex items-center gap-3" size="sm" onClick={() => switchTabFunction("list")}>
-                            Mes pratiques
+                            {editedPratique !== null ? 'Annuler la modification' : 'Mes pratiques'}  
                             </Button>
                         </div>
                     </div>
@@ -83,6 +97,7 @@ export function FormAjoutPratique ({myAction, switchTabFunction}){
                             <Select 
                                 label="Type de Discipline"
                                 onChange={(value) => setValue("discipline", value)}
+                                value={watch("discipline")}
                             >
                                 <Option value="disp_1">Acuponcteur</Option>
                                 <Option value="disp_2">Orthopediste</Option>

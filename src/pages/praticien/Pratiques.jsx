@@ -1,11 +1,4 @@
-// import {
-//     Tabs,
-//     TabsHeader,
-//     TabsBody,
-//     Tab,
-//     TabPanel,
-//   } from "@material-tailwind/react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ListPratique } from "@/components/praticienComponents/list-pratique";
 import { FormAjoutPratique } from "@/components/praticienComponents/form-ajout-pratique";
 import { useEffect, useState } from "react";
@@ -13,6 +6,8 @@ import { useEffect, useState } from "react";
 const Pratiques = () => {
     const [actualTab, setActualTab] = useState("list");
     const [listPratique, setListePratique] = useState([]);
+    const [editedPratique, setEditedPratique] = useState(null);
+
     const tabs_sections = [
         {
           label: "Mes pratiques",
@@ -27,17 +22,16 @@ const Pratiques = () => {
     ];
 
     useEffect(()=>{
-        console.log("Sous-page actuel : "+actualTab);
         if (actualTab === "list") {
             const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
             setListePratique(storedPratiques);
-            console.log("Liste des pratiques actualisée :", storedPratiques);
+            // Pour reinitialiser la valeur de editedPratique
+            setEditedPratique(null);
         }
     },[actualTab])
 
-    function handleNewData(newData){
-        // setListePratique(newData);
-        // console.log("New data setted : " + newData);
+    function handleAddPratique(newPratique){
+        // Ajout d 'une appelle API pour l'insertion de nouveau pratiqu
         setActualTab("list")
     }
     
@@ -52,8 +46,8 @@ const Pratiques = () => {
             </TabsList> */}
             {tabs_sections.map((d) => (
                 <TabsContent key={d.value} value={d.value} >
-                {d.value === "list" && < d.desc  listpratiques={listPratique} switchTabFunction={setActualTab} />}
-                {d.value === "add" &&  < d.desc  myAction={handleNewData} switchTabFunction={setActualTab}/>}
+                {d.value === "list" && < d.desc  listpratiques={listPratique} switchTabFunction={setActualTab} setEditedPratique={setEditedPratique}/>}
+                {d.value === "add" &&  < d.desc  handleAddPratique={handleAddPratique} switchTabFunction={setActualTab} editedPratique={editedPratique}/>}
                 </TabsContent>
             ))}
         </Tabs>
