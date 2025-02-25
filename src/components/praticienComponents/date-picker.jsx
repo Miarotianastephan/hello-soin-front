@@ -86,6 +86,7 @@ function DatePicker({ control, name }) {
           value = new Date(value);
         }else{
           value = value ?? new Date();
+          // value = value.toLocaleDateString('fr-CA')
         }
         // A verifier puisqu'il y a un re render
         const [selectedMonth, setSelectedMonth] = useState(value ? value.getMonth() : new Date().getMonth());
@@ -109,7 +110,14 @@ function DatePicker({ control, name }) {
             <Calendar
               mode="single"
               selected={value}
-              onSelect={onChange}
+              onSelect={(selectedDate) => {
+                if (selectedDate) {
+                  const formattedDate = format(selectedDate, "yyyy-MM-dd"); // Format YYYY-MM-DD
+                  onChange(formattedDate);
+                } else {
+                  onChange(null);
+                }
+              }}
               initialFocus
               locale={fr}
               captionLayout="dropdown-buttons"

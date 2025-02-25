@@ -8,7 +8,7 @@ const ColorPicker = ({ control, name, label, rules }) => {
             control={control}
             rules={rules}
             render={({ field, fieldState }) => (
-                <div className="w-1/2 flex flex-col">
+                <div className="flex flex-col">
                     <Typography
                         variant="small"
                         color="blue-gray"

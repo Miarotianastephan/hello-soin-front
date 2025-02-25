@@ -36,7 +36,7 @@ const Pratiques = () => {
     }
     
     return(
-        <Tabs value={actualTab}>
+        <Tabs value={actualTab} className="p-4">
             {/* <TabsList className="z-0">
                 {tabs_sections.map(({ label, value }) => (
                     <TabsTrigger className="text-[16px] w-full" key={value} value={value} onClick={() => {setActualTab(value)}}>

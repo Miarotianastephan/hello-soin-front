@@ -44,7 +44,7 @@ function LocationMarker({ position, setPosition }) {
 
 export default function MapPicker({ value, onChange }) {
   const [coords, setCoords] = useState(value || { lat: 48.8566, lng: 2.3522 }); // Paris par défaut
-  const [mapType, setMapType] = useState("Satellite"); // Vue par défaut
+  const [mapType, setMapType] = useState("Hybrid"); // Vue par défaut
 
   useEffect(() => {
     if (value) {
@@ -68,8 +68,8 @@ export default function MapPicker({ value, onChange }) {
   };
 
   return (
-    <div className="w-full">
-        <div className="flex gap-4 mb-2">
+    <div className="w-full h-full">
+        <div className="flex gap-4 mb-2 hidden">
             <div className="w-1/2">
                 <Typography variant="small" color="blue-gray" className="mb-1 font-medium">
                 Latitude
@@ -112,7 +112,7 @@ export default function MapPicker({ value, onChange }) {
             </Select>
         </div>
 
-        <div className="h-64">
+        <div className="h-[85%]">
             <MapContainer center={[coords.lat, coords.lng]} zoom={5} className="h-full w-full leaflet-container">
             <TileLayer url={tileLayers[mapType]} />
             <LocationMarker position={coords} setPosition={handleMapClick} />
