@@ -78,7 +78,9 @@ export function FormAjoutPratique({
           <div className="mt-4 flex items-center justify-between">
             <div>
               <Typography variant="h5" color="blue-gray">
-              Créer une pratique
+              {editedPratique !== null
+                  ? "Modifier la pratique"
+                  : "Créer une pratique"}
               </Typography>
               <Typography color="gray" className="mt-1 font-normal">
               Merci de compléter tous les champs
