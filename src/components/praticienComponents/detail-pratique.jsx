@@ -71,7 +71,7 @@ const DetailPratiqueCard = ({ details }) => {
                     className="mb-5 font-bold"
                     color="blue-gray"
                     >
-                    Depuis
+                    Description
                     </Typography>
                     <Typography variant="small" color="gray" className="text-end">
                     {details.description || "N/A"}

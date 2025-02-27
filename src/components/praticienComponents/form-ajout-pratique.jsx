@@ -223,6 +223,7 @@ export function FormAjoutPratique({
                 <div className="w-full flex flex-col gap-3">
                   <div className="flex flex-col gap-1">
                     <Input
+                    type="number"
                       variant="outlined"
                       label="Tarifs (en euro)"
                       placeholder="Entrer le tarif"
@@ -251,6 +252,7 @@ export function FormAjoutPratique({
                   </div>
                   <div className="flex flex-col gap-1">
                     <Input
+                    type="number"
                       variant="outlined"
                       label="Durée (en minutes)"
                       placeholder="Entrer la durée"

@@ -125,3 +125,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Supprimer les flèches sur Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Supprimer les flèches sur Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}

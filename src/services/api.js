@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { user_test } from '@/components/common/constant';
 
 const API_URL = 'http://192.168.137.1:3000/api';
 // const API_URL = 'https://passion-vins.fr/api';
@@ -18,6 +19,33 @@ export const api_login = async (user_mail, mot_de_passe) => {
   } catch (error) {
     console.error("Erreur lors de la connexion", error);
     throw error; // Propager l'erreur pour la gérer ailleurs
+  }
+};
+
+export const api_login_test = async (user_mail, mot_de_passe) => {
+  try {
+    console.log({
+      test: user_mail,
+      Ttest: user_test.user_mail,
+    })
+    if( user_mail == user_test.user_mail ){
+      if( mot_de_passe == user_test.mot_de_passe ){
+        return {
+          message: "Connexion reussi !",
+          token: "fake_token_21353wgoi42sqp",
+          user: user_test
+        }
+      }
+      throw {
+        message: "Mot de passe incorrect !",
+      }
+    }
+    throw {
+      message: "Adresse email incorrect !",
+    }
+  } catch (error) {
+    console.error("Erreur lors de la connexion", error);
+    throw error;
   }
 };
 

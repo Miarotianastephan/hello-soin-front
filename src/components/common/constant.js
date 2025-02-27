@@ -52,4 +52,9 @@ const menu_secondaire = [
   },
 ]
 
-export { menu_principale, menu_secondaire };
+const user_test = {
+  user_mail: "logintest@gmail.com",
+  mot_de_passe: "logintest"
+}
+
+export { menu_principale, menu_secondaire, user_test };
