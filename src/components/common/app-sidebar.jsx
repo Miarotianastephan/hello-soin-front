@@ -114,6 +114,7 @@ const AppSidebar = () => {
                                   : "text-gray-700"
                               }`}
                             >
+                              <subItem.icon />
                                <span>{subItem.title}</span>
                             </Link>
                           </SidebarMenuSubButton>

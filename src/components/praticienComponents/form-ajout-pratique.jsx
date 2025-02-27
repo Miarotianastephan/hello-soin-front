@@ -9,6 +9,11 @@ import {
   Option,
   Textarea,
 } from "@material-tailwind/react";
+import { 
+    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
+    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, 
+    AlertDialogTitle, AlertDialogTrigger 
+  } from "@/components/ui/alert-dialog";
 import { useForm } from "react-hook-form";
 import DatePicker from "./date-picker";
 import ColorPicker from "./color-picker";
@@ -36,7 +41,8 @@ export function FormAjoutPratique({
       longitude: "",
     },
   });
-  const [pratiques, setPratiques] = useState([]);
+  const [pratiques, setPratiques] = useState([]);  
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
@@ -87,6 +93,14 @@ export function FormAjoutPratique({
     handleAddPratique(JSON.stringify(data));
   }
 
+  function handleRemovedPratique(editedPratique){
+    const toRemove = editedPratique.nom
+    const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
+    const updatedPratiques = storedPratiques.filter((prat) => prat.nom !== toRemove );
+    localStorage.setItem("pratiques", JSON.stringify(updatedPratiques));
+    switchTabFunction("list")
+  }
+
   return (
     <div className="md:p-2 bg-gray-100 rounded-lg">
       <Card className="max-w-full">
@@ -103,6 +117,31 @@ export function FormAjoutPratique({
               </Typography>
             </div>
             <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+            {editedPratique && (
+                <AlertDialog open={open} onOpenChange={setOpen}>
+                <AlertDialogTrigger asChild>
+                    <Button className="flex items-center gap-3 bg-helloOrange" size="sm">
+                    Supprimer ce pratique
+                    </Button>
+                </AlertDialogTrigger>
+                
+                {/* Contenu du popup de confirmation */}
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer la pratique ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Êtes-vous sûr de vouloir supprimer <strong>{editedPratique.nom}</strong> ? Cette action est irréversible.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleRemovedPratique(editedPratique)}>
+                        Oui, supprimer
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+                </AlertDialog>
+            )}
               <Button
                 className="flex items-center gap-3"
                 size="sm"
@@ -196,8 +235,8 @@ export function FormAjoutPratique({
                       {...register("tarif", {
                         required: "Le tarif est requis",
                         min: {
-                            value: 1,
-                            message: "Le tarif doit être d'au moins 1 euro",
+                          value: 1,
+                          message: "Le tarif doit être d'au moins 1 euro",
                         },
                         pattern: {
                           value: /^(0|[1-9][0-9]*)(\.[0-9]{1,2})?$/,
@@ -223,11 +262,13 @@ export function FormAjoutPratique({
                         },
                         max: {
                           value: 1440,
-                          message: "La durée ne peut pas dépasser 1440 minutes (24 heures)",
+                          message:
+                            "La durée ne peut pas dépasser 1440 minutes (24 heures)",
                         },
                         pattern: {
                           value: /^(0|[1-9][0-9]*)$/,
-                          message: "La durée ne doit pas commencer par zéro ou/et doit être un nombre entier",
+                          message:
+                            "La durée ne doit pas commencer par zéro ou/et doit être un nombre entier",
                         },
                       })}
                     />
