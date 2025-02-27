@@ -19,7 +19,6 @@ export const LoginForm = ({ className, ...props }) => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, formState: { errors }, } = useForm();
-  const resetForm = () => {} // a completer
 
   const onSubmit =  (data) => { 
     console.log(data) 
@@ -42,7 +41,6 @@ export const LoginForm = ({ className, ...props }) => {
     //   setMessage(error);
     //   setLoading(false);
     // } finally {
-    //   resetForm();
     //   console.log(message);
     // }
   }

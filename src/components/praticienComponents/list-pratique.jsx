@@ -1,4 +1,3 @@
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { Info, Pencil } from "lucide-react";
 import {
   Card,
@@ -7,57 +6,18 @@ import {
   Button,
   CardBody,
   Chip,
-  CardFooter,
   IconButton,
   Tooltip,
 } from "@material-tailwind/react";
 import { Separator } from "@/components/ui/separator";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import DetailPratiqueCard from "./detail-pratique";
+import { convertToEuroFormat, UNITE_MINUTE } from "./constant";
 
 // Clés pour le LocalStorage
 const STORAGE_KEY = "pratiques";
 
 const TABLE_HEAD = ["Type de pratique", "Tarif (en euro)", "Durée", ""];
-
-// Pour le detail d'une pratiques
-const TITLE_DETAIL_PRATIQUE = {
-  nom: "Type de pratique",
-  tarif: "Tarif",
-  duree: "Durée",
-  date_debut: "Depuis",
-  description: "Description",
-};
-
-const DetailPratiqueCard = ({ titles, details }) => {
-  return (
-    <>
-      {!details ? (
-        <p className="flex items-center gap-2 text-gray-600">
-          <Info className="w-5 h-5 text-helloSoin" />
-          Veuillez choisir un détail à afficher.
-        </p>
-      ) : (
-        Object.entries(details).map(
-          ([key, value]) =>
-            titles[key] !== undefined && (
-              <div key={key} className="flex items-start justify-between gap-5">
-                <Typography
-                  variant="small"
-                  className="mb-5 font-bold"
-                  color="blue-gray"
-                >
-                  {titles[key] || ""}
-                </Typography>
-                <Typography variant="small" color="gray" className="text-end">
-                  {value || "N/A"}
-                </Typography>
-              </div>
-            )
-        )
-      )}
-    </>
-  );
-};
 
 export function ListPratique({
   listpratiques,
@@ -70,10 +30,6 @@ export function ListPratique({
   function handleUpdatePratique(dataPratique) {
     setEditedPratique(dataPratique);
     switchTabFunction("add");
-  }
-
-  function convertToEuroFormat(tarif){
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(tarif)
   }
 
   return (
@@ -171,7 +127,7 @@ export function ListPratique({
                             color="blue-gray"
                             className="font-normal opacity-70"
                           >
-                            {duree}
+                            {duree} {UNITE_MINUTE}
                           </Typography>
                         </td>
                         <td className={classes}>
@@ -222,7 +178,6 @@ export function ListPratique({
         </CardHeader>
         <CardBody>
           <DetailPratiqueCard
-            titles={TITLE_DETAIL_PRATIQUE}
             details={selectedPratique}
           />
         </CardBody>

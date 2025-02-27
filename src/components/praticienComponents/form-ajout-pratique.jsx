@@ -49,6 +49,22 @@ export function FormAjoutPratique({
     }
   }, [editedPratique, reset]);
 
+  useEffect(() => {
+    register("description", {
+      required: "La description est requise",
+      minLength: {
+        value: 10,
+        message: "La description doit contenir au moins 10 caractères",
+      },
+    });
+  }, [register]);
+
+  useEffect(() => {
+    register("discipline", {
+      required: "Le type de discipline est requis",
+    });
+  }, [register]);
+
   function onSubmittingForm(data) {
     console.log(data);
     const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
@@ -78,12 +94,12 @@ export function FormAjoutPratique({
           <div className="mt-4 flex items-center justify-between">
             <div>
               <Typography variant="h5" color="blue-gray">
-              {editedPratique !== null
+                {editedPratique !== null
                   ? "Modifier la pratique"
                   : "Créer une pratique"}
               </Typography>
               <Typography color="gray" className="mt-1 font-normal">
-              Merci de compléter tous les champs
+                Merci de compléter tous les champs
               </Typography>
             </div>
             <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
@@ -101,38 +117,52 @@ export function FormAjoutPratique({
         </CardHeader>
         <CardBody className="">
           <form
-            className="mt-8 mb-2 max-w-auto"
+            className="mt-2 mb-2 max-w-auto"
             onSubmit={handleSubmit(onSubmittingForm)}
           >
-            <div className="mb-1 flex flex-wrap gap-6">
-              <div className="flex flex-col gap-4">
+            <div className="mb-1 flex flex-wrap gap-6 h-auto">
+              <div className="md:w-[50%] flex flex-col gap-4">
                 {/* Type et nom */}
-                <div className="w-full h-auto flex flex-col gap-4">
+                <div className="w-full h-auto flex flex-col gap-3">
                   {/* type de dscipline */}
-                  <div>
+                  <div className="flex flex-col gap-1">
                     <Select
                       variant="outlined"
                       label="Type de Discipline"
-                      onChange={(value) => setValue("discipline", value)}
+                      onChange={(value) =>
+                        setValue("discipline", value, { shouldValidate: true })
+                      }
                       value={watch("discipline")}
                     >
                       <Option value="disp_1">Acuponcteur</Option>
                       <Option value="disp_2">Orthopediste</Option>
                       <Option value="disp_3">Naturopathe</Option>
                     </Select>
+                    <p className="text-balance text-left text-xs text-destructive">
+                      {errors.discipline?.message}
+                    </p>
                   </div>
                   {/* nom du pratique */}
-                  <div>
+                  <div className="flex flex-col gap-1">
                     <Input
                       variant="outlined"
-                      label="Désignation de la pratique"
+                      label="*Désignation de la pratique"
                       placeholder="Entrer un nom a votre pratique"
-                      {...register("nom")}
+                      {...register("nom", {
+                        required: "Le nom de la pratique est requis",
+                        maxLength: {
+                          value: 100,
+                          message: "Le nom ne peut pas dépasser 100 caractères",
+                        },
+                      })}
                     />
+                    <p className="text-balance text-left text-xs text-destructive">
+                      {errors.nom?.message}
+                    </p>
                   </div>
                 </div>
                 {/* Date debut du pratique */}
-                <div className="w-full flex flex-col gap-2">
+                <div className="w-full flex flex-col gap-3">
                   <div>
                     <Typography
                       variant="small"
@@ -151,42 +181,84 @@ export function FormAjoutPratique({
                   />
                 </div>
                 {/* Tarif et Duree */}
-                <div className="w-full flex flex-col md:flex-row gap-4">
-                  <Input
-                    variant="outlined"
-                    label="Tarifs (en euro)"
-                    placeholder="Entrer le tarif"
-                    icon={
-                      <Euro
-                        className="h-4 w-4 text-blue-gray-600"
-                        strokeWidth={1}
-                      />
-                    }
-                    {...register("tarif")}
-                  />
-                  <Input
-                    variant="outlined"
-                    label="Durée (en minutes)"
-                    placeholder="Entrer la durée"
-                    {...register("duree")}
-                  />
+                <div className="w-full flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <Input
+                      variant="outlined"
+                      label="Tarifs (en euro)"
+                      placeholder="Entrer le tarif"
+                      icon={
+                        <Euro
+                          className="h-4 w-4 text-blue-gray-600"
+                          strokeWidth={1}
+                        />
+                      }
+                      {...register("tarif", {
+                        required: "Le tarif est requis",
+                        min: {
+                            value: 1,
+                            message: "Le tarif doit être d'au moins 1 euro",
+                        },
+                        pattern: {
+                          value: /^(0|[1-9][0-9]*)(\.[0-9]{1,2})?$/,
+                          message:
+                            "Le tarif doit être un nombre avec une décimale (ex: 12.50) ou un nombre entier",
+                        },
+                      })}
+                    />
+                    <p className="text-balance text-left text-xs text-destructive">
+                      {errors.tarif?.message}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Input
+                      variant="outlined"
+                      label="Durée (en minutes)"
+                      placeholder="Entrer la durée"
+                      {...register("duree", {
+                        required: "La durée est requise",
+                        min: {
+                          value: 1,
+                          message: "La durée doit être d'au moins 1 minute",
+                        },
+                        max: {
+                          value: 1440,
+                          message: "La durée ne peut pas dépasser 1440 minutes (24 heures)",
+                        },
+                        pattern: {
+                          value: /^(0|[1-9][0-9]*)$/,
+                          message: "La durée ne doit pas commencer par zéro ou/et doit être un nombre entier",
+                        },
+                      })}
+                    />
+                    <p className="text-balance text-left text-xs text-destructive">
+                      {errors.duree?.message}
+                    </p>
+                  </div>
                 </div>
                 {/* Description du pratique */}
                 <div className="w-full">
                   <Textarea
                     label="Informations sur la pratique"
-                    onChange={(e) => setValue("description", e.target.value)}
+                    onChange={(e) =>
+                      setValue("description", e.target.value, {
+                        shouldValidate: true,
+                      })
+                    }
                     value={watch("description")}
                   />
+                  <p className="text-balance text-left text-xs text-destructive">
+                    {errors.description?.message}
+                  </p>
                 </div>
               </div>
 
               {/* Choix du lat/long */}
-              <div className="flex-1 w-auto">
+              <div className="flex-1 w-auto min-h-[400px]">
                 <Typography
                   variant="small"
                   color="blue-gray"
-                  className="hidden mb-2 font-medium"
+                  className="hidden mb-4 font-medium"
                 >
                   Choisissez un emplacement
                 </Typography>
