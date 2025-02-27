@@ -41,6 +41,8 @@
     "medicalreact": "file:",
     "react": "^18.3.1",
     "react-big-calendar": "^1.17.1",
+    "react-calendar": "^5.1.0",
+    "react-date-picker": "^11.0.0",
     "react-datepicker": "^8.1.0",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",

@@ -48,12 +48,11 @@ export class GeneralEntreDates extends Component {
         practices: [],
         newPractice: { type: 'naturopathie', start: '', end: '', error: '' },
       },
-      // Dialogue pour la confirmation d'écrasement sur les dates déjà existantes
       overwriteDialog: {
         isOpen: false,
         overlappingDates: [],
+        appointmentsToOverwrite: [] // nouvelles dates où des appointments existent
       },
-      // Stocke temporairement le nouveau planning en attente de confirmation
       pendingPlanningData: null,
     };
   }
@@ -268,34 +267,57 @@ export class GeneralEntreDates extends Component {
    */
   handleSave = () => {
     if (!this.validateData()) return;
-
+  
     const newPlanning = this.buildNewPlanningData();
     const existingStr = localStorage.getItem('planning');
+    let overlappingDates = [];
     if (existingStr) {
       try {
         const existingPlanning = JSON.parse(existingStr);
-        const overlappingDates = newPlanning.datesWithSlots
+        overlappingDates = newPlanning.datesWithSlots
           .filter(newItem => 
             existingPlanning.datesWithSlots &&
             existingPlanning.datesWithSlots.some(oldItem => oldItem.date === newItem.date)
           )
           .map(item => item.date);
-        if (overlappingDates.length > 0) {
-          // Ouvrir le dialogue de confirmation avec la liste des dates qui se chevauchent
-          this.setState({
-            overwriteDialog: { isOpen: true, overlappingDates },
-            pendingPlanningData: newPlanning,
-          });
-          return; // Attendre la confirmation
-        }
       } catch (err) {
         // En cas d'erreur, on procède à la sauvegarde
       }
     }
-    // S'il n'y a pas de chevauchement, sauvegarder directement
+    
+    // Vérifier si des rendez-vous existent pour ces dates
+    const appointmentsStr = localStorage.getItem('appointments');
+    let appointmentsToOverwrite = [];
+    if (appointmentsStr) {
+      try {
+        const appointments = JSON.parse(appointmentsStr);
+        appointmentsToOverwrite = appointments
+          .filter(app => overlappingDates.includes(app.date))
+          .map(app => app.date);
+        // On peut déduire l'unicité des dates si nécessaire
+        appointmentsToOverwrite = [...new Set(appointmentsToOverwrite)];
+      } catch (err) {
+        console.error('Erreur lors du parsing des appointments', err);
+      }
+    }
+  
+    if (overlappingDates.length > 0 || appointmentsToOverwrite.length > 0) {
+      // Ouvrir le dialogue de confirmation en passant la liste des dates concernées
+      this.setState({
+        overwriteDialog: { 
+          isOpen: true, 
+          overlappingDates, 
+          appointmentsToOverwrite 
+        },
+        pendingPlanningData: newPlanning,
+      });
+      return; // Attendre la confirmation
+    }
+  
+    // Pas de chevauchement, sauvegarder directement
     this.savePlanningData(newPlanning);
   };
-
+  
   /**
    * Fusionne le nouveau planning avec l'ancien en écrasant uniquement les dates chevauchantes,
    * et en conservant les dates non concernées.
@@ -356,13 +378,25 @@ export class GeneralEntreDates extends Component {
     }
   };
 
-  // Confirmation d'écrasement : l'utilisateur veut écraser les dates concernées
   handleConfirmOverwrite = () => {
-    const { pendingPlanningData } = this.state;
-    if (pendingPlanningData) {
-      this.savePlanningData(pendingPlanningData);
+    const { pendingPlanningData, overwriteDialog: { overlappingDates } } = this.state;
+  
+    // Récupérer les rendez‑vous existants et filtrer ceux des dates à écraser
+    const appointmentsStr = localStorage.getItem('appointments');
+    if (appointmentsStr) {
+      try {
+        const appointments = JSON.parse(appointmentsStr);
+        const filteredAppointments = appointments.filter(app => !overlappingDates.includes(app.date));
+        localStorage.setItem('appointments', JSON.stringify(filteredAppointments));
+      } catch (err) {
+        console.error('Erreur lors de la suppression des appointments', err);
+      }
     }
+  
+    // Sauvegarder le nouveau planning
+    this.savePlanningData(pendingPlanningData);
   };
+  
 
   // Annulation de l'écrasement
   handleCancelOverwrite = () => {
@@ -625,7 +659,7 @@ export class GeneralEntreDates extends Component {
         open={overwriteDialog.isOpen}
         onOpenChange={(open) => {
           if (!open) {
-            this.setState({ overwriteDialog: { isOpen: false, overlappingDates: [] } });
+            this.setState({ overwriteDialog: { isOpen: false, overlappingDates: [], appointmentsToOverwrite: [] } });
           }
         }}
       >
@@ -639,7 +673,17 @@ export class GeneralEntreDates extends Component {
                   <li key={index}>{date}</li>
                 ))}
               </ul>
-              Voulez-vous les écraser et remplacer uniquement ces dates ?
+              {overwriteDialog.appointmentsToOverwrite.length > 0 && (
+                <>
+                  <p>Des rendez‑vous existent également aux dates suivantes :</p>
+                  <ul>
+                    {overwriteDialog.appointmentsToOverwrite.map((date, index) => (
+                      <li key={index}>{date}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              Voulez-vous écraser ces dates et supprimer les rendez‑vous associés ?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -654,6 +698,7 @@ export class GeneralEntreDates extends Component {
       </Dialog>
     );
   }
+  
 
   renderErrorDialog() {
     const { errorDialog } = this.state;
