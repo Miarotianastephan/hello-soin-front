@@ -120,8 +120,6 @@ const Header = () => {
     <header
       style={{
         transition: "top 5s ease-in-out",
-        position: "relative",
-        top: "0px",
       }}
       id="header"
       className={`${headerBg} fixed w-full top-0 left-0 z-50 transition-all duration-300 text-white accueil-header-animation`}

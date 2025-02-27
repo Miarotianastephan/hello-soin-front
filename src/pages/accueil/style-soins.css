@@ -1,15 +1,17 @@
-.aling-left{
-    align-content: center;
+.aling-left {
+  align-content: center;
 }
-.text-left{
-    text-align: left;
-
+.text-left {
+  text-align: left;
 }
-.right{
-    right: 0;
+.right {
+  right: 0;
 }
-.nav>ul>li>a{
-    font-family: 'poppins';
-    font-size: 16px;
-    font-weight: 400;
+.nav > ul > li > a {
+  font-family: "poppins";
+  font-size: 16px;
+  font-weight: 400;
+}
+.bg-custom-bg {
+  background-color: #0f2b3d;
 }
