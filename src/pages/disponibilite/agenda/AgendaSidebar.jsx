@@ -1,11 +1,10 @@
-// src/components/Agenda/AgendaSidebar.jsx
 import React from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-// Importez ici le composant Calendar de shadcn (ou votre version customisée)
 import { Calendar } from '@/components/ui/calendar';
 import { getColorByType } from './utils/agendaUtils';
-import "../../../App.css"
+import "../../../App.css";
+
 const AgendaSidebar = ({
   todayAppointments,
   currentDate,
@@ -20,10 +19,10 @@ const AgendaSidebar = ({
       {/* Calendrier avec header personnalisé */}
       <div>
         <Calendar
-          mode="single" // mode de sélection unique
+          mode="single"
           selected={currentDate}
           onSelect={setCurrentDate}
-          // Utilisation de date-fns pour afficher le mois et l'année en français
+          locale={fr} // Ajout de la locale ici si le composant la supporte
           renderHeader={({ date, decreaseMonth, increaseMonth }) => (
             <div className="flex items-center justify-between mb-2">
               <button onClick={decreaseMonth} className="p-2 text-white">
@@ -37,7 +36,6 @@ const AgendaSidebar = ({
               </button>
             </div>
           )}
-          // Personnalisation du rendu des jours pour marquer la date sélectionnée
           dayClassName={(date) =>
             currentDate &&
             date.toDateString() === currentDate.toDateString()
@@ -47,42 +45,42 @@ const AgendaSidebar = ({
         />
       </div>
 
-      {/* Liste des rendez‑vous du jour avec points colorés */}
-      <h3 className="font mb-2 px-4">Aujourd'hui ({format(new Date(), 'dd MMMM yyyy', { locale: fr })})</h3>
+      {/* Liste des rendez‑vous du jour */}
+      <h3 className="font mb-2 px-4">
+        Aujourd'hui ({format(new Date(), 'dd MMMM yyyy', { locale: fr })})
+      </h3>
       <div className="px-2 h-[300px] overflow-auto scrollbar-custom">
         {todayAppointments.length === 0 ? (
           <p className='pl-2 text-gray-50'>Aucun rendez‑vous pour aujourd'hui.</p>
         ) : (
-            <ul className="text-sm w-full">
+          <ul className="text-sm w-full">
             {todayAppointments.map((app, idx) => (
               <li 
                 key={idx} 
                 className="border-b p-2 mb-1 grid grid-cols-[1fr_3fr_3fr] items-start gap-2"
               >
-                {/* Colonne 1 : Indicateur de couleur (plus petite largeur) */}
+                {/* Indicateur de couleur */}
                 <div className="flex items-center">
                   <span 
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: getColorByType(app.practice.type) }}
                   ></span>
                 </div>
-          
-                {/* Colonne 2 : Informations sur la pratique et le patient */}
+
+                {/* Informations sur la pratique et le patient */}
                 <div className="text-left">
                   <div>{app.practice.start} - {app.practice.end}</div>
                   <div>{app.patient.nom}</div>
                   <div>{app.patient.numero}</div>
                 </div>
-          
-                {/* Colonne 3 : Type de pratique */}
+
+                {/* Type de pratique */}
                 <div className="text-center rounded-lg" style={{ backgroundColor: getColorByType(app.practice.type) }}>
                   <p>{app.practice.type}</p>
                 </div>
               </li>
             ))}
           </ul>
-          
-          
         )}
       </div>
 
@@ -95,7 +93,7 @@ const AgendaSidebar = ({
             checked={practiceFilter.tous}
             onChange={() => togglePracticeFilter('tous')}
           />
-          <span className="ml-1">Tous</span>
+          <span className="ml-1">Toutes</span>
         </label>
         <label className="flex items-center mb-1">
           <input
@@ -127,9 +125,6 @@ const AgendaSidebar = ({
             Hypnose
           </span>
         </label>
-        <div className="mt-2">
-          
-        </div>
       </div>
     </div>
   );

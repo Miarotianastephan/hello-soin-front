@@ -10,8 +10,8 @@ export default function Disponibilite() {
     <div className="mx-5">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList >
-          <TabsTrigger value="general">Général</TabsTrigger>
-          <TabsTrigger value="specifique">Spécifique</TabsTrigger>
+          <TabsTrigger value="general">Agenda général</TabsTrigger>
+          <TabsTrigger value="specifique">Agenda spécifique</TabsTrigger>
         </TabsList>
 
         <div>

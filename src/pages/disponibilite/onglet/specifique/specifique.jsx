@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Button } from '@/components/ui/button';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { SaveIcon, PlusCircle, Trash2, Check, CalendarClock, Ban } from 'lucide-react';
+import { SaveIcon, PlusCircle, Trash2, Check, CalendarClock, Ban, InfoIcon } from 'lucide-react';
 import { parse, isBefore, eachDayOfInterval, format, addMinutes } from 'date-fns';
 import {
   Dialog,
@@ -769,14 +769,14 @@ export class GeneralEntreDates extends Component {
       <div>
         {/* Saisie de la plage de dates */}
         <div className="mb-4">
-          <h3>Sélectionnez la plage de dates</h3>
-          {days.length === 0 && (
+          <p className='font-bold my-4 text-[#0f2b3d]'>Programmer une date spécifique</p>
+          {/* {days.length === 0 && (
             <div className="mb-5">
               <div className="flex w-full border-b-2 py-3 items-center justify-between">
                 <p className="text-gray-500">Définir les dates ...</p>
               </div>
             </div>
-          )}
+          )} */}
           <div className="flex gap-4 items-center justify-start">
             <p>De</p>
             <div>
@@ -813,25 +813,30 @@ export class GeneralEntreDates extends Component {
         {/* Affichage du planning */}
         {days.length > 0 && (
           <div>
-            <div className="flex w-full border-b-2 py-3 items-center justify-between">
-              <p className="text-gray-500">Planifier la disponibilité</p>
-              <Button type="submit" className="flex items-center bg-[#0f2b3d]" onClick={this.handleSave}>
-                <SaveIcon /> Enregistrer
-              </Button>
-            </div>
-            <div className="py-4">
+            <div className="">
               {/* Sélection des jours */}
-              <div className="flex flex-wrap gap-4">
-                {days.map((day, index) => (
-                  <label key={day.name} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={day.selected}
-                      onChange={() => this.handleCheckboxChange(index)}
-                    />
-                    <span>{day.name}</span>
-                  </label>
-                ))}
+              <div className="flex w-full border-y-2 py-4 items-center justify-between">
+                <div className="">
+                  <div className="flex flex-wrap gap-6">
+                    {days.map((day, index) => (
+                      <label key={day.name} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={day.selected}
+                          onChange={() => this.handleCheckboxChange(index)}
+                        />
+                        <span>{day.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2 my-2 items-center text-gray-500 text-sm">
+                    <InfoIcon/>
+                  <p>Seuls les jours sélectionnés seront modifiés par rapport à l'agenda général.</p>
+            </div>
+                </div>
+                <Button type="submit" className="flex items-center bg-[#0f2b3d]" onClick={this.handleSave}>
+                  <SaveIcon /> Enregistrer
+                </Button>
               </div>
               {/* Gestion des créneaux pour chaque jour sélectionné */}
               <div className="mt-4">

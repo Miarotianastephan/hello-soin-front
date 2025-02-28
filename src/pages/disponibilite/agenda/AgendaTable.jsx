@@ -22,11 +22,8 @@ export const DayHeader = ({ date }) => (
 
 export const HoursColumn = () => {
   const hours = [];
-  for (let hour = 0; hour <= 24; hour++) {
-    const label =
-      hour === 24
-        ? '24:00'
-        : format(addHours(parseTime(AGENDA_START), hour), 'HH:mm');
+  for (let hour = 0; hour < 24; hour++) {
+    const label = format(addHours(parseTime(AGENDA_START), hour), 'HH:mm');
     const offset = (hour / 24) * 100;
     hours.push(
       <div
