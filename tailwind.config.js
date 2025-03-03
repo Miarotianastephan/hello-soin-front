@@ -17,6 +17,7 @@ export default withMT({
   		},
   		colors: {
 			helloSoin: '#5DA781',
+			helloGray: '#9095A1',
 			helloBlue: '#405969',
 			helloBeige: '#D9CAB3',
 			helloOrange: '#FFC700',

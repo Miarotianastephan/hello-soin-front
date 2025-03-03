@@ -21,25 +21,6 @@ import { Link, useNavigate } from "react-router-dom"
 import { Checkbox } from '../ui/checkbox'
 import { Eye, EyeOff } from 'lucide-react'
 
-// function LoginErrorAlert({ message, setVisibleFunction }) {
-
-
-//   return (
-//     <Alert variant="destructive" className="flex items-center justify-between">
-//       <div className="flex items-center gap-2">
-//         <AlertCircle className="h-4 w-4" />
-//         <div>
-//           <AlertTitle>Erreur</AlertTitle>
-//           <AlertDescription>{message}</AlertDescription>
-//         </div>
-//       </div>
-//       <Button variant="ghost" onClick={() => setVisibleFunction(false)} className="p-1">
-//         <X className="h-4 w-4" />
-//       </Button>
-//     </Alert>
-//   );
-// }
-
 export const LoginForm = ({ className, ...props }) => {
 
   const navigate = useNavigate();
@@ -70,14 +51,35 @@ export const LoginForm = ({ className, ...props }) => {
   }
 
   useEffect(() => {
-    if(message){
-      setVisible(true)
-      setMessage(message.message)
+    if(message) {
+      // On vérifie que message est un objet avec une propriété "message"
+      const errorText = message.message || message;
+      setMessage(errorText);
+      setVisible(true);
     }
-  },[message])
+  }, [message])
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      {visible && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div 
+            className="absolute inset-0 bg-black opacity-50" 
+            onClick={() => setVisible(false)}
+          ></div>
+          <div className="bg-white rounded-lg shadow-lg p-6 z-10 max-w-sm w-full">
+            <div className="flex justify-between items-center mb-4">
+              <AlertTitle className="text-xl font-bold">Erreur d'authentification</AlertTitle>
+              <button onClick={() => setVisible(false)}>
+                <X className="h-6 w-6 text-gray-600" />
+              </button>
+            </div>
+            <AlertDescription className="text-destructive">
+              {message}
+            </AlertDescription>
+          </div>
+        </div>
+      )}
       <Card className="overflow-hidden">
         <CardContent className="">
           {/* LOGIN section */}
@@ -121,7 +123,7 @@ export const LoginForm = ({ className, ...props }) => {
                     Mot de passe oublié ?
                     </a>
                   </div>
-                  <div className="relative">
+                    <div className="relative">
                       <Input 
                         {...register("mot_de_passe", {
                           required: 'Vous devez remplir ce champ',
@@ -172,7 +174,6 @@ export const LoginForm = ({ className, ...props }) => {
         </CardContent>
       </Card>
       
-      {/* {visible ? ( <LoginErrorAlert message={message.message} setVisibleFunction={setVisible} /> ) : ("")} */}
     </div>
   );
 }
