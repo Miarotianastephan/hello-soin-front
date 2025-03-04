@@ -48,7 +48,6 @@ export const api_login_test = async (user_mail, mot_de_passe) => {
     throw error;
   }
 };
-
 // localStorage
 export const setLocalData = (name,value) => {
     localStorage.setItem(name, JSON.stringify(value));
@@ -62,23 +61,6 @@ export const removeLocalData = (name) => {
 localStorage.removeItem(name);
 };
 
-// Getting Data User 
-// {
-//   id_users: undefined,
-//   user_name: "Jean",
-//   user_forname: "Bosco",
-//   adresse: "Ambiatibe",
-//   code_postal: "12344",
-//   ville: "Tsy hay",
-//   user_created_at: "05-02-2025",
-//   user_date_naissance: "01-08-2002",
-//   user_mail: "jean@mail.jean",
-//   user_password: "xxxxxxx",
-//   user_phone: "34 21 245 21",
-//   user_photo_url: "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-3.jpg",
-//   id_type_user: undefined,
-//   mot_de_passe: ""
-// }
 export const getProfilPraticien = () =>{
 
   const data_user = {

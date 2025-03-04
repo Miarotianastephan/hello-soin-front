@@ -30,7 +30,7 @@ const SignInForm = () => {
 
   const onSubmit = (data) => {
     console.log("Données soumises :", data);
-    // Ajout du fonction pour l'inscription
+    // Ajout du fonction pour l'inscriptionj
     navigate("/praticien/dashboard");
     // alert("Inscription réussie !");  
   };
