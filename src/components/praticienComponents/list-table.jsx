@@ -1,5 +1,5 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { PencilIcon } from "@heroicons/react/24/solid";
+import { ArrowRightCircleIcon } from "@heroicons/react/24/solid";
 import {
   Card,
   CardHeader,
@@ -16,7 +16,9 @@ import {
   IconButton,
   Tooltip,
 } from "@material-tailwind/react";
-import { useEffect } from "react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import React, { useEffect, useState } from "react";
  
 const TABS = [
   {
@@ -33,7 +35,7 @@ const TABS = [
   },
 ];
  
-const TABLE_HEAD = ["Date", "Patient", "Duree", "Heures", ""];
+const TABLE_HEAD = ["Date", "Nom du Patient", "Duree", "Heure de debut", "Heure de fin", ""];
  
 const TABLE_ROWS = [
   {
@@ -83,25 +85,62 @@ const TABLE_ROWS = [
   },
 ];
  
-export function ListTable() {
+export function ListTable({todayAppointments}) {
+  const [dataRDV, setDataRDV] = useState([]);
+  CONST 
+
+  useEffect(() => {
+    setDataRDV(todayAppointments);
+  }, [todayAppointments]);
+
+  function getDurationInMinutes(startTime, endTime) {
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+  
+    const startTotal = startHour * 60 + startMinute;
+    const endTotal = endHour * 60 + endMinute;
+  
+    if (endTotal < startTotal) {
+      return (24 * 60 - startTotal) + endTotal;
+    }
+    return endTotal - startTotal;
+  }
+
+  function searchAppointments(appointments, searchTerm) {
+    const term = searchTerm.trim().toLowerCase();
+    
+    if (!term) return appointments;
+    
+    return appointments.filter(appointment => {
+      const { nom, prenom } = appointment.patient;
+      return (
+        (nom && nom.toLowerCase().includes(term)) ||
+        (prenom && prenom.toLowerCase().includes(term))
+      );
+    });
+  }
+
+  function handleSearch(searchValue) {
+    const resultSearch = searchAppointments(todayAppointments, searchValue);
+    setDataRDV(resultSearch);
+  }
 
   return (
     <Card >
-      <CardHeader floated={false} shadow={false} className="rounded-none">
-        <div className=" flex items-center justify-between gap-8">
+      <CardHeader floated={false} shadow={false} className="p-4 rounded-none">
+        <div className=" flex items-center justify-between">
           <div>
-            <Typography variant="h5" color="blue-gray">
-              Mes rendez-vous pour aujourd'hui
-            </Typography>
-            <Typography color="gray" className="mt-1 font-normal">
-              Liste des prise de rendez-vous des patients aujourd'hui
+            <Typography variant="h5" className="text-helloBlue">
+              Rendez-vous aujourd’hui
             </Typography>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
             <div className="w-full md:w-72">
               <Input
-                label="Rechercher un patient par son nom"
+                label="Recherche"
+                className=""
                 icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
           </div>
@@ -128,45 +167,51 @@ export function ListTable() {
             </tr>
           </thead>
           <tbody>
-            {TABLE_ROWS.map(
-              ({ img, name, email, heure_debut, heure_fin, duree, date }, index) => {
-                const isLast = index === TABLE_ROWS.length - 1;
+            { dataRDV.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="p-4 text-center text-gray-500">
+                  Aucun rendez‑vous.
+                  </td>
+              </tr>
+            ) :
+            (
+              dataRDV.map(
+              ({ date, key, patient, practice }, index) => {
+                const isLast = index === dataRDV.length - 1;
                 const classes = isLast
                   ? "p-4"
                   : "p-4 border-b border-blue-gray-50";
  
                 return (
-                  <tr key={name}>
+                  <tr key={key}>
                     {/* Date du rendez-vous */}
                     <td className={classes}>
                       <div className="w-max">
-                        <Chip
-                            variant="ghost"
-                            size="lg"
-                            value={date}
-                            className="font-bold"
-                            color="purple"
-                        />
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-bold text-helloPurple"
+                        >
+                          {date}
+                        </Typography>
                       </div>
                     </td>
                     {/* Detail Patient */}
                     <td className={classes}>
                       <div className="flex items-center gap-3">
-                        <Avatar src={img} alt={name} size="sm" />
+                        {/* <Avatar src={img} alt={name} size="sm" /> */}
                         <div className="flex flex-col">
                           <Typography
                             variant="small"
-                            color="blue-gray"
-                            className="font-normal"
+                            className="font-bold text-helloBlue"
                           >
-                            {name}
+                            {patient.nom}
                           </Typography>
                           <Typography
                             variant="small"
-                            color="blue-gray"
-                            className="font-normal opacity-70"
+                            className="font-normal opacity-70 text-helloBlue"
                           >
-                            {email}
+                            {patient.email}
                           </Typography>
                         </div>
                       </div>
@@ -175,10 +220,9 @@ export function ListTable() {
                     <td className={classes}>
                         <Typography
                           variant="small"
-                          color="blue-gray"
-                          className="font-normal opacity-70"
+                          className="font-normal opacity-70 text-helloBlue"
                         >
-                          {duree}
+                          {getDurationInMinutes(practice.start, practice.end)} minutes
                         </Typography>
                     </td>
                     {/* Adresse => Heure debut et fin */}
@@ -186,35 +230,38 @@ export function ListTable() {
                       <div className="flex flex-col">
                         <Typography
                           variant="small"
-                          color="blue-gray"
-                          className="font-normal"
+                          className="font-normal text-helloBlue"
                         >
-                          De {heure_debut}
-                        </Typography>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal opacity-70"
-                        >
-                          à {heure_fin}
+                          De {practice.start}
                         </Typography>
                       </div>
                     </td>
                     <td className={classes}>
-                      <Tooltip content="Edit User">
+                      <div className="flex flex-col">
+                        <Typography
+                          variant="small"
+                          className="font-normal text-helloBlue"
+                        >
+                          à {practice.end}
+                        </Typography>
+                      </div>
+                    </td>
+                    <td className={classes}>
+                      <Tooltip content="Voir plus">
                         <IconButton variant="text">
-                          <PencilIcon className="h-4 w-4" />
+                          <ArrowRightCircleIcon className="h-6 w-6 text-helloBlue" />
                         </IconButton>
                       </Tooltip>
+                      
                     </td>
                   </tr>
                 );
               },
-            )}
+            ))}
           </tbody>
         </table>
       </CardBody>
-      <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">
+      {/* <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">
         <Typography variant="small" color="blue-gray" className="font-normal">
           Page 1 of 10
         </Typography>
@@ -226,7 +273,7 @@ export function ListTable() {
             Next
           </Button>
         </div>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 }
