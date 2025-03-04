@@ -87,7 +87,6 @@ const TABLE_ROWS = [
  
 export function ListTable({todayAppointments}) {
   const [dataRDV, setDataRDV] = useState([]);
-  CONST 
 
   useEffect(() => {
     setDataRDV(todayAppointments);
