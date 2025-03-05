@@ -16,6 +16,7 @@ import PraticienProfil from './pages/praticien/PraticienProfil';
 import Disponibilités from './pages/disponibilite/disponibilite';
 import Crenaux from './pages/crenaux/crenaux';
 import Accueil from './pages/accueil/Accueil';
+import PatientsPraticien from './pages/praticien/PatientsPraticien';
 
 function App() {  
   const location = useLocation(); // route actuelle
@@ -46,6 +47,7 @@ function App() {
             <Route path="/profil" element={<PraticienProfil />} />
             <Route path="/plage-horaire" element={<Disponibilités />} />
             <Route path="/type-rendez-vous" element={<Crenaux />} />
+            <Route path="/praticien/patients" element={<PatientsPraticien />} />
 
             {/* PATIENTS */}
             <Route path="/about" element={<ProfilPatient />} />

@@ -55,7 +55,7 @@ const AccueilPraticien = () => {
 
   return (
     <>
-      <div className="flex flex-1 flex-col gap-4 p-4 bg-muted/50 rounded-xl">
+      <div className="flex flex-1 flex-col gap-4 m-4 p-4 bg-muted/50 rounded-xl">
         <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
           {/* First Card */}
           <div className="flex items-start justify-between p-5 bg-helloSoin rounded-xl shadow-sm">

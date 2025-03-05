@@ -45,7 +45,7 @@ const menu_secondaire = [
       },
       {
         title: "Mes patients",
-        url: "#",
+        url: "/praticien/patients",
         icon: Users,
       },
     ]

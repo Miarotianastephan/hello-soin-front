@@ -360,11 +360,11 @@ const SignInForm = () => {
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label>Numero de CIRET</Label>
+                <Label>Numero de Ciret</Label>
                 <Input
                   {...register("ciret_number")}
                   type="number"
-                  placeholder="Entrer votre adresse"
+                  placeholder="Entrer votre numero de Ciret"
                   className="w-full"
                 />
                 {errors.ciret_number && (
