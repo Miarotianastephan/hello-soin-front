@@ -27,6 +27,7 @@ import {
     TableHeader,
     TableRow,
   } from "@/components/ui/table"
+import clsx from "clsx";
 
 const SearchBarFilter = () => {
   function handleSearch(searchStr) {
@@ -124,21 +125,24 @@ const ListHistoricRdv = () => {
         heure: "08:00",
         pratiques: "Acupuncture",
         Duree: "25",
-        Status: "Finie",
+        Status: "Terminés",
+        status_code: 0,
     },
     {
         date: "27-02-25",
         heure: "07:00",
         pratiques: "Naturopathie",
         Duree: "30",
-        Status: "Finie",
+        Status: "Terminés",
+        status_code: 0,
     },
     {
-        date: "05-03-25",
+        date: "15-03-25",
         heure: "11:00",
         pratiques: "Acupuncture",
         Duree: "25",
-        Status: "Finie",
+        Status: "A venir",
+        status_code: 1,
     },
     ]
   return (
@@ -147,10 +151,10 @@ const ListHistoricRdv = () => {
       <TableCaption>Historique des rendez-vous prises.</TableCaption>
       <TableHeader className="bg-gray-100">
         <TableRow>
-          <TableHead className="w-[100px] text-helloBlue font-bold">Date et Heure</TableHead>
-          <TableHead className="text-helloBlue font-bold">Pratique</TableHead>
-          <TableHead className="text-helloBlue font-bold">Duree</TableHead>
-          <TableHead className="text-right text-helloBlue font-bold">Status</TableHead>
+          <TableHead className="w-max text-helloGray font-bold">Date et Heure</TableHead>
+          <TableHead className="text-helloGray font-bold">Pratique</TableHead>
+          <TableHead className="text-helloGray font-bold">Durée</TableHead>
+          <TableHead className="text-right text-helloGray font-bold">Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody >
@@ -158,8 +162,13 @@ const ListHistoricRdv = () => {
           <TableRow key={d.date} className="text-helloBlue">
             <TableCell className="font-medium">{d.date} / {d.heure}</TableCell>
             <TableCell>{d.pratiques}</TableCell>
-            <TableCell>{d.Duree}</TableCell>
-            <TableCell className="flex justify-end "> <Chip value={d.Status} className="w-max bg-helloSoin"/> </TableCell>
+            <TableCell>{d.Duree} min</TableCell>
+            <TableCell className="flex justify-end "> 
+              <Chip 
+                value={d.Status} 
+                className={clsx(d.status_code === 0 ? "bg-helloSoin" : "bg-blue-400", "normal-case", "rounded-full")}
+              />
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -231,7 +240,7 @@ const DetailsPatients = () => {
               <span className="flex-1 text-start">04-03-2025</span>
             </li>
             <li className="flex">
-              <span className="flex-1">Sexe</span>
+              <span className="flex-1">Genre</span>
               <span className="flex-1 text-start">Femme</span>
             </li>
             <li className="flex">
