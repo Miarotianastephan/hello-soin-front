@@ -95,6 +95,8 @@ export const DayColumn = ({
   refreshSchedule  // ajout de la prop refreshSchedule
 }) => {
   const [hoverBlock, setHoverBlock] = useState(null);
+  const [hoverPosition, setHoverPosition] = useState(null);
+  const [hoverTime, setHoverTime] = useState(null);
   // États pour la sélection multiple avec Ctrl
   const [multiSelectStart, setMultiSelectStart] = useState(null);
   const [multiSelectCurrent, setMultiSelectCurrent] = useState(null);
@@ -225,22 +227,38 @@ export const DayColumn = ({
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const offsetY = e.clientY - rect.top;
+    const offsetX = e.clientX - rect.left;
     const blockHeight = contentHeight / totalIntervals;
     setHoverBlock(Math.floor(offsetY / blockHeight));
-
+    setHoverPosition({ x: offsetX, y: offsetY });
+    
+    // Calcul de l'heure survolée
+    const rawMinutes = (offsetY / contentHeight) * totalDuration;
+    const roundedMinutes = Math.round(rawMinutes / 15) * 15;
+    const baseTime = parseTime(AGENDA_START);
+    const agendaStartDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      baseTime.getHours(),
+      baseTime.getMinutes()
+    );
+    const newTime = addMinutes(agendaStartDate, roundedMinutes);
+    setHoverTime(newTime);
+    
+    // Mise à jour pour la sélection multiple si en cours
     if (multiSelectStart) {
-      const rawMinutes = (offsetY / contentHeight) * totalDuration;
-      const roundedMinutes = Math.round(rawMinutes / 15) * 15;
-      const baseTime = parseTime(AGENDA_START);
-      const agendaStartDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), baseTime.getHours(), baseTime.getMinutes());
-      const newTime = addMinutes(agendaStartDate, roundedMinutes);
       setMultiSelectCurrent(newTime);
     }
   };
+  
 
   const handleMouseLeave = () => {
     setHoverBlock(null);
+    setHoverPosition(null);
+    setHoverTime(null);
   };
+  
 
   // Calcul et rendu de l'overlay de sélection
   let selectionOverlay = null;
@@ -294,10 +312,28 @@ export const DayColumn = ({
   }
 
   return (
-    <div className="relative border-l h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
+    <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
+      {hoverTime && hoverPosition && (
+        <div
+          style={{
+            position: 'absolute',
+            left: `${hoverPosition.x + 5}px`,
+            top: `${hoverPosition.y + 10}px`,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            color: 'white',
+            padding: '2px 5px',
+            borderRadius: '4px',
+            fontSize: '10px',
+            pointerEvents: 'none',
+            zIndex: 100,
+          }}
+        >
+          {format(hoverTime, 'HH:mm')}
+        </div>
+      )}
       {/* En-tête */}
       <div
-        className={`sticky top-0 z-10 p-1 ${isSelected ? 'bg-gray-300 border-b-2 border-green-500' : 'bg-white border-b'}`}
+        className={`sticky top-0 z-10 p-1 border-l ${isSelected ? 'bg-gray-300 border-b-2 border-green-500' : 'bg-white border-b'}`}
         style={{ height: `${HEADER_HEIGHT}px` }}
       >
         <p className="text-gray-700 font-bold text-xs text-start">{dayNames[date.getDay()]}</p>
