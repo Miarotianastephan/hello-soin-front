@@ -802,7 +802,7 @@ export class General extends Component {
                           >
                             <Trash2 size={16} />
                           </Button>
-                          <Button
+                          {/* <Button
                             className="bg-[#0f2b3d] text-white"
                             onClick={() =>
                               this.openPracticeDialog(index, timeIndex)
@@ -810,7 +810,7 @@ export class General extends Component {
                           >
                             <CalendarClock size={16} /> Pratique (
                             {time.practices ? time.practices.length : 0})
-                          </Button>
+                          </Button> */}
                         </div>
                       ))}
                     </div>

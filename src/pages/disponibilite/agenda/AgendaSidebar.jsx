@@ -1,9 +1,11 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Calendar } from '@/components/ui/calendar';
+import DateFnsCalendar from './sidebarComponent/DateFnsCalendar';
 import { getColorByType } from './utils/agendaUtils';
 import "../../../App.css";
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const AgendaSidebar = ({
   todayAppointments,
@@ -15,116 +17,102 @@ const AgendaSidebar = ({
   setSpecifiqueOnly,
 }) => {
   return (
-    <div className="w-64 flex flex-col gap-4 bg-[#565D6D] text-white">
-      {/* Calendrier avec header personnalisé */}
-      <div>
-        <Calendar
-          mode="single"
-          selected={currentDate}
-          onSelect={setCurrentDate}
-          locale={fr} // Ajout de la locale ici si le composant la supporte
-          renderHeader={({ date, decreaseMonth, increaseMonth }) => (
-            <div className="flex items-center justify-between mb-2">
-              <button onClick={decreaseMonth} className="p-2 text-white">
-                &lt;
-              </button>
-              <span className="font-medium text-white">
-                {format(date, 'LLLL yyyy', { locale: fr })}
-              </span>
-              <button onClick={increaseMonth} className="p-2 text-white">
-                &gt;
-              </button>
-            </div>
-          )}
-          dayClassName={(date) =>
-            currentDate &&
-            date.toDateString() === currentDate.toDateString()
-              ? 'bg-blue-500 text-white rounded-full'
-              : ''
-          }
-        />
-      </div>
+    <div className="w-42 flex flex-col gap-4 bg-[#BCE2D326] text-[#405969] text-xs">
+      {/* Bouton d'accès aux prochaines disponibilités */}
+      <Button className="mt-4 mx-4 bg-[#405969] shadow-none text-xs text-white">
+        Prochaine disponibilité <ChevronRight />
+      </Button>
 
-      {/* Liste des rendez‑vous du jour */}
-      <h3 className="font mb-2 px-4">
-        Aujourd'hui ({format(new Date(), 'dd MMMM yyyy', { locale: fr })})
-      </h3>
-      <div className="px-2 h-[300px] overflow-auto scrollbar-custom">
-        {todayAppointments.length === 0 ? (
-          <p className='pl-2 text-gray-50'>Aucun rendez‑vous pour aujourd'hui.</p>
-        ) : (
-          <ul className="text-sm w-full">
-            {todayAppointments.map((app, idx) => (
-              <li 
-                key={idx} 
-                className="border-b p-2 mb-1 grid grid-cols-[1fr_3fr_3fr] items-start gap-2"
-              >
-                {/* Indicateur de couleur */}
-                <div className="flex items-center">
-                  <span 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: getColorByType(app.practice.type) }}
-                  ></span>
-                </div>
-
-                {/* Informations sur la pratique et le patient */}
-                <div className="text-left">
-                  <div>{app.practice.start} - {app.practice.end}</div>
-                  <div>{app.patient.nom}</div>
-                  <div>{app.patient.numero}</div>
-                </div>
-
-                {/* Type de pratique */}
-                <div className="text-center rounded-lg" style={{ backgroundColor: getColorByType(app.practice.type) }}>
-                  <p>{app.practice.type}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+      {/* Calendrier avec réduction de taille */}
+      <div className="mx-4 overflow-hidden">
+        <div className="transform scale-98 origin-top-left">
+          <DateFnsCalendar
+            selected={currentDate}
+            onSelect={setCurrentDate}
+            locale={fr}
+            renderHeader={({ date, decreaseMonth, increaseMonth }) => (
+              <div className="flex items-center justify-between mb-2 text-xs text-[#405969]">
+                <Button variant="ghost" size="sm" onClick={decreaseMonth}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="font-medium text-[#405969] text-xs capitalize">
+                  {format(date, 'LLLL yyyy', { locale: fr })}
+                </span>
+                <Button variant="ghost" size="sm" onClick={increaseMonth}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          />
+        </div>
       </div>
 
       {/* Filtres sur les pratiques */}
-      <div className="px-4">
-        <h4 className="font-bold mt-2 mb-1">Filtrer par pratique :</h4>
-        <label className="flex items-center mb-1">
+      <div className="mx-4 border-b-2 pb-2 text-xs text-[#405969]">
+        <div>
+          <h4 className="font-bold mt-2 mb-4 text-xs">Tous les pratiques</h4>
+        </div>
+        <label className="flex items-center mb-4 text-xs">
           <input
             type="checkbox"
             checked={practiceFilter.tous}
             onChange={() => togglePracticeFilter('tous')}
           />
-          <span className="ml-1">Toutes</span>
+          <span className="ml-1 text-xs">Toutes</span>
         </label>
-        <label className="flex items-center mb-1">
+        <label className="flex items-center mb-4 text-xs">
           <input
             type="checkbox"
             checked={practiceFilter.naturopathie}
             onChange={() => togglePracticeFilter('naturopathie')}
           />
-          <span className="ml-1" style={{ color: getColorByType('naturopathie') }}>
-            Naturopathie
-          </span>
+          <span
+            className="ml-2 w-3 h-3 rounded-full"
+            style={{ backgroundColor: getColorByType('naturopathie') }}
+          ></span>
+          <span className="ml-1 text-xs">Naturopathie</span>
         </label>
-        <label className="flex items-center mb-1">
+        <label className="flex items-center mb-4 text-xs">
           <input
             type="checkbox"
             checked={practiceFilter.acuponcture}
             onChange={() => togglePracticeFilter('acuponcture')}
           />
-          <span className="ml-1" style={{ color: getColorByType('acuponcture') }}>
-            Acuponcture
-          </span>
+          <span
+            className="ml-2 w-3 h-3 rounded-full"
+            style={{ backgroundColor: getColorByType('acuponcture') }}
+          ></span>
+          <span className="ml-1 text-xs">Acupuncture</span>
         </label>
-        <label className="flex items-center">
+        <label className="flex items-center text-xs">
           <input
             type="checkbox"
             checked={practiceFilter.hypnose}
             onChange={() => togglePracticeFilter('hypnose')}
           />
-          <span className="ml-1" style={{ color: getColorByType('hypnose') }}>
-            Hypnose
-          </span>
+          <span
+            className="ml-2 w-3 h-3 rounded-full"
+            style={{ backgroundColor: getColorByType('hypnose') }}
+          ></span>
+          <span className="ml-1 text-xs">Hypnose</span>
         </label>
+      </div>
+
+      {/* Légende */}
+      <div className="mx-4 mt-4 text-xs text-[#405969]">
+        <h4 className="font-bold mb-2 text-xs">Légende :</h4>
+        <div className="flex items-center mb-2 text-xs">
+          <span className="w-3 h-3 rounded-full bg-gray-500"></span>
+          <span className="ml-2 text-xs">Indisponible</span>
+        </div>
+        <div className="flex items-center mb-2 text-xs">
+          <span className="w-3 h-3 rounded-full bg-white"></span>
+          <span className="ml-2 text-xs">Encore disponible</span>
+        </div>
+        <div className="flex items-center text-xs">
+          <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+          <span className="ml-2 text-xs">Déjà pris</span>
+        </div>
       </div>
     </div>
   );
