@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import DateFnsCalendar from './sidebarComponent/DateFnsCalendar';
@@ -15,13 +15,57 @@ const AgendaSidebar = ({
   togglePracticeFilter,
   specifiqueOnly,
   setSpecifiqueOnly,
+  // On suppose que la sélection sera remontée vers le parent via ce callback
+  onSelectNextAvailabilityPractice,
 }) => {
+  // Etat pour afficher/masquer le dropdown et pour la pratique sélectionnée
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedPracticeForAvailability, setSelectedPracticeForAvailability] = useState(null);
+
+  const practices = ['naturopathie', 'acuponcture', 'hypnose'];
+
+  const handlePracticeChange = (practice) => {
+    // Si la pratique est déjà sélectionnée, la désélectionner (aucune sélection)
+    const newValue = selectedPracticeForAvailability === practice ? null : practice;
+    setSelectedPracticeForAvailability(newValue);
+    // Remonter la sélection (null ou la pratique)
+    onSelectNextAvailabilityPractice(newValue);
+  };
+
   return (
-    <div className="w-42 flex flex-col gap-4 bg-[#BCE2D326] text-[#405969] text-xs">
+    <div className="w-42 flex flex-col gap-4 bg-[#BCE2D326] text-[#405969] text-xs relative">
       {/* Bouton d'accès aux prochaines disponibilités */}
-      <Button className="mt-4 mx-4 bg-[#405969] shadow-none text-xs text-white">
+      <Button
+        className="mt-4 mx-4 bg-[#405969] shadow-none text-xs text-white"
+        onClick={() => setShowDropdown(!showDropdown)}
+      >
         Prochaine disponibilité <ChevronRight />
       </Button>
+      {showDropdown && (
+        <div className="absolute top-12 left-4 bg-white shadow-md border p-2 z-20">
+          <p className="mb-2 font-bold">Sélectionnez une pratique</p>
+          {practices.map((practice) => (
+            <label key={practice} className="flex items-center mb-1 text-xs cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selectedPracticeForAvailability === practice}
+                onChange={() => handlePracticeChange(practice)}
+              />
+              <span
+                className="ml-2 inline-block w-3 h-3 rounded-full"
+                style={{ backgroundColor: getColorByType(practice) }}
+              ></span>
+              <span className="ml-1 capitalize">{practice}</span>
+            </label>
+          ))}
+          <button
+            className="mt-2 text-xs text-blue-500 underline"
+            onClick={() => setShowDropdown(false)}
+          >
+            Fermer
+          </button>
+        </div>
+      )}
 
       {/* Calendrier avec réduction de taille */}
       <div className="mx-4 overflow-hidden">

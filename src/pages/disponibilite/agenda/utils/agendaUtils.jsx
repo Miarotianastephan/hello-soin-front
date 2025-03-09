@@ -21,6 +21,12 @@ export const isValidTime = (timeString) => {
   return /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/.test(timeString);
 };
 
+export const addMinutes = (time, minutes) => {
+  const date = new Date(time);
+  date.setMinutes(date.getMinutes() + minutes);
+  return date;
+};
+
 export const totalDuration =
   differenceInMinutes(parseTime(AGENDA_END), parseTime(AGENDA_START)) + 1;
   export const DAY_COLUMN_HEIGHT = (1440 / 60) * 128; // 3072px
@@ -87,11 +93,11 @@ export const mergeTimeSlots = (timeSlots) => {
 export const getDurationInMinutes = (type) => {
   switch (type) {
     case 'naturopathie':
-      return 120;
+      return 100000000;
     case 'acuponcture':
-      return 15;
+      return 100000000;
     case 'hypnose':
-      return 90;
+      return 100000000;
     default:
       return 0;
   }

@@ -1,3 +1,4 @@
+// src/components/General.jsx
 import React, { Component } from 'react';
 import { Button } from '@/components/ui/button';
 import { SaveIcon, PlusCircle, Trash2, CalendarClock, InfoIcon } from 'lucide-react';
@@ -10,33 +11,10 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-
-// Fonctions utilitaires pour la pratique
-export const getDurationInMinutes = (type) => {
-  switch (type) {
-    case 'naturopathie':
-      return 120;
-    case 'acuponcture':
-      return 30;
-    case 'hypnose':
-      return 90;
-    default:
-      return 0;
-  }
-};
-
-export const getColorByType = (type) => {
-  switch (type) {
-    case 'naturopathie':
-      return '#FF6B6B';
-    case 'acuponcture':
-      return '#4ECDC4';
-    case 'hypnose':
-      return '#45B7D1';
-    default:
-      return '#CCCCCC';
-  }
-};
+import { getDurationInMinutes, getColorByType } from './utils/planningUtils';
+import PracticeDialog from './dialogs/PracticeDialog';
+import TimeInput from './dialogs/TimeInput';
+import { Link } from 'react-router-dom'; // (optionnel, si vous souhaitez extraire le champ de saisie de l'heure)
 
 export class General extends Component {
   constructor(props) {
@@ -75,8 +53,6 @@ export class General extends Component {
     };
   }
 
-  
-
   componentDidMount() {
     const savedPlanning = localStorage.getItem('general');
     if (savedPlanning) {
@@ -104,15 +80,12 @@ export class General extends Component {
   // Convertir une chaîne "HH:mm" en objet Date (avec une date de base fixe)
   getDateFromTime = (timeStr) => parse(timeStr, 'HH:mm', new Date(1970, 0, 1));
 
-  
-
   handleCheckboxChange = (index) => {
     const newDays = [...this.state.days];
     const isSelected = !newDays[index].selected;
     newDays[index].selected = isSelected;
 
     if (isSelected) {
-      // Ajoute une plage horaire par défaut avec un tableau de pratiques vide
       newDays[index].times.push({
         start: '08:00',
         end: '10:00',
@@ -168,7 +141,6 @@ export class General extends Component {
       if (!isBefore(startDate, endDate)) {
         errorMessage = "L'heure de début doit être antérieure à l'heure de fin.";
       } else {
-        // Vérifier le chevauchement avec les autres créneaux du même jour
         for (let i = 0; i < newDays[dayIndex].times.length; i++) {
           if (i === timeIndex) continue;
           const otherSlot = newDays[dayIndex].times[i];
@@ -247,28 +219,24 @@ export class General extends Component {
     }
   };
 
+  // Exemple d'utilisation d'un composant TimeInput (optionnel)
   renderTimeInput(dayIndex, timeIndex, field) {
     const slot = this.state.days[dayIndex].times[timeIndex];
     const timeValue = slot[field] || '';
     const hasError = slot.errors && slot.errors[field];
     return (
-      <input
-        type="time"
+      <TimeInput
         value={timeValue}
         onChange={(e) =>
           this.handleTimeChange(dayIndex, timeIndex, field, e.target.value)
         }
         onBlur={() => this.validateTimeSlot(dayIndex, timeIndex, field)}
-        className={`border p-2 rounded ${
-          hasError ? 'border-red-500' : 'border-gray-300'
-        }`}
+        hasError={hasError}
       />
     );
   }
 
-  // --- Gestion de la boîte de dialogue "Pratique" ---
-
-  // Ouvre le dialog de pratique pour une plage horaire donnée
+  // --- Méthodes pour la gestion du dialogue de pratique ---
   openPracticeDialog = (dayIndex, timeIndex) => {
     const timeslot = this.state.days[dayIndex].times[timeIndex];
     const practices = timeslot.practices || [];
@@ -283,7 +251,6 @@ export class General extends Component {
     });
   };
 
-  // Gestion du changement du type de pratique
   handlePracticeTypeChange = (e) => {
     const type = e.target.value;
     this.setState((prevState) => {
@@ -303,7 +270,6 @@ export class General extends Component {
     });
   };
 
-  // Gestion du changement de l'heure de début de la pratique
   handlePracticeStartChange = (e) => {
     const start = e.target.value;
     this.setState((prevState) => {
@@ -328,7 +294,6 @@ export class General extends Component {
     });
   };
 
-  // Vérification du chevauchement dès la sortie du champ (onBlur)
   handlePracticeStartBlur = () => {
     this.setState((prevState) => {
       const { dayIndex, timeIndex, newPractice, practices } = prevState.practiceDialog;
@@ -363,7 +328,6 @@ export class General extends Component {
     });
   };
 
-  // Ajoute une pratique après vérification (pas de chevauchement et dans la plage)
   handleAddPractice = () => {
     this.setState((prevState) => {
       const { dayIndex, timeIndex, practices, newPractice } = prevState.practiceDialog;
@@ -381,16 +345,13 @@ export class General extends Component {
       const newStart = this.getDateFromTime(newPractice.start);
       const newEnd = this.getDateFromTime(newPractice.end);
 
-      // Vérifier que la pratique se situe dans la plage de disponibilité
       if (newStart < parentStart || newEnd > parentEnd) {
-        newPractice.error =
-          "La pratique doit être dans la plage horaire sélectionnée.";
+        newPractice.error = "La pratique doit être dans la plage horaire sélectionnée.";
         return {
           practiceDialog: { ...prevState.practiceDialog, newPractice },
         };
       }
 
-      // Vérifier les chevauchements avec les pratiques existantes
       for (let practice of practices) {
         const existingStart = this.getDateFromTime(practice.start);
         const existingEnd = this.getDateFromTime(practice.end);
@@ -402,7 +363,6 @@ export class General extends Component {
         }
       }
 
-      // Pas d'erreur : on ajoute la pratique et on réinitialise le formulaire
       newPractice.error = '';
       const updatedPractices = [...practices, { ...newPractice }];
       const resetNewPractice = {
@@ -421,7 +381,6 @@ export class General extends Component {
     });
   };
 
-  // Supprime une pratique de la liste
   handleRemovePractice = (index) => {
     this.setState((prevState) => {
       const updatedPractices = prevState.practiceDialog.practices.filter(
@@ -436,7 +395,6 @@ export class General extends Component {
     });
   };
 
-  // Sauvegarde les pratiques dans la plage horaire correspondante
   handleSavePractices = () => {
     this.setState((prevState) => {
       const { dayIndex, timeIndex, practices } = prevState.practiceDialog;
@@ -455,7 +413,6 @@ export class General extends Component {
     });
   };
 
-  // Ferme la boîte de dialogue pratique sans sauvegarder
   handleClosePracticeDialog = () => {
     this.setState({
       practiceDialog: {
@@ -468,7 +425,6 @@ export class General extends Component {
     });
   };
 
-  // Ajout de la fonction pour sélectionner l'heure de début sur la timeline
   handleTimelineClick = (e) => {
     this.setState((prevState) => {
       const { dayIndex, timeIndex, newPractice } = prevState.practiceDialog;
@@ -476,7 +432,7 @@ export class General extends Component {
       const parentTimeslot = prevState.days[dayIndex].times[timeIndex];
       const parentStart = this.getDateFromTime(parentTimeslot.start);
       const parentEnd = this.getDateFromTime(parentTimeslot.end);
-      const totalDuration = (parentEnd - parentStart) / 60000; // en minutes
+      const totalDuration = (parentEnd - parentStart) / 60000;
 
       const rect = e.currentTarget.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
@@ -485,7 +441,6 @@ export class General extends Component {
       const newStartDate = addMinutes(parentStart, minutesOffset);
       const newStart = format(newStartDate, 'HH:mm');
 
-      // Calcul automatique de l'heure de fin en fonction du type de pratique
       const duration = getDurationInMinutes(newPractice.type);
       const newEndDate = addMinutes(newStartDate, duration);
       const newEnd = format(newEndDate, 'HH:mm');
@@ -498,175 +453,6 @@ export class General extends Component {
       };
     });
   };
-
-  renderPracticeDialog() {
-    const { practiceDialog } = this.state;
-    if (!practiceDialog.isOpen) return null;
-
-    const { dayIndex, timeIndex, practices, newPractice } = practiceDialog;
-    if (dayIndex === null || timeIndex === null) return null;
-    const parentTimeslot = this.state.days[dayIndex].times[timeIndex];
-    const parentStart = this.getDateFromTime(parentTimeslot.start);
-    const parentEnd = this.getDateFromTime(parentTimeslot.end);
-    const totalDuration = (parentEnd - parentStart) / 60000; // en minutes
-
-    return (
-      <Dialog
-        open={practiceDialog.isOpen}
-        onOpenChange={(open) => {
-          if (!open) this.handleClosePracticeDialog();
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Gestion des Pratiques</DialogTitle>
-            <DialogDescription>
-              Plage horaire : {parentTimeslot.start} - {parentTimeslot.end}
-            </DialogDescription>
-          </DialogHeader>
-
-          {/* Ligne de temps affinée */}
-          <div
-            className="relative"
-            style={{ height: '10px', background: '#e0e0e0' }}
-          >
-            {practices.map((practice, idx) => {
-              const pStart = this.getDateFromTime(practice.start);
-              const pEnd = this.getDateFromTime(practice.end);
-              const offset = ((pStart - parentStart) / 60000 / totalDuration) * 100;
-              const width = (((pEnd - pStart) / 60000) / totalDuration) * 100;
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    position: 'absolute',
-                    left: `${offset}%`,
-                    width: `${width}%`,
-                    height: '100%',
-                    backgroundColor: getColorByType(practice.type),
-                  }}
-                  title={`${practice.type} (${practice.start})`}
-                />
-              );
-            })}
-          </div>
-
-          {/* Légende des couleurs */}
-          <div className="flex gap-4">
-            <div className="flex items-center">
-              <div
-                style={{
-                  width: '15px',
-                  height: '15px',
-                  backgroundColor: getColorByType('naturopathie'),
-                }}
-                className="mr-1"
-              />
-              <span>Naturopathie</span>
-            </div>
-            <div className="flex items-center">
-              <div
-                style={{
-                  width: '15px',
-                  height: '15px',
-                  backgroundColor: getColorByType('acuponcture'),
-                }}
-                className="mr-1"
-              />
-              <span>Acuponcture</span>
-            </div>
-            <div className="flex items-center">
-              <div
-                style={{
-                  width: '15px',
-                  height: '15px',
-                  backgroundColor: getColorByType('hypnose'),
-                }}
-                className="mr-1"
-              />
-              <span>Hypnose</span>
-            </div>
-          </div>
-
-          {/* Liste des pratiques ajoutées avec affichage de la durée */}
-          <div className="mb-4">
-            <h4 className="font-bold">Pratiques ajoutées :</h4>
-            {practices.length === 0 ? (
-              <p>Aucune pratique ajoutée.</p>
-            ) : (
-              <ul>
-                {practices.map((practice, idx) => {
-                  const pStart = this.getDateFromTime(practice.start);
-                  const pEnd = this.getDateFromTime(practice.end);
-                  const durationMinutes = Math.floor((pEnd - pStart) / 60000);
-                  const hours = Math.floor(durationMinutes / 60);
-                  const minutes = durationMinutes % 60;
-                  return (
-                    <li key={idx} className="flex items-center justify-between">
-                      <span>
-                        {practice.type} : {practice.start} - {practice.end}
-                      </span>
-                      <Button
-                        className="bg-red-500 text-white"
-                        onClick={() => this.handleRemovePractice(idx)}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-
-          {/* Formulaire d'ajout */}
-          <div className="mb-4">
-            <h4 className="font-bold">Ajouter une pratique :</h4>
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-row w-full justify-between items-center px-2">
-                <label>
-                  Type :
-                  <select
-                    value={newPractice.type}
-                    onChange={this.handlePracticeTypeChange}
-                    className="border p-1 rounded ml-2"
-                  >
-                    <option value="naturopathie">Naturopathie</option>
-                    <option value="acuponcture">Acuponcture</option>
-                    <option value="hypnose">Hypnose</option>
-                  </select>
-                </label>
-                <label>
-                  Heure de début :
-                  <input
-                    type="time"
-                    value={newPractice.start}
-                    onChange={this.handlePracticeStartChange}
-                    onBlur={this.handlePracticeStartBlur}  // Vérification lors du blur
-                    className="border p-1 rounded ml-2"
-                  />
-                </label>
-              </div>
-              {newPractice.error && (
-                <p className="text-red-500">{newPractice.error}</p>
-              )}
-              <Button
-                className="bg-[#2b7a72] text-white"
-                onClick={this.handleAddPractice}
-              >
-                <PlusCircle size={16} /> Ajouter
-              </Button>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button onClick={this.handleSavePractices}>Enregistrer</Button>
-            <Button onClick={this.handleClosePracticeDialog}>Annuler</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  }
 
   renderErrorDialog() {
     const { errorDialog } = this.state;
@@ -687,11 +473,7 @@ export class General extends Component {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              onClick={() =>
-                this.setState({ errorDialog: { isOpen: false, message: '' } })
-              }
-            >
+            <Button onClick={() => this.setState({ errorDialog: { isOpen: false, message: '' } })}>
               OK
             </Button>
           </DialogFooter>
@@ -717,15 +499,10 @@ export class General extends Component {
             <DialogDescription>{successDialog.message}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              onClick={() =>
-                this.setState({
-                  successDialog: { isOpen: false, message: '' },
-                })
-              }
-            >
-              OK
-            </Button>
+            <Link to= {"/agenda"}  onClick={() => this.setState({ successDialog: { isOpen: false, message: '' } })}
+            className='bg-[#0f2b3d] w-1/4 h-full p-1 flex justify-center items-center rounded-lg'>
+              <span className="text-white font-bold">Ok</span>
+            </Link>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -733,7 +510,7 @@ export class General extends Component {
   }
 
   render() {
-    const { days } = this.state;
+    const { days, practiceDialog } = this.state;
     return (
       <div>
         <div className="flex w-full border-b-2 py-3 items-center justify-between">
@@ -741,7 +518,6 @@ export class General extends Component {
         </div>
 
         <div className="py-4">
-          {/* Sélecteur de jours */}
           <div className="flex items-center justify-between w-full px-2 border-b-2 py-3">
             <div className="w-full">
               <div className="flex flex-wrap gap-6">
@@ -764,63 +540,37 @@ export class General extends Component {
                 </p>
               </div>
             </div>
-            <Button
-              type="submit"
-              className="flex items-center bg-[#0f2b3d]"
-              onClick={this.handleSave}
-            >
+            <Button type="submit" className="flex items-center bg-[#0f2b3d]" onClick={this.handleSave}>
               <SaveIcon /> Enregistrer
             </Button>
           </div>
-          {/* Affichage des plages horaires pour les jours sélectionnés */}
           <div className="mt-4">
             {days.map((day, index) => {
               if (!day.selected) return null;
               return (
                 <div key={day.name} className="mb-4 border p-4 rounded-lg">
                   <div className="grid grid-cols-3 gap-4 items-center">
-                    {/* Nom du jour */}
                     <div className="flex text-left items-start justify-start font-bold h-full">
                       {day.name}
                     </div>
-
-                    {/* Plages horaires */}
                     <div className="flex flex-col h-full items-start justify-center text-center">
                       {day.times.map((time, timeIndex) => (
-                        <div
-                          key={timeIndex}
-                          className="flex items-center justify-center gap-2 mb-2"
-                        >
+                        <div key={timeIndex} className="flex items-center justify-center gap-2 mb-2">
                           {this.renderTimeInput(index, timeIndex, 'start')}
                           <span>à</span>
                           {this.renderTimeInput(index, timeIndex, 'end')}
-                          <Button
-                            className="bg-red-500 text-white"
-                            onClick={() =>
-                              this.handleRemoveTimeSlot(index, timeIndex)
-                            }
-                          >
+                          <Button className="bg-red-500 text-white" onClick={() => this.handleRemoveTimeSlot(index, timeIndex)}>
                             <Trash2 size={16} />
                           </Button>
-                          {/* <Button
-                            className="bg-[#0f2b3d] text-white"
-                            onClick={() =>
-                              this.openPracticeDialog(index, timeIndex)
-                            }
-                          >
-                            <CalendarClock size={16} /> Pratique (
-                            {time.practices ? time.practices.length : 0})
+                          {/* Pour ouvrir la boîte de dialogue pratique, décommentez le bouton suivant :
+                          <Button className="bg-[#0f2b3d] text-white" onClick={() => this.openPracticeDialog(index, timeIndex)}>
+                            <CalendarClock size={16} /> Pratique ({time.practices ? time.practices.length : 0})
                           </Button> */}
                         </div>
                       ))}
                     </div>
-
-                    {/* Bouton d'ajout */}
                     <div className="flex text-right items-start justify-end h-full">
-                      <Button
-                        className="flex items-center bg-[#2b7a72] text-white"
-                        onClick={() => this.handleAddTimeSlot(index)}
-                      >
+                      <Button className="flex items-center bg-[#2b7a72] text-white" onClick={() => this.handleAddTimeSlot(index)}>
                         <PlusCircle size={16} /> Ajouter une plage horaire
                       </Button>
                     </div>
@@ -832,7 +582,28 @@ export class General extends Component {
         </div>
         {this.renderErrorDialog()}
         {this.renderSuccessDialog()}
-        {this.renderPracticeDialog()}
+        {/* Insertion du composant PracticeDialog */}
+        <PracticeDialog
+          isOpen={practiceDialog.isOpen}
+          parentTimeslot={
+            practiceDialog.dayIndex !== null && practiceDialog.timeIndex !== null
+              ? days[practiceDialog.dayIndex].times[practiceDialog.timeIndex]
+              : null
+          }
+          practices={practiceDialog.practices}
+          newPractice={practiceDialog.newPractice}
+          onPracticeTypeChange={this.handlePracticeTypeChange}
+          onPracticeStartChange={this.handlePracticeStartChange}
+          onPracticeStartBlur={this.handlePracticeStartBlur}
+          onAddPractice={this.handleAddPractice}
+          onRemovePractice={this.handleRemovePractice}
+          onSavePractices={this.handleSavePractices}
+          handleTimelineClick={this.handleTimelineClick}
+          getDateFromTime={this.getDateFromTime}
+          onOpenChange={(open) => {
+            if (!open) this.handleClosePracticeDialog();
+          }}
+        />
       </div>
     );
   }

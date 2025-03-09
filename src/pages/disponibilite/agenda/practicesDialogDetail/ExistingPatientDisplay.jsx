@@ -94,18 +94,6 @@ const ExistingPatientDisplay = ({ selectedPatient, practiceDialog, setPracticeDi
         />
       </div>
 
-      {/* Ligne 5 : Adresse */}
-      <div>
-        <label className="block text-xs font-medium text-gray-700">
-          <i className="fas fa-map-marker-alt mr-1"></i>Adresse
-        </label>
-        <input
-          type="text"
-          value={selectedPatient?.adresse || ''}
-          disabled
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
-        />
-      </div>
 
       {/* Ligne 6 : Motif (champ éditable) */}
       <div>

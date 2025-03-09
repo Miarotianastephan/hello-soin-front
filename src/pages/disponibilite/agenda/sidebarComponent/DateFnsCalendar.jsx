@@ -18,6 +18,46 @@ const DateFnsCalendar = ({ selected, onSelect, locale, renderHeader, dayClassNam
   const [currentMonth, setCurrentMonth] = useState(selected || new Date());
   const today = startOfDay(new Date());
 
+  // Récupération du planning spécifique depuis le localStorage
+  let planning = { datesWithSlots: [] };
+  try {
+    const planningData = localStorage.getItem('planning');
+    if (planningData) {
+      planning = JSON.parse(planningData);
+    }
+  } catch (error) {
+    planning = { datesWithSlots: [] };
+  }
+
+  // Récupération du planning général depuis le localStorage
+  let general = [];
+  try {
+    const generalData = localStorage.getItem('general');
+    if (generalData) {
+      general = JSON.parse(generalData);
+    }
+  } catch (error) {
+    general = [];
+  }
+
+  // Fonction pour déterminer si une date est disponible (cliquable)
+  const isDayAvailable = (date) => {
+    const dateStr = format(date, 'dd-MM-yyyy');
+    // Si pour cette date, le planning spécifique contient une plage horaire, le jour est disponible
+    const planningEntry = planning.datesWithSlots.find(d => d.date === dateStr);
+    if (planningEntry && planningEntry.timeSlots && planningEntry.timeSlots.length > 0) {
+      return true;
+    }
+    // Sinon, on vérifie dans le planning général pour le jour de la semaine
+    const dayIndex = date.getDay(); // 0 = dimanche, 1 = lundi, etc.
+    // On considère que le planning général commence par lundi à l'indice 0 :
+    const mappedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+    if (general[mappedIndex] && Array.isArray(general[mappedIndex].times) && general[mappedIndex].times.length > 0) {
+      return true;
+    }
+    return false;
+  };
+
   const decreaseMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const increaseMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
@@ -28,7 +68,6 @@ const DateFnsCalendar = ({ selected, onSelect, locale, renderHeader, dayClassNam
 
   const rows = [];
   let day = startDate;
-
   while (day <= endDate) {
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -36,15 +75,17 @@ const DateFnsCalendar = ({ selected, onSelect, locale, renderHeader, dayClassNam
       const isPast = isBefore(day, today);
       const isSelected = selected && isSameDay(day, selected);
       const extraClass = typeof dayClassName === 'function' ? dayClassName(day) : '';
+      // Détermine si le jour est disponible en se basant sur le planning spécifique et général
+      const available = isDayAvailable(day);
       days.push(
         <div
           key={day.toISOString()}
-          className={`cursor-pointer p-2 text-center text-xs flex flex-col items-center justify-center ${
-            !isSameMonth(day, monthStart) ? 'text-gray-400' : isSelected ? 'text-white' : 'text-[#405969]'
-          } ${isSelected ? 'bg-[#405969] text-white rounded-lg' : ''} ${
-            isPast ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-          } ${extraClass}`}
-          onClick={!isPast ? () => onSelect(cloneDay) : undefined}
+          className={`p-2 text-center text-xs flex flex-col items-center justify-center 
+            ${!isSameMonth(day, monthStart) ? 'text-gray-400' : isSelected ? 'text-white' : 'text-[#405969]'} 
+            ${isSelected ? 'bg-[#405969] text-white rounded-lg' : ''} 
+            ${(!available || isPast) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} 
+            ${extraClass}`}
+          onClick={available && !isPast ? () => onSelect(cloneDay) : undefined}
         >
           <div>{format(day, 'd')}</div>
           {isSameDay(day, today) && (
@@ -79,7 +120,7 @@ const DateFnsCalendar = ({ selected, onSelect, locale, renderHeader, dayClassNam
         </div>
       )}
       <div className="grid grid-cols-7 text-center text-xs font-bold mb-2 text-[#405969]">
-        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d, index) => (
+        {['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'].map((d, index) => (
           <div key={index}>{d}</div>
         ))}
       </div>

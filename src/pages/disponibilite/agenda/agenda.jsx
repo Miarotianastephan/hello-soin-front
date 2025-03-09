@@ -9,6 +9,8 @@ import PracticeDialog from './PracticeDialog';
 import AppointmentDialog from './AppointmentDialog';
 import ReservedDialog from './ReservedDialog';
 import { ChevronLeft, ChevronRight, PhoneCall } from 'lucide-react';
+import CreateAppointmentDialog from './CreateAppointmentDialog';
+import fr from 'date-fns/locale/fr';
 
 const Agenda = () => {
   // Données fictives par défaut avec email, dateNaissance, mobile et propriété appointments ajoutée
@@ -21,6 +23,15 @@ const Agenda = () => {
 
   // Chargement des patients depuis le localStorage
   const [fakePatientsData, setFakePatientsData] = useState([]);
+  const [createAppointmentDialog, setCreateAppointmentDialog] = useState(false);
+  const [selectedPractice, setSelectedPractice] = useState(null);
+
+  const handleDayClick = (day) => {
+    setCurrentDate(day);
+    setViewMode('day');
+  };
+
+
   useEffect(() => {
     const storedFakeData = localStorage.getItem('fakedatauser');
     if (storedFakeData) {
@@ -38,6 +49,7 @@ const Agenda = () => {
   }, []);
 
   const [schedule, setSchedule] = useState({ defaultGeneral: [], specific: [] });
+  const [selectedSlotInfo, setSelectedSlotInfo] = useState({ date: '', startTime: '' });
   
   // Fonction de rafraîchissement du planning
   const refreshSchedule = () => {
@@ -233,10 +245,12 @@ const Agenda = () => {
       const newPractice = { 
         ...prev.newPractice,
         type,
-        start: prev.newPractice.start || prev.parentSlot.start // Conserver le start du slot si vide
+        // Conserver l'heure de début du slot si vide
+        start: prev.newPractice.start || prev.parentSlot.start 
       };
       
-      if (newPractice.start) {
+      // Si l'utilisateur n'a pas modifié l'heure de fin manuellement, on recalculera la fin par défaut
+      if (newPractice.start && !prev.newPractice.isEndManual) {
         const startDate = parseTime(newPractice.start);
         const duration = getDurationInMinutes(type);
         const newEndDate = new Date(startDate.getTime() + duration * 60000);
@@ -245,22 +259,36 @@ const Agenda = () => {
       return { ...prev, newPractice };
     });
   };
-
+  
   const handlePracticeStartChange = (e) => {
     const start = e.target.value;
     setPracticeDialog(prev => {
       const newPractice = { ...prev.newPractice, start };
-      if (start) {
+      
+      // Si l'heure de fin n'a pas été modifiée manuellement, on recalcule la fin par défaut
+      if (start && !prev.newPractice.isEndManual) {
         const startDate = parseTime(start);
         const duration = getDurationInMinutes(newPractice.type);
         const newEndDate = new Date(startDate.getTime() + duration * 60000);
         newPractice.end = format(newEndDate, 'HH:mm');
-      } else {
-        newPractice.end = '';
       }
       return { ...prev, newPractice };
     });
   };
+  
+  // Optionnel : gestion du changement manuel de l'heure de fin
+  const handlePracticeEndChange = (e) => {
+    const end = e.target.value;
+    setPracticeDialog(prev => ({
+      ...prev,
+      newPractice: {
+        ...prev.newPractice,
+        end,
+        isEndManual: true // L'utilisateur a modifié manuellement l'heure de fin
+      }
+    }));
+  };
+  
 
   const handleSavePractices = () => {
     const { date, slotIndex, sourceType, newPractice, parentSlot } = practiceDialog;
@@ -274,11 +302,25 @@ const Agenda = () => {
       return;
     }
     
-    // Calculer les dates de début et de fin de la nouvelle pratique
+    // Calculer l'heure de début
+    const newStart = parseTime(newPractice.start);
+    
+    // Si l'heure de fin n'est pas renseignée, calculer par défaut selon la durée du type
+    let newEnd;
+    if (!newPractice.end) {
+      const defaultDuration = getDurationInMinutes(newPractice.type);
+      newEnd = new Date(newStart.getTime() + defaultDuration * 60000);
+      const newEndStr = format(newEnd, 'HH:mm');
+      // Mettre à jour newPractice.end avec la valeur par défaut calculée
+      newPractice.end = newEndStr;
+      newEnd = parseTime(newEndStr);
+    } else {
+      newEnd = parseTime(newPractice.end);
+    }
+    
+    // Calculer les heures du créneau parent
     const parentStart = parseTime(parentSlot.start);
     const parentEnd = parseTime(parentSlot.end);
-    const newStart = parseTime(newPractice.start);
-    const newEnd = parseTime(newPractice.end);
     
     // La pratique doit être entièrement contenue dans le créneau parent
     if (newStart < parentStart || newEnd > parentEnd) {
@@ -316,13 +358,12 @@ const Agenda = () => {
       }
     }
     
-    // Après
+    // Création d'une clé unique pour le rendez‑vous
     const appointmentKey = `${date}_${parentSlot.start}_${parentSlot.end}_${newPractice.start}_${newPractice.type}`;
     
     // Récupérer les informations du patient
     let patient;
     if (newPractice.isNewPatient) {
-      // Vérifier que les informations du nouveau patient sont complètes
       if (
         !newPractice.newPatient.prenom ||
         !newPractice.newPatient.nom ||
@@ -337,9 +378,7 @@ const Agenda = () => {
         }));
         return;
       }
-      // Calculer l'âge à partir de la date de naissance
       const computedAge = differenceInYears(new Date(), new Date(newPractice.newPatient.dateNaissance));
-      // Générer un nouvel id en se basant sur le maximum existant
       const newId = (Math.max(...fakePatientsData.map(p => parseInt(p.id))) + 1).toString();
       patient = { ...newPractice.newPatient, id: newId, age: computedAge, appointments: [] };
       const updatedFakePatients = [...fakePatientsData, patient];
@@ -367,45 +406,61 @@ const Agenda = () => {
     setAppointments(updatedAppointments);
     localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
     
-    // Mise à jour UNIQUEMENT du planning spécifique
+    // Mise à jour du planning spécifique pour la date concernée uniquement.
     setSchedule(prev => {
       const specificUpdated = [...prev.specific];
-      const index = specificUpdated.findIndex(item => item.date === date);
-      
-      if (index !== -1) {
-        // Si la date existe déjà
-        const existingSlot = specificUpdated[index].timeSlots.find(
+      const dateIndex = specificUpdated.findIndex(item => item.date === date);
+      if (dateIndex !== -1) {
+        // La date existe déjà dans le planning spécifique
+        const existingSlot = specificUpdated[dateIndex].timeSlots.find(
           slot => slot.start === parentSlot.start && slot.end === parentSlot.end
         );
-        
         if (existingSlot) {
-          // Ajouter la pratique au slot existant
           existingSlot.practices = [
             ...(existingSlot.practices || []),
             { ...newPractice, error: '' }
           ];
         } else {
-          // Créer un nouveau slot dans la date existante
-          specificUpdated[index].timeSlots.push({
+          specificUpdated[dateIndex].timeSlots.push({
             ...parentSlot,
             practices: [{ ...newPractice, error: '' }]
           });
         }
       } else {
-        // Créer une nouvelle entrée de date
-        specificUpdated.push({
-          date,
-          timeSlots: [{
+        // La date n'existe pas encore dans le planning spécifique
+        let clonedTimeSlots = [];
+        if (sourceType === 'general') {
+          const dateParts = date.split('-');
+          const appointmentDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
+          const dayIndex = appointmentDate.getDay();
+          const mappedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+          const generalDay = prev.defaultGeneral[mappedIndex];
+          if (generalDay && Array.isArray(generalDay.times)) {
+            clonedTimeSlots = JSON.parse(JSON.stringify(generalDay.times));
+          }
+        }
+        // Ajouter le créneau du rendez‑vous dans le planning cloné
+        const existingSlotIndex = clonedTimeSlots.findIndex(
+          slot => slot.start === parentSlot.start && slot.end === parentSlot.end
+        );
+        if (existingSlotIndex !== -1) {
+          clonedTimeSlots[existingSlotIndex].practices.push({ ...newPractice, error: '' });
+        } else {
+          clonedTimeSlots.push({
             ...parentSlot,
             practices: [{ ...newPractice, error: '' }]
-          }]
+          });
+        }
+        specificUpdated.push({
+          date,
+          dayName: format(parse(date, 'dd-MM-yyyy', new Date()), 'EEEE', { locale: fr }),
+          timeSlots: clonedTimeSlots
         });
       }
-      
       localStorage.setItem('planning', JSON.stringify({ datesWithSlots: specificUpdated }));
       return { ...prev, specific: specificUpdated };
     });
-  
+    
     // Réinitialisation du dialogue
     setPracticeDialog({
       isOpen: false,
@@ -426,9 +481,9 @@ const Agenda = () => {
       selectedPatientId: '',
       error: ''
     });
-
   };
   
+    
   const handleAddAppointment = () => {
     if (!appointmentDialog.selectedPatientId) {
       setAppointmentDialog(prev => ({ ...prev, error: 'Veuillez sélectionner un patient.' }));
@@ -535,6 +590,7 @@ const Agenda = () => {
         togglePracticeFilter={togglePracticeFilter}
         specifiqueOnly={specifiqueOnly}
         setSpecifiqueOnly={setSpecifiqueOnly}
+        onSelectNextAvailabilityPractice={setSelectedPractice}
       />
       <div className="flex-grow ">
         <div className="flex-grow">
@@ -583,21 +639,18 @@ const Agenda = () => {
                 }`}
                 onClick={() => setViewMode('month')}
               >
-                Tous les Rendez‑vous
+                Mois
               </Button>
+             
             </div>
             <Button
-              className="flex items-center gap-2 border-none bg-[#D9CAB3] hover:bg-gray-200 text-black shadow-none rounded-sm text-xs  py-2 font-bold px-2"
-            >
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={specifiqueOnly}
-                  onChange={() => setSpecifiqueOnly(!specifiqueOnly)}
-                />
-                <span className="ml-1">Spécifique uniquement</span>
-              </label>
-            </Button>
+                className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${
+                  viewMode === 'month' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'
+                }`}
+                onClick={() => setViewMode('list')}
+              >
+                Tous les Rendez‑vous
+              </Button>
           </div>
         </div>
 
@@ -611,9 +664,29 @@ const Agenda = () => {
           onReservedClick={handleReservedClick}
           practiceFilter={practiceFilter}
           specifiqueOnly={specifiqueOnly}
-          refreshSchedule={refreshSchedule}  
+          refreshSchedule={refreshSchedule}
+          onOpenCreateAppointment={(date, startTime) => {
+            setCreateAppointmentDialog(true);
+            setSelectedSlotInfo({ date, startTime });
+          }}
+          selectedPractice={selectedPractice}
+          onDayClick={handleDayClick} 
         />
       </div>
+
+      <CreateAppointmentDialog
+        isOpen={createAppointmentDialog}
+        onClose={() => setCreateAppointmentDialog(false)}
+        fakePatients={fakePatientsData}
+        currentDate={currentDate}
+        initialDate={selectedSlotInfo.date}
+        initialStartTime={selectedSlotInfo.startTime}
+        onSave={() => {
+          refreshSchedule();
+          const storedAppointments = localStorage.getItem('appointments');
+          setAppointments(storedAppointments ? JSON.parse(storedAppointments) : []);
+        }}
+/>
       {/* Dans le return() de Agenda */}
       {practiceDialog.isOpen && (
         <PracticeDialog
