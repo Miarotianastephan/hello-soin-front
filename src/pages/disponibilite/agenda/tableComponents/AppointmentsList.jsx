@@ -1,8 +1,7 @@
-// src/components/Agenda/AppointmentsList.js
 import React from 'react';
 import { getColorByType } from '../utils/agendaUtils';
 
-export const AppointmentsList = ({ appointments }) => (
+const AppointmentsList = ({ appointments }) => (
   <div className="p-1">
     <h3 className="font-bold">Tous les Rendez‑vous</h3>
     <div className="flex gap-4 my-2">

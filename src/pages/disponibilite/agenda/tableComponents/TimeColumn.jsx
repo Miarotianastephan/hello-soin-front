@@ -3,7 +3,7 @@ import { DAY_COLUMN_HEIGHT } from '../utils/agendaUtils';
 
 const HEADER_HEIGHT = 60;
 
-export const TimeColumn = () => {
+const TimeColumn = () => {
   const intervals = [];
   const totalIntervals = 24 * 4; // 96 intervalles de 15 minutes
   for (let i = 0; i < totalIntervals; i++) {
@@ -67,3 +67,5 @@ export const TimeColumn = () => {
     </div>
   );
 };
+
+export default TimeColumn;

@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format, addMinutes, differenceInMinutes, isSameDay, startOfDay } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { 
-  dayNames, 
-  parseTime, 
-  totalDuration, 
-  DAY_COLUMN_HEIGHT, 
-  VISIBLE_HEIGHT, 
-  getColorByType,
-  AGENDA_START
-} from '../utils/agendaUtils';
+import { dayNames, parseTime, totalDuration, DAY_COLUMN_HEIGHT, AGENDA_START, getColorByType } from '../utils/agendaUtils';
 import { createPlageHoraire } from '../utils/scheduleUtils';
 import { Phone } from 'lucide-react';
 
@@ -73,7 +64,7 @@ const DayColumn = ({
     );
     const agendaEndDate = addMinutes(agendaStartDate, totalDuration);
     const clickedTime = addMinutes(agendaStartDate, roundedMinutes);
-
+    
     if (
       clickedTime < agendaStartDate ||
       clickedTime >= agendaEndDate ||
@@ -81,12 +72,13 @@ const DayColumn = ({
     ) {
       return;
     }
-
+    
     if (e.ctrlKey || e.metaKey) {
       if (!multiSelectStart) {
         setMultiSelectStart(clickedTime);
         setMultiSelectCurrent(clickedTime);
       } else {
+        // Détermination de la sélection dans le bon sens (bidirectionnelle)
         const startTime = multiSelectStart;
         const endTime = clickedTime;
         const selectionStartTime = startTime < endTime ? startTime : endTime;
@@ -94,7 +86,6 @@ const DayColumn = ({
         const formattedDate = format(date, 'dd-MM-yyyy');
         const formattedStart = format(selectionStartTime, 'HH:mm');
         const formattedEnd = format(selectionEndTime, 'HH:mm');
-
         try {
           createPlageHoraire(formattedDate, formattedStart, formattedEnd);
           if (typeof refreshSchedule === 'function') {
@@ -110,18 +101,19 @@ const DayColumn = ({
       }
       return;
     }
-
+    
     const safeSlots = Array.isArray(slots) ? slots : [];
     const isWithinSlot = safeSlots.some(slot => {
       const slotStart = parseTime(slot.start);
       const slotEnd = parseTime(slot.end);
       return clickedTime >= slotStart && clickedTime < slotEnd;
     });
-
+    
     if (!isWithinSlot) {
       const formattedDate = format(date, 'dd-MM-yyyy');
       const formattedTime = format(clickedTime, 'HH:mm');
       onOpenCreateAppointment(formattedDate, formattedTime);
+      console.log('a verifier');
     }
   };
 
@@ -130,22 +122,19 @@ const DayColumn = ({
     const slotStart = parseTime(clickedSlot.start);
     const slotEnd = parseTime(clickedSlot.end);
     const slotDuration = differenceInMinutes(slotEnd, slotStart);
-    
     const minutesPerPixel = slotDuration / slotHeight;
     const rawMinutes = clickY * minutesPerPixel;
     const offsetMinutes = Math.round(rawMinutes / 15) * 15;
-    
     const clampedMinutes = Math.max(0, Math.min(offsetMinutes, slotDuration));
     const newTime = new Date(slotStart.getTime() + clampedMinutes * 60000);
     const formattedTime = format(newTime, 'HH:mm');
-  
     onSlotClick(daySchedule, slotIndex, sourceType, {
       ...clickedSlot,
       start: formattedTime
     });
   };
 
-  const totalIntervals = 24 * 4;
+  const totalIntervals = 24 * 4; // 96 créneaux de 15 min
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const offsetY = e.clientY - rect.top;
@@ -153,7 +142,6 @@ const DayColumn = ({
     const blockHeight = contentHeight / totalIntervals;
     setHoverBlock(Math.floor(offsetY / blockHeight));
     setHoverPosition({ x: offsetX, y: offsetY });
-    
     const rawMinutes = (offsetY / contentHeight) * totalDuration;
     const roundedMinutes = Math.round(rawMinutes / 15) * 15;
     const baseTime = parseTime(AGENDA_START);
@@ -166,7 +154,6 @@ const DayColumn = ({
     );
     const newTime = addMinutes(agendaStartDate, roundedMinutes);
     setHoverTime(newTime);
-    
     if (multiSelectStart) {
       setMultiSelectCurrent(newTime);
     }
@@ -185,13 +172,12 @@ const DayColumn = ({
         setMultiSelectCurrent(null);
       }
     };
-  
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-  
+
   const computeFreeIntervals = (slot) => {
     const sStart = parseTime(slot.start);
     const sEnd = parseTime(slot.end);
@@ -218,8 +204,13 @@ const DayColumn = ({
     return freeIntervals;
   };
 
+
+
   return (
     <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
+
+
+   
       {hoverTime && hoverPosition && (
         <div
           style={{
@@ -257,26 +248,58 @@ const DayColumn = ({
         onMouseLeave={isSelectable ? handleMouseLeave : undefined}
         onClick={isSelectable ? handleBackgroundClick : undefined}
       >
+
+{(multiSelectStart && multiSelectCurrent) && (
+  (() => {
+    const startTime = multiSelectStart < multiSelectCurrent ? multiSelectStart : multiSelectCurrent;
+    const endTime = multiSelectStart < multiSelectCurrent ? multiSelectCurrent : multiSelectStart;
+    
+    const baseTime = parseTime(AGENDA_START);
+    const agendaStartDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      baseTime.getHours(),
+      baseTime.getMinutes()
+    );
+
+    const topOffset = (differenceInMinutes(startTime, agendaStartDate) / totalDuration * contentHeight);
+    const bottomOffset = (differenceInMinutes(endTime, agendaStartDate) / totalDuration * contentHeight);
+    const height = bottomOffset - topOffset;
+
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          top: `${topOffset}px`,
+          height: `${height}px`,
+          left: 0,
+          right: 0,
+          backgroundColor: 'rgba(100, 149, 237, 0.3)', // Bleu clair semi-transparent
+          border: '2px solid rgba(70, 130, 180, 0.7)',
+          pointerEvents: 'none',
+          zIndex: 20,
+        }}
+      />
+    );
+  })()
+)}
         {slots.map((slot, idx) => {
           const slotStart = parseTime(slot.start);
           const slotEnd = parseTime(slot.end);
           const offset = (differenceInMinutes(slotStart, parseTime(AGENDA_START)) / totalDuration) * contentHeight;
           const slotHeight = (differenceInMinutes(slotEnd, slotStart) / totalDuration) * contentHeight;
-          
           let isSlotPast = false;
           if (isToday) {
             const [endHour, endMinute] = slot.end.split(':').map(Number);
             const slotEndDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), endHour, endMinute);
             isSlotPast = slotEndDate < new Date();
           }
-          
           const pastStyle = !isSelectable ? { backgroundColor: '#f0f0f0', opacity: 0.6 } : {};
-
           let freeIntervals = [];
           if (selectedPractice) {
             freeIntervals = computeFreeIntervals(slot);
           }
-          
           return (
             <div
               key={idx}
@@ -312,7 +335,6 @@ const DayColumn = ({
                   />
                 );
               })}
-              
               {isToday && !isSlotPast && (() => {
                 const currentTime = new Date();
                 if (currentTime >= slotStart && currentTime < slotEnd) {
@@ -337,7 +359,6 @@ const DayColumn = ({
                 }
                 return null;
               })()}
-              
               {slot.practices && slot.practices.length > 0 && slot.practices.map((practice, pIdx) => {
                 if (!practiceFilter.tous && !practiceFilter[practice.type]) return null;
                 const practiceStart = practice.start || slot.start;
@@ -381,7 +402,9 @@ const DayColumn = ({
                         <div className="w-[1/2] items-center justify-center rounded-md flex text-white text-[10px] px-2" style={{ backgroundColor: `${getColorByType(practice.type)}` }}>
                           {practice.type}
                         </div>
-                        <div className="w-full gap-1 font-bold text-left text-[10px]">Mr {appointment.patient.prenom} {appointment.patient.nom}</div>
+                        <div className="w-full gap-1 font-bold text-left text-[10px]">
+                          Mr {appointment.patient.prenom} {appointment.patient.nom}
+                        </div>
                         <div className="flex items-center justify-start gap-1 w-full">
                           <Phone size={12} />
                           <div className="font-tsy-bold text-[10px]">{appointment.patient.numero}</div>
@@ -394,7 +417,6 @@ const DayColumn = ({
             </div>
           );
         })}
-
         {isToday && currentTimeTop !== null && (
           <div
             style={{
@@ -409,7 +431,6 @@ const DayColumn = ({
             }}
           />
         )}
-
         {hoverBlock !== null && (
           <div
             style={{
