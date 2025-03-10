@@ -19,7 +19,121 @@ import DatePicker from "./date-picker";
 import ColorPicker from "./color-picker";
 import MapPicker from "./map-picker";
 import { useEffect, useState } from "react";
-import { Euro } from "lucide-react";
+import { Euro, X } from "lucide-react";
+import { Label } from "../ui/label";
+
+const FileUploader = ({ register }) => {
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [previewImages, setPreviewImages] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFiles = (files) => {
+    const fileList = Array.from(files);
+    
+    setSelectedFiles((prev) => [...prev, ...fileList]);
+
+    const imagePreviews = fileList.map((file) => {
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        return new Promise((resolve) => {
+          reader.onload = (event) => resolve(event.target.result);
+          reader.readAsDataURL(file);
+        });
+      }
+      return null;
+    });
+
+    Promise.all(imagePreviews).then((previews) => {
+      setPreviewImages((prev) => [...prev, ...previews]);
+    });
+  };
+
+  const handleChange = (e) => {
+    if (e.target.files.length > 0) {
+      handleFiles(e.target.files);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
+    }
+  };
+
+  const handleRemove = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviewImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="grid gap-2">
+      {/* Zone de glisser-déposer */}
+      <div
+        className={`cursor-pointer w-full p-6 border-2 ${
+          isDragging ? "border-helloBlue bg-blue-50" : "border-helloSoin text-helloSoin"
+        } border-dashed rounded-lg text-center transition-all`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+      >
+        <label htmlFor="file_input" className="block">
+          {isDragging ? "Déposez les fichiers ici" : "Cliquer ou glisser-déposer des fichiers"}
+        </label>
+      </div>
+
+      {/* Input caché */}
+      <input
+        id="file_input"
+        type="file"
+        accept="*/*"
+        multiple
+        {...register("files")}
+        onChange={(e) => {
+          handleChange(e);
+          register("files").onChange(e);
+        }}
+        className="hidden"
+      />
+
+      {/* Aperçu des fichiers */}
+      <div className="flex flex-wrap gap-2">
+        {selectedFiles.length > 0 ? (
+          selectedFiles.map((file, index) => (
+            <div key={index} className="relative mt-1">
+              {previewImages[index] ? (
+                <img
+                  src={previewImages[index]}
+                  alt="Aperçu du fichier"
+                  className="h-24 w-24 rounded-lg object-cover"
+                />
+              ) : (
+                <div className="h-24 w-24 rounded-lg border border-dashed border-helloSoin flex items-center justify-center p-2 text-[9px] overflow-hidden text-gray-600 font-bold">
+                  {file.name}
+                </div>
+              )}
+              <button
+                onClick={() => handleRemove(index)}
+                className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full"
+              >
+                <X size={10} />
+              </button>
+            </div>
+          ))
+        ) : (
+          <div className="h-24 w-24 rounded-lg border border-dashed border-helloGray flex items-center text-center justify-center overflow-hidden">
+            <span className="text-gray-400 text-sm">Aucun fichier séléctionner</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 
 export function FormAjoutPratique({
   handleAddPratique,
@@ -43,6 +157,7 @@ export function FormAjoutPratique({
   });
   const [pratiques, setPratiques] = useState([]);  
   const [open, setOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
 
   useEffect(() => {
     const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
@@ -50,6 +165,7 @@ export function FormAjoutPratique({
   }, []);
 
   useEffect(() => {
+    console.log(editedPratique?.files)
     if (editedPratique) {
       reset(editedPratique);
     }
@@ -100,6 +216,13 @@ export function FormAjoutPratique({
     localStorage.setItem("pratiques", JSON.stringify(updatedPratiques));
     switchTabFunction("list")
   }
+  
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPreviewImage(URL.createObjectURL(file));
+    }
+  };
 
   return (
     <div className="md:p-2 bg-gray-100 rounded-lg">
@@ -107,12 +230,12 @@ export function FormAjoutPratique({
         <CardHeader floated={false} shadow={false} className="rounded-none">
           <div className="mt-4 flex items-center justify-between">
             <div>
-              <Typography variant="h5" color="blue-gray">
+              <Typography variant="h5" className="text-helloBlue">
                 {editedPratique !== null
-                  ? "Modifier la pratique"
+                  ? "Modifier le pratique"
                   : "Créer une pratique"}
               </Typography>
-              <Typography color="gray" className="mt-1 font-normal">
+              <Typography color="gray" className="mt-1 font-normal text-helloBlue">
                 Merci de compléter tous les champs
               </Typography>
             </div>
@@ -160,7 +283,7 @@ export function FormAjoutPratique({
             onSubmit={handleSubmit(onSubmittingForm)}
           >
             <div className="mb-1 flex flex-wrap gap-6 h-auto">
-              <div className="md:w-[50%] flex flex-col gap-4">
+              <div className="w-full flex flex-col gap-4">
                 {/* Type et nom */}
                 <div className="w-full h-auto flex flex-col gap-3">
                   {/* type de dscipline */}
@@ -202,7 +325,7 @@ export function FormAjoutPratique({
                 </div>
                 {/* Date debut du pratique */}
                 <div className="w-full flex flex-col gap-3">
-                  <div>
+                  {/* <div>
                     <Typography
                       variant="small"
                       color="blue-gray"
@@ -211,7 +334,7 @@ export function FormAjoutPratique({
                       Début de la pratique
                     </Typography>
                     <DatePicker control={control} name="date_debut" />
-                  </div>
+                  </div> */}
                   <ColorPicker
                     control={control}
                     name="code_couleur"
@@ -220,8 +343,8 @@ export function FormAjoutPratique({
                   />
                 </div>
                 {/* Tarif et Duree */}
-                <div className="w-full flex flex-col gap-3">
-                  <div className="flex flex-col gap-1">
+                <div className="w-full flex flex-rows xs:flex-col gap-3">
+                  <div className="flex-1 flex flex-col gap-1">
                     <Input
                     type="number"
                       variant="outlined"
@@ -250,7 +373,7 @@ export function FormAjoutPratique({
                       {errors.tarif?.message}
                     </p>
                   </div>
-                  <div className="flex flex-col gap-1">
+                  <div className="flex-1 flex flex-col gap-1">
                     <Input
                     type="number"
                       variant="outlined"
@@ -294,10 +417,12 @@ export function FormAjoutPratique({
                     {errors.description?.message}
                   </p>
                 </div>
+                {/* Images de preuves */}
+                <FileUploader register={register} />
               </div>
 
               {/* Choix du lat/long */}
-              <div className="flex-1 w-auto min-h-[400px]">
+              {/* <div className="flex-1 w-auto min-h-[400px]">
                 <Typography
                   variant="small"
                   color="blue-gray"
@@ -315,11 +440,15 @@ export function FormAjoutPratique({
                     setValue("longitude", coords.lng);
                   }}
                 />
-              </div>
+              </div> */}
             </div>
-            <Button type="submit" className="mt-6" fullWidth>
-              Valider
-            </Button>
+            <div className="flex justify-end">
+              <Button type="submit" className="w-max mt-6 bg-helloBlue" fullWidth>
+                {editedPratique !== null
+                  ? "Modifier le pratique"
+                  : "Créer le pratique"}
+              </Button>
+            </div>
           </form>
         </CardBody>
       </Card>
