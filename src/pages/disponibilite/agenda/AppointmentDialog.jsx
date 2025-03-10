@@ -117,8 +117,8 @@ const AppointmentDialog = ({
         </DialogHeader>
 
         {/* Choix entre création d'un nouveau patient et sélection d'un patient existant */}
-        <div className="mb-4">
-          <label className="flex items-center">
+        <div className="mt-4">
+          <label className="flex items-center my-4">
             <input
               type="checkbox"
               checked={appointmentDialog.isNewPatient || false}
@@ -130,7 +130,7 @@ const AppointmentDialog = ({
                 }))
               }
             />
-            <span className="ml-2">Nouveau patient</span>
+            <span className="my-4">Nouveau patient</span>
           </label>
         </div>
 
