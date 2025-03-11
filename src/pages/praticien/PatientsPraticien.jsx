@@ -38,7 +38,7 @@ const SearchBarFilter = () => {
     <>
       <div>
         <Typography variant="h5" className="text-helloBlue">
-          Liste des patients
+          Liste des patients du praticien
         </Typography>
       </div>
       <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
