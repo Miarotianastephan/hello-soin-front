@@ -6,6 +6,17 @@ const ExistingPatientDisplay = ({ selectedPatient, practiceDialog, setPracticeDi
       {/* Ligne 1 : Nom et Prénom */}
       <div className="flex gap-4">
         <div className="flex-1">
+            <label className="block text-xs font-medium text-gray-700">
+              <i className="fas fa-venus-mars mr-1"></i>Civilités 
+            </label>
+            <input
+              type="text"
+              value={selectedPatient?.genre || ''}
+              disabled
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+            />
+          </div>
+        <div className="flex-1">
           <label className="block text-xs font-medium text-gray-700">
             <i className="fas fa-user mr-1"></i>Nom
           </label>
@@ -16,28 +27,18 @@ const ExistingPatientDisplay = ({ selectedPatient, practiceDialog, setPracticeDi
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
           />
         </div>
-        <div className="flex-1">
+       
+      </div>
+
+      {/* Ligne 2 : Genre et Date de naissance */}
+      <div className="flex gap-4">
+      <div className="flex-1">
           <label className="block text-xs font-medium text-gray-700">
             <i className="fas fa-user mr-1"></i>Prénom
           </label>
           <input
             type="text"
             value={selectedPatient?.prenom || ''}
-            disabled
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
-          />
-        </div>
-      </div>
-
-      {/* Ligne 2 : Genre et Date de naissance */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <label className="block text-xs font-medium text-gray-700">
-            <i className="fas fa-venus-mars mr-1"></i>Genre
-          </label>
-          <input
-            type="text"
-            value={selectedPatient?.genre || ''}
             disabled
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
           />

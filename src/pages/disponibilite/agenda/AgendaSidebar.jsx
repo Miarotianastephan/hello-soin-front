@@ -22,7 +22,7 @@ const AgendaSidebar = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedPracticeForAvailability, setSelectedPracticeForAvailability] = useState(null);
 
-  const practices = ['naturopathie', 'acuponcture', 'hypnose'];
+  const practices = ['naturopathie', 'acupuncture', 'hypnose'];
 
   const handlePracticeChange = (practice) => {
     // Si la pratique est déjà sélectionnée, la désélectionner (aucune sélection)
@@ -94,7 +94,7 @@ const AgendaSidebar = ({
       {/* Filtres sur les pratiques */}
       <div className="mx-4 border-b-2 pb-2 text-xs text-[#405969]">
         <div>
-          <h4 className="font-bold mt-2 mb-4 text-xs">Tous les pratiques</h4>
+          <h4 className="font-bold mt-2 mb-4 text-xs">Types de rendez‑vous</h4>
         </div>
         <label className="flex items-center mb-4 text-xs">
           <input
@@ -102,7 +102,7 @@ const AgendaSidebar = ({
             checked={practiceFilter.tous}
             onChange={() => togglePracticeFilter('tous')}
           />
-          <span className="ml-1 text-xs">Toutes</span>
+          <span className="ml-1 text-xs">Tous</span>
         </label>
         <label className="flex items-center mb-4 text-xs">
           <input
@@ -119,12 +119,12 @@ const AgendaSidebar = ({
         <label className="flex items-center mb-4 text-xs">
           <input
             type="checkbox"
-            checked={practiceFilter.acuponcture}
-            onChange={() => togglePracticeFilter('acuponcture')}
+            checked={practiceFilter.acupuncture}
+            onChange={() => togglePracticeFilter('acupuncture')}
           />
           <span
             className="ml-2 w-3 h-3 rounded-full"
-            style={{ backgroundColor: getColorByType('acuponcture') }}
+            style={{ backgroundColor: getColorByType('acupuncture') }}
           ></span>
           <span className="ml-1 text-xs">Acupuncture</span>
         </label>
@@ -155,7 +155,7 @@ const AgendaSidebar = ({
         </div>
         <div className="flex items-center text-xs">
           <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-          <span className="ml-2 text-xs">Déjà pris</span>
+          <span className="ml-2 text-xs">Heure actuelle</span>
         </div>
       </div>
     </div>

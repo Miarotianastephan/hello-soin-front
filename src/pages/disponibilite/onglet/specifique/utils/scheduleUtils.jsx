@@ -4,7 +4,7 @@ import { addMinutes, format, parse } from 'date-fns';
 export const getDurationInMinutes = (type) => {
   switch (type) {
     case 'naturopathie': return 120;
-    case 'acuponcture': return 30;
+    case 'acupuncture': return 30;
     case 'hypnose': return 90;
     default: return 0;
   }
@@ -13,7 +13,7 @@ export const getDurationInMinutes = (type) => {
 export const getColorByType = (type) => {
   switch (type) {
     case 'naturopathie': return '#FF6B6B';
-    case 'acuponcture': return '#4ECDC4';
+    case 'acupuncture': return '#4ECDC4';
     case 'hypnose': return '#45B7D1';
     default: return '#CCCCCC';
   }

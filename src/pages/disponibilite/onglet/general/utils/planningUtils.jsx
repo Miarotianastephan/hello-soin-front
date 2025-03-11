@@ -3,7 +3,7 @@ export const getDurationInMinutes = (type) => {
     switch (type) {
       case 'naturopathie':
         return 120;
-      case 'acuponcture':
+      case 'acupuncture':
         return 30;
       case 'hypnose':
         return 90;
@@ -16,7 +16,7 @@ export const getDurationInMinutes = (type) => {
     switch (type) {
       case 'naturopathie':
         return '#FF6B6B';
-      case 'acuponcture':
+      case 'acupuncture':
         return '#4ECDC4';
       case 'hypnose':
         return '#45B7D1';

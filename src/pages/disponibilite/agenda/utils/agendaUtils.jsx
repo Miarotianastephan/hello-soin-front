@@ -3,6 +3,7 @@ import { parse, differenceInMinutes, addHours, format } from 'date-fns';
 
 export const AGENDA_START = '00:00';
 export const AGENDA_END = '23:59';
+export const DEFAULT_DURATION  = 20;
 
 export const parseTime = (timeString) => {
   if (!timeString || typeof timeString !== 'string') return new Date();
@@ -29,9 +30,9 @@ export const addMinutes = (time, minutes) => {
 
 export const totalDuration =
   differenceInMinutes(parseTime(AGENDA_END), parseTime(AGENDA_START)) + 1;
-  export const DAY_COLUMN_HEIGHT = (1440 / 60) * 128; // 3072px
+export const DAY_COLUMN_HEIGHT = (1440 / 60) * 128; // 3072px
 
-  export const VISIBLE_HEIGHT = 10 * 68; // 640px
+export const VISIBLE_HEIGHT = 10 * 68; // 640px
 
 export const dayNames = {
   0: 'Dimanche',
@@ -47,7 +48,7 @@ export const getColorByType = (type) => {
   switch (type) {
     case 'naturopathie':
       return '#FF6B6B';
-    case 'acuponcture':
+    case 'acupuncture':
       return '#4ECDC4';
     case 'hypnose':
       return '#45B7D1';
@@ -93,11 +94,11 @@ export const mergeTimeSlots = (timeSlots) => {
 export const getDurationInMinutes = (type) => {
   switch (type) {
     case 'naturopathie':
-      return 100000000;
-    case 'acuponcture':
-      return 100000000;
+      return 120;
+    case 'acupuncture':
+      return 120;
     case 'hypnose':
-      return 100000000;
+      return 120;
     default:
       return 0;
   }
