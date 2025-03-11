@@ -62,7 +62,7 @@ export const getProfilPraticien = () =>{
     siret_number: "12345678",
     ville: "Tananarive",
     xp: 10,
-    specialite:["Dermatologue", "Acuponcture", "Massage traditionnelle"],
+    specialite:["Dermatologue", "Acupuncture", "Massage traditionnelle"],
     consultation: ["Au cabinet", "Domicile"],
     total_rdv: 22, 
   }

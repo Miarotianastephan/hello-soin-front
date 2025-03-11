@@ -3,7 +3,6 @@ import { getColorByType } from '../utils/agendaUtils';
 
 const AppointmentsList = ({ appointments }) => (
   <div className="p-1">
-    <h3 className="font-bold">Tous les Rendez‑vous</h3>
     <div className="flex gap-4 my-2">
       <div className="flex items-center">
         <span
@@ -26,10 +25,10 @@ const AppointmentsList = ({ appointments }) => (
             height: '10px',
             borderRadius: '50%',
             display: 'inline-block',
-            backgroundColor: getColorByType('acuponcture'),
+            backgroundColor: getColorByType('acupuncture'),
           }}
         />
-        <span>Acuponcture</span>
+        <span>Acupuncture</span>
       </div>
       <div className="flex items-center">
         <span
@@ -79,7 +78,6 @@ const AppointmentsList = ({ appointments }) => (
                   {app.practice.start} - {app.practice.end}
                 </td>
                 <td>
-                  {app.patient.prenom} {app.patient.nom}
                 </td>
                 <td>{app.motif}</td>
               </tr>

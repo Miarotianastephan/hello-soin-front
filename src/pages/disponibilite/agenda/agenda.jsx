@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { format, subDays, subWeeks, subMonths, addDays, addWeeks, addMonths, parse, differenceInYears, startOfDay } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { dayNames, parseTime, getColorByType, getDurationInMinutes, isValidTime } from './utils/agendaUtils';
+import { dayNames, parseTime, getColorByType, isValidTime } from './utils/agendaUtils'; // getDurationInMinutes supprimé
 import AgendaTable from './AgendaTable';
 import AgendaSidebar from './AgendaSidebar';
 import PracticeDialog from './PracticeDialog';
@@ -15,11 +15,13 @@ import fr from 'date-fns/locale/fr';
 const Agenda = () => {
   // Données fictives par défaut avec email, dateNaissance, mobile et propriété appointments ajoutée
   const defaultFakePatients = [
-    { id: '2', nom: 'Lemoine', prenom: 'Sophie', email: 'sophie.lemoine@example.com', numero: '07 98 76 54 32', age: 28, genre: 'Femme', adresse: '25 Avenue des Champs-Élysées, 75008 Paris', mobile: '06 01 02 03 04', dateNaissance: '1992-03-15', appointments: [] },
-    { id: '3', nom: 'Martin', prenom: 'Luc', email: 'luc.martin@example.com', numero: '06 11 22 33 44', age: 45, genre: 'Homme', adresse: '5 Boulevard Haussmann, 75009 Paris', mobile: '06 02 03 04 05', dateNaissance: '1975-05-10', appointments: [] },
+    { id: '2', nom: 'Lemoine', prenom: 'Sophie', email: 'sophie.lemoine@example.com', numero: '07 98 76 54 32', age: 28, genre: 'Mme', adresse: '25 Avenue des Champs-Élysées, 75008 Paris', mobile: '06 01 02 03 04', dateNaissance: '1992-03-15', appointments: [] },
+    { id: '3', nom: 'Martin', prenom: 'Luc', email: 'luc.martin@example.com', numero: '06 11 22 33 44', age: 45, genre: 'Mr', adresse: '5 Boulevard Haussmann, 75009 Paris', mobile: '06 02 03 04 05', dateNaissance: '1975-05-10', appointments: [] },
     // ... autres patients
-    { id: '30', nom: 'Rey', prenom: 'Eva', email: 'eva.rey@example.com', numero: '07 88 99 11 22', age: 26, genre: 'Femme', adresse: '19 Rue des Martyrs, 75009 Paris', mobile: '06 29 30 31 32', dateNaissance: '1990-03-03', appointments: [] }
+    { id: '30', nom: 'Rey', prenom: 'Eva', email: 'eva.rey@example.com', numero: '07 88 99 11 22', age: 26, genre: 'Mme', adresse: '19 Rue des Martyrs, 75009 Paris', mobile: '06 29 30 31 32', dateNaissance: '1990-03-03', appointments: [] }
   ];
+
+  const DEFAULT_DURATION = 20;
 
   // Chargement des patients depuis le localStorage
   const [fakePatientsData, setFakePatientsData] = useState([]);
@@ -30,7 +32,6 @@ const Agenda = () => {
     setCurrentDate(day);
     setViewMode('day');
   };
-
 
   useEffect(() => {
     const storedFakeData = localStorage.getItem('fakedatauser');
@@ -94,6 +95,7 @@ const Agenda = () => {
 
   const [viewMode, setViewMode] = useState('week'); // 'day', 'week' ou 'month'
   const [currentDate, setCurrentDate] = useState(new Date());
+  // Initialisation du state practiceDialog
   const [practiceDialog, setPracticeDialog] = useState({
     isOpen: false,
     date: null,
@@ -102,18 +104,20 @@ const Agenda = () => {
     parentSlot: null,
     practices: [],
     newPractice: { 
-      type: 'naturopathie', 
+      type: '', 
       start: '', 
       end: '', 
       error: '',
       motif: '',
+      duration: '',
       createAppointment: false,
       isNewPatient: false,
-      newPatient: {} // Attendu : prenom, nom, email, numero, mobile, dateNaissance
+      newPatient: {}
     },
     selectedPatientId: '',
     error: ''
   });
+
   const [appointments, setAppointments] = useState([]);
   const [appointmentDialog, setAppointmentDialog] = useState({
     isOpen: false,
@@ -129,12 +133,11 @@ const Agenda = () => {
   const [practiceFilter, setPracticeFilter] = useState({
     tous: true,
     naturopathie: true,
-    acuponcture: true,
+    acupuncture: true,
     hypnose: true
   });
   const [specifiqueOnly, setSpecifiqueOnly] = useState(false);
   
-
   useEffect(() => {
     let defaultGeneral = [];
     const generalStr = localStorage.getItem('general');
@@ -180,6 +183,7 @@ const Agenda = () => {
       }
     }
   }, []); 
+
   const handleSlotClick = (daySchedule, slotIndex, sourceType, clickedSlot) => {
     const parentSlot = daySchedule.timeSlots[slotIndex];
   
@@ -205,11 +209,12 @@ const Agenda = () => {
       parentSlot: parentSlot,
       practices: [],
       newPractice: {
-        type: 'naturopathie',
+        type: '',
         start: defaultStart,
         end: '',
         error: '',
         motif: '',
+        duration: 20,
         createAppointment: false,
         isNewPatient: false,
         newPatient: {}
@@ -239,20 +244,19 @@ const Agenda = () => {
     setReservedDialog({ isOpen: true, appointment });
   };
 
+  // Modification : conserver la durée déjà saisie si elle existe, sinon utiliser DEFAULT_DURATION
   const handlePracticeTypeChange = (e) => {
     const type = e.target.value;
     setPracticeDialog(prev => {
+      const duration = prev.newPractice.duration || DEFAULT_DURATION;
       const newPractice = { 
         ...prev.newPractice,
         type,
-        // Conserver l'heure de début du slot si vide
         start: prev.newPractice.start || prev.parentSlot.start 
       };
       
-      // Si l'utilisateur n'a pas modifié l'heure de fin manuellement, on recalculera la fin par défaut
       if (newPractice.start && !prev.newPractice.isEndManual) {
         const startDate = parseTime(newPractice.start);
-        const duration = getDurationInMinutes(type);
         const newEndDate = new Date(startDate.getTime() + duration * 60000);
         newPractice.end = format(newEndDate, 'HH:mm');
       }
@@ -265,10 +269,10 @@ const Agenda = () => {
     setPracticeDialog(prev => {
       const newPractice = { ...prev.newPractice, start };
       
-      // Si l'heure de fin n'a pas été modifiée manuellement, on recalcule la fin par défaut
+      // Si l'heure de fin n'a pas été modifiée manuellement, recalcule la fin par défaut
       if (start && !prev.newPractice.isEndManual) {
         const startDate = parseTime(start);
-        const duration = getDurationInMinutes(newPractice.type);
+        const duration = newPractice.duration;
         const newEndDate = new Date(startDate.getTime() + duration * 60000);
         newPractice.end = format(newEndDate, 'HH:mm');
       }
@@ -276,7 +280,7 @@ const Agenda = () => {
     });
   };
   
-  // Optionnel : gestion du changement manuel de l'heure de fin
+  // Gestion du changement manuel de l'heure de fin
   const handlePracticeEndChange = (e) => {
     const end = e.target.value;
     setPracticeDialog(prev => ({
@@ -289,10 +293,9 @@ const Agenda = () => {
     }));
   };
   
-
   const handleSavePractices = () => {
     const { date, slotIndex, sourceType, newPractice, parentSlot } = practiceDialog;
-    
+  
     // Vérifier que l'heure de début est renseignée
     if (!newPractice.start) {
       setPracticeDialog(prev => ({
@@ -301,27 +304,43 @@ const Agenda = () => {
       }));
       return;
     }
-    
+  
+    // Vérifier que le type de pratique est sélectionné
+    if (!newPractice.type) {
+      setPracticeDialog(prev => ({
+        ...prev,
+        newPractice: { ...prev.newPractice, error: "Veuillez sélectionner une pratique." }
+      }));
+      return;
+    }
+
+    // Vérifier que le type de pratique est sélectionné
+    if (!newPractice.motif) {
+      setPracticeDialog(prev => ({
+        ...prev,
+        newPractice: { ...prev.newPractice, error: "Veuillez remplir le champ motif." }
+      }));
+      return;
+    }
+  
     // Calculer l'heure de début
     const newStart = parseTime(newPractice.start);
-    
-    // Si l'heure de fin n'est pas renseignée, calculer par défaut selon la durée du type
+  
+    // Si l'heure de fin n'est pas renseignée, calculer par défaut selon la durée par défaut (20 minutes)
     let newEnd;
     if (!newPractice.end) {
-      const defaultDuration = getDurationInMinutes(newPractice.type);
-      newEnd = new Date(newStart.getTime() + defaultDuration * 60000);
+      newEnd = new Date(newStart.getTime() + DEFAULT_DURATION * 60000);
       const newEndStr = format(newEnd, 'HH:mm');
-      // Mettre à jour newPractice.end avec la valeur par défaut calculée
       newPractice.end = newEndStr;
       newEnd = parseTime(newEndStr);
     } else {
       newEnd = parseTime(newPractice.end);
     }
-    
+  
     // Calculer les heures du créneau parent
     const parentStart = parseTime(parentSlot.start);
     const parentEnd = parseTime(parentSlot.end);
-    
+  
     // La pratique doit être entièrement contenue dans le créneau parent
     if (newStart < parentStart || newEnd > parentEnd) {
       setPracticeDialog(prev => ({
@@ -330,7 +349,7 @@ const Agenda = () => {
       }));
       return;
     }
-    
+  
     // Vérification des chevauchements avec les pratiques déjà ajoutées dans ce créneau
     for (let p of practiceDialog.practices) {
       const existingStart = parseTime(p.start);
@@ -343,7 +362,7 @@ const Agenda = () => {
         return;
       }
     }
-    
+  
     // Vérification des chevauchements avec les rendez‑vous déjà existants pour cette date
     const appointmentsForDate = appointments.filter(app => app.date === date);
     for (const app of appointmentsForDate) {
@@ -357,41 +376,58 @@ const Agenda = () => {
         return;
       }
     }
-    
+  
     // Création d'une clé unique pour le rendez‑vous
     const appointmentKey = `${date}_${parentSlot.start}_${parentSlot.end}_${newPractice.start}_${newPractice.type}`;
-    
+  
     // Récupérer les informations du patient
     let patient;
     if (newPractice.isNewPatient) {
-      if (
-        !newPractice.newPatient.prenom ||
-        !newPractice.newPatient.nom ||
-        !newPractice.newPatient.email ||
-        !newPractice.newPatient.numero ||
-        !newPractice.newPatient.mobile ||
-        !newPractice.newPatient.dateNaissance
-      ) {
+      const { prenom, nom, email, numero, mobile, dateNaissance } = newPractice.newPatient;
+    
+      // Vérification des champs vides
+      if (!prenom || !nom || !email || !numero || !mobile || !dateNaissance) {
         setPracticeDialog(prev => ({
           ...prev,
-          error: 'Veuillez remplir les informations du nouveau patient (Prénom, Nom, Email, Téléphone, Mobile, Date de naissance).'
+          newPractice: { ...prev.newPractice, error: "Veuillez remplir tous les champs." }
         }));
         return;
       }
-      const computedAge = differenceInYears(new Date(), new Date(newPractice.newPatient.dateNaissance));
+    
+      // Suppression des espaces et vérification de la longueur du numéro de téléphone
+      const numeroSanitized = numero.replace(/\s+/g, "");
+      const mobileSanitized = mobile.replace(/\s+/g, "");
+    
+      if (numeroSanitized.length !== 10 || mobileSanitized.length !== 10) {
+        setPracticeDialog(prev => ({
+          ...prev,
+          newPractice: { ...prev.newPractice, error: "Le numéro de téléphone doit contenir exactement 10 caractères." }
+        }));
+        return;
+      }
+    
+      // Calcul de l'âge
+      const computedAge = differenceInYears(new Date(), new Date(dateNaissance));
+    
+      // Génération d'un nouvel ID
       const newId = (Math.max(...fakePatientsData.map(p => parseInt(p.id))) + 1).toString();
+    
+      // Création de l'objet patient
       patient = { ...newPractice.newPatient, id: newId, age: computedAge, appointments: [] };
+    
+      // Mise à jour des données
       const updatedFakePatients = [...fakePatientsData, patient];
       setFakePatientsData(updatedFakePatients);
       localStorage.setItem('fakedatauser', JSON.stringify(updatedFakePatients));
-    } else {
+    }
+    else {
       if (!practiceDialog.selectedPatientId) {
         setPracticeDialog(prev => ({ ...prev, error: 'Veuillez sélectionner un patient.' }));
         return;
       }
       patient = fakePatientsData.find(p => p.id === practiceDialog.selectedPatientId);
     }
-    
+  
     // Création du rendez‑vous
     const newAppointment = {
       key: appointmentKey,
@@ -401,11 +437,11 @@ const Agenda = () => {
       patient,
       motif: newPractice.motif || ''
     };
-    
+  
     const updatedAppointments = [...appointments, newAppointment];
     setAppointments(updatedAppointments);
     localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
-    
+  
     // Mise à jour du planning spécifique pour la date concernée uniquement.
     setSchedule(prev => {
       const specificUpdated = [...prev.specific];
@@ -460,7 +496,7 @@ const Agenda = () => {
       localStorage.setItem('planning', JSON.stringify({ datesWithSlots: specificUpdated }));
       return { ...prev, specific: specificUpdated };
     });
-    
+  
     // Réinitialisation du dialogue
     setPracticeDialog({
       isOpen: false,
@@ -470,11 +506,12 @@ const Agenda = () => {
       parentSlot: null,
       practices: [],
       newPractice: { 
-        type: newPractice.type, 
+        type: '', 
         start: '', 
         end: '', 
         error: '', 
-        motif: '', 
+        motif: '',
+        duration: DEFAULT_DURATION, 
         isNewPatient: false, 
         newPatient: {} 
       },
@@ -483,7 +520,7 @@ const Agenda = () => {
     });
   };
   
-    
+  
   const handleAddAppointment = () => {
     if (!appointmentDialog.selectedPatientId) {
       setAppointmentDialog(prev => ({ ...prev, error: 'Veuillez sélectionner un patient.' }));
@@ -542,7 +579,7 @@ const Agenda = () => {
       setPracticeFilter(prev => ({
         tous: !prev.tous,
         naturopathie: !prev.tous,
-        acuponcture: !prev.tous,
+        acupuncture: !prev.tous,
         hypnose: !prev.tous,
       }));
     } else {
@@ -566,11 +603,12 @@ const Agenda = () => {
       parentSlot: null,
       practices: [],
       newPractice: { 
-        type: 'naturopathie', 
+        type: '', 
         start: '', 
         end: '', 
         error: '',
         motif: '',
+        duration: 20,
         createAppointment: false,
         isNewPatient: false,
         newPatient: {}
@@ -618,39 +656,30 @@ const Agenda = () => {
             </div>
             <div className="flex items-center gap-2">
               <Button
-                className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${
-                  viewMode === 'day' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'
-                }`}
+                className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${viewMode === 'day' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'}`}
                 onClick={() => setViewMode('day')}
               >
                 Jour
               </Button>
               <Button
-                className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${
-                  viewMode === 'week' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'
-                }`}
+                className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${viewMode === 'week' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'}`}
                 onClick={() => setViewMode('week')}
               >
                 Semaine
               </Button>
               <Button
-                className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${
-                  viewMode === 'month' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'
-                }`}
+                className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${viewMode === 'month' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'}`}
                 onClick={() => setViewMode('month')}
               >
                 Mois
               </Button>
-             
             </div>
             <Button
-                className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${
-                  viewMode === 'month' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'
-                }`}
-                onClick={() => setViewMode('list')}
-              >
-                Tous les Rendez‑vous
-              </Button>
+              className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${viewMode === 'list' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'}`}
+              onClick={() => setViewMode('list')}
+            >
+              Tous les Rendez‑vous
+            </Button>
           </div>
         </div>
 
@@ -686,8 +715,7 @@ const Agenda = () => {
           const storedAppointments = localStorage.getItem('appointments');
           setAppointments(storedAppointments ? JSON.parse(storedAppointments) : []);
         }}
-/>
-      {/* Dans le return() de Agenda */}
+      />
       {practiceDialog.isOpen && (
         <PracticeDialog
           practiceDialog={practiceDialog}

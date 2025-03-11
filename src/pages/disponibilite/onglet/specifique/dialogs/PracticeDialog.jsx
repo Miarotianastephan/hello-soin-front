@@ -61,8 +61,8 @@ const PracticeDialog = ({
             <span>Naturopathie</span>
           </div>
           <div className="flex items-center">
-            <div style={{ width: '15px', height: '15px', backgroundColor: getColorByType('acuponcture') }} className="mr-1" />
-            <span>Acuponcture</span>
+            <div style={{ width: '15px', height: '15px', backgroundColor: getColorByType('acupuncture') }} className="mr-1" />
+            <span>Acupuncture</span>
           </div>
           <div className="flex items-center">
             <div style={{ width: '15px', height: '15px', backgroundColor: getColorByType('hypnose') }} className="mr-1" />
@@ -96,7 +96,7 @@ const PracticeDialog = ({
                 Type :
                 <select value={newPractice.type} onChange={onPracticeTypeChange} className="border p-1 rounded ml-2">
                   <option value="naturopathie">Naturopathie</option>
-                  <option value="acuponcture">Acuponcture</option>
+                  <option value="acupuncture">Acupuncture</option>
                   <option value="hypnose">Hypnose</option>
                 </select>
               </label>

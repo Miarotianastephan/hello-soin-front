@@ -1,12 +1,13 @@
+// tableComponents/DayMode.js
 import React, { useState, useEffect } from 'react';
 import { format, addMinutes, differenceInMinutes, isSameDay, startOfDay } from 'date-fns';
 import { dayNames, parseTime, totalDuration, DAY_COLUMN_HEIGHT, AGENDA_START, getColorByType } from '../utils/agendaUtils';
 import { createPlageHoraire } from '../utils/scheduleUtils';
-import { Phone } from 'lucide-react';
+import { Phone, Mail, CalendarCheck, Notebook, User } from 'lucide-react';
 
 const HEADER_HEIGHT = 60;
 
-const DayColumn = ({
+const DayMode = ({
   daySchedule,
   date,
   onSlotClick,
@@ -78,7 +79,6 @@ const DayColumn = ({
         setMultiSelectStart(clickedTime);
         setMultiSelectCurrent(clickedTime);
       } else {
-        // Détermination de la sélection dans le bon sens (bidirectionnelle)
         const startTime = multiSelectStart;
         const endTime = clickedTime;
         const selectionStartTime = startTime < endTime ? startTime : endTime;
@@ -204,13 +204,8 @@ const DayColumn = ({
     return freeIntervals;
   };
 
-
-
   return (
     <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
-
-
-   
       {hoverTime && hoverPosition && (
         <div
           style={{
@@ -229,12 +224,22 @@ const DayColumn = ({
           {format(hoverTime, 'HH:mm')}
         </div>
       )}
+      {/* Header : affichage en 4 colonnes */}
       <div
-        className={`sticky top-0 z-10 p-1 border-l ${isSelected ? 'bg-gray-300 border-b-2 border-green-500' : 'bg-white border-b'}`}
-        style={{ height: `${HEADER_HEIGHT}px` }}
+        className="sticky top-0 z-10 p-1 border-l bg-white"
+        style={{ 
+          height: `${HEADER_HEIGHT}px`, 
+          display: 'grid', 
+          gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', 
+          alignItems: 'center',
+          gap: '2px'
+        }}
       >
-        <p className="text-gray-700 font-bold text-xs text-start">{dayNames[date.getDay()]}</p>
-        <p className="font-bold text-lg text-start">{format(date, 'dd')}</p>
+        <div className="text-gray-500 text-xs font-bold">Nom</div>
+        <div className="text-gray-500 text-xs font-bold">Telephone</div>
+        <div className="text-gray-500 text-xs font-bold">Email</div>
+        <div className="text-gray-500 text-xs font-bold">Type de rendez-vous</div>
+        <div className="text-gray-500 text-xs font-bold">Motif</div>
       </div>
       <div
         style={{
@@ -248,42 +253,36 @@ const DayColumn = ({
         onMouseLeave={isSelectable ? handleMouseLeave : undefined}
         onClick={isSelectable ? handleBackgroundClick : undefined}
       >
-
-{(multiSelectStart && multiSelectCurrent) && (
-  (() => {
-    const startTime = multiSelectStart < multiSelectCurrent ? multiSelectStart : multiSelectCurrent;
-    const endTime = multiSelectStart < multiSelectCurrent ? multiSelectCurrent : multiSelectStart;
-    
-    const baseTime = parseTime(AGENDA_START);
-    const agendaStartDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-      baseTime.getHours(),
-      baseTime.getMinutes()
-    );
-
-    const topOffset = (differenceInMinutes(startTime, agendaStartDate) / totalDuration * contentHeight);
-    const bottomOffset = (differenceInMinutes(endTime, agendaStartDate) / totalDuration * contentHeight);
-    const height = bottomOffset - topOffset;
-
-    return (
-      <div
-        style={{
-          position: 'absolute',
-          top: `${topOffset}px`,
-          height: `${height}px`,
-          left: 0,
-          right: 0,
-          backgroundColor: 'rgba(100, 149, 237, 0.3)', // Bleu clair semi-transparent
-          border: '2px solid rgba(70, 130, 180, 0.7)',
-          pointerEvents: 'none',
-          zIndex: 20,
-        }}
-      />
-    );
-  })()
-)}
+        {(multiSelectStart && multiSelectCurrent) && (() => {
+          const startTime = multiSelectStart < multiSelectCurrent ? multiSelectStart : multiSelectCurrent;
+          const endTime = multiSelectStart < multiSelectCurrent ? multiSelectCurrent : multiSelectStart;
+          const baseTime = parseTime(AGENDA_START);
+          const agendaStartDate = new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+            baseTime.getHours(),
+            baseTime.getMinutes()
+          );
+          const topOffset = (differenceInMinutes(startTime, agendaStartDate) / totalDuration * contentHeight);
+          const bottomOffset = (differenceInMinutes(endTime, agendaStartDate) / totalDuration * contentHeight);
+          const height = bottomOffset - topOffset;
+          return (
+            <div
+              style={{
+                position: 'absolute',
+                top: `${topOffset}px`,
+                height: `${height}px`,
+                left: 0,
+                right: 0,
+                backgroundColor: 'rgba(100, 149, 237, 0.3)',
+                border: '2px solid rgba(70, 130, 180, 0.7)',
+                pointerEvents: 'none',
+                zIndex: 20,
+              }}
+            />
+          );
+        })()}
         {slots.map((slot, idx) => {
           const slotStart = parseTime(slot.start);
           const slotEnd = parseTime(slot.end);
@@ -304,7 +303,8 @@ const DayColumn = ({
             <div
               key={idx}
               className={`absolute border rounded-lg ${isSelectable && !isSlotPast ? 'cursor-pointer bg-white' : ''} ${!isSelectable ? 'bg-gray-300' : ''}`}
-              style={{ ...{
+              style={{ 
+                ...{
                   top: `${offset}px`,
                   height: `${slotHeight}px`,
                   left: 0,
@@ -372,7 +372,7 @@ const DayColumn = ({
                 return (
                   <div
                     key={pIdx}
-                    className="absolute cursor-pointer border-2 rounded-md text-center hover:bg-gray-200 transition-colors duration-200"
+                    className="absolute cursor-pointer border-none rounded-2xl text-center hover:bg-gray-200 transition-colors duration-200"
                     style={{
                       top: `${pOffset}%`,
                       height: `${pHeight}%`,
@@ -380,7 +380,7 @@ const DayColumn = ({
                       right: 0,
                       borderColor: getColorByType(practice.type),
                       color: getColorByType(practice.type),
-                      backgroundColor: `${getColorByType(practice.type)}10`,
+                      backgroundColor: `${getColorByType(practice.type)}30`,
                       borderRadius: "8px"
                     }}
                     title={`${practice.type} (${practiceStart} - ${practiceEnd}) ${appointment ? 'Réservé' : ''}`}
@@ -395,20 +395,15 @@ const DayColumn = ({
                     }}
                   >
                     {appointment && (
-                      <div className="ml-2 absolute inset-0 flex flex-col items-start justify-start mb-2 text-xs bg-gray-150 bg-opacity-50 overflow-hidden">
-                        <div className="flex items-center justify-between pr-2 mt-1 gap-1 w-full">
-                          <div className="font-tsy-bold text-[10px]">{practiceStart} - {practiceEnd}</div>
-                        </div>
-                        <div className="w-[1/2] items-center justify-center rounded-md flex text-white text-[10px] px-2" style={{ backgroundColor: `${getColorByType(practice.type)}` }}>
-                          {practice.type}
-                        </div>
-                        <div className="w-full gap-1 font-bold text-left text-[10px]">
-                        {appointment.patient.genre} {appointment.patient.prenom} {appointment.patient.nom}
-                        </div>
-                        <div className="flex items-center justify-start gap-1 w-full">
-                          <Phone size={12} />
-                          <div className="font-tsy-bold text-[10px]">{appointment.patient.numero}</div>
-                        </div>
+                      <div
+                        className="absolute inset-0 bg-gray-150 bg-opacity-50 overflow-hidden py-2 px-1"
+                        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: '2px' }}
+                      >
+                        <div className="text-xs font-bold text-start">{appointment.patient.genre} {appointment.patient.nom} {appointment.patient.prenom}</div>
+                        <div className="text-xs font-bold text-start flex items-start  gap-2" ><Phone size={12}/> {appointment.patient.numero}</div>
+                        <div className="text-xs font-bold  text-start">{appointment.patient.email}</div>
+                        <div className="text-xs font-bold  text-start">{practice.type}</div>
+                        <div className="text-xs font-bold  text-start">{practice.motif}</div>
                       </div>
                     )}
                   </div>
@@ -450,4 +445,4 @@ const DayColumn = ({
   );
 };
 
-export default DayColumn;
+export default DayMode;

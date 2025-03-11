@@ -18,7 +18,7 @@ const PracticeScheduler = ({ selectedSlot, onSchedule, scheduledPractices, onDel
 
   const colors = {
     naturopathie: "bg-green-800",
-    acuponcture: "bg-blue-800",
+    acupuncture: "bg-blue-800",
     hypnose: "bg-yellow-800"
   };
 
@@ -26,10 +26,10 @@ const PracticeScheduler = ({ selectedSlot, onSchedule, scheduledPractices, onDel
     switch (type) {
       case 'naturopathie':
         return 120;
-      case 'acuponcture':
-        return 30;
+      case 'acupuncture':
+        return 120;
       case 'hypnose': 
-        return 75;
+        return 120;
       default:
         return 0;
     }
@@ -182,7 +182,7 @@ const PracticeScheduler = ({ selectedSlot, onSchedule, scheduledPractices, onDel
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="naturopathie">Naturopathie (2h)</SelectItem>
-                      <SelectItem value="acuponcture">Acuponcture (30 min)</SelectItem>
+                      <SelectItem value="acupuncture">Acupuncture (30 min)</SelectItem>
                       <SelectItem value="hypnose">Hypnose (1h 15min)</SelectItem>
                     </SelectContent>
                   </Select>
@@ -206,7 +206,7 @@ const PracticeScheduler = ({ selectedSlot, onSchedule, scheduledPractices, onDel
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="naturopathie">Naturopathie (2h)</SelectItem>
-                        <SelectItem value="acuponcture">Acuponcture (30 min)</SelectItem>
+                        <SelectItem value="acupuncture">Acupuncture (30 min)</SelectItem>
                         <SelectItem value="hypnose">Hypnose (1h 15min)</SelectItem>
                       </SelectContent>
                     </Select>

@@ -1,8 +1,12 @@
+// AgendaTable.js
 import React, { useRef, useEffect } from 'react';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { dayNames, DAY_COLUMN_HEIGHT, VISIBLE_HEIGHT } from './utils/agendaUtils';
 import TimeColumn from './tableComponents/TimeColumn';
+// Pour la vue jour, on utilise notre nouveau composant DayMode
+import DayMode from './tableComponents/DayMode';
+// Pour la vue semaine, on conserve le composant existant
 import DayColumn from './tableComponents/DayColumn';
 import AppointmentsList from './tableComponents/AppointmentsList';
 import MonthView from './tableComponents/MonthView';
@@ -20,7 +24,7 @@ const AgendaTable = ({
   onOpenCreateAppointment,
   refreshSchedule,
   selectedPractice,
-  onDayClick, // ajout de la prop pour la navigation depuis le calendrier mensuel
+  onDayClick, // Pour la navigation depuis le calendrier mensuel
 }) => {
   const scrollableRef = useRef(null);
 
@@ -53,7 +57,7 @@ const AgendaTable = ({
     return (
       <div>
         <div className="text-start font-bold text-lg my-2">
-          {format(currentDate, 'MMMM yyyy', { locale: fr })}
+          {dayNames[currentDate.getDay()]} {format(currentDate, 'dd')} {format(currentDate, 'MMMM yyyy', { locale: fr })}
         </div>
         <div className="overflow-y-auto" style={{ height: `${VISIBLE_HEIGHT}px` }} ref={scrollableRef}>
           <div className="flex" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
@@ -61,10 +65,10 @@ const AgendaTable = ({
               <TimeColumn />
             </div>
             <div className="flex-1 relative border-l h-full">
-              <DayColumn
+              <DayMode
                 daySchedule={daySchedule}
                 date={currentDate}
-                onSlotClick={(ds, idx, sourceType, clickedSlot) => onSlotClick(ds, idx, sourceType, clickedSlot)}
+                onSlotClick={onSlotClick}
                 appointments={appointments}
                 onPracticeClick={onPracticeClick}
                 onReservedClick={onReservedClick}

@@ -4,34 +4,68 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
   return (
     <div className="space-y-4">
       {/* Ligne 1 : Nom et Prénom */}
+      {/* Ligne 1 : Genre et Nom alignés sur la même ligne */}
+<div className="flex gap-4">
+  <div className="flex-1">
+    <label className="block text-xs font-medium text-gray-700">
+      <i className="fas fa-user mr-1"></i>Civilités  <span className="text-red-500">*</span>
+    </label>
+    <select
+      value={practiceDialog.newPractice.newPatient?.genre || ''}
+      onChange={(e) =>
+        setPracticeDialog((prev) => ({
+          ...prev,
+          newPractice: {
+            ...prev.newPractice,
+            newPatient: {
+              ...prev.newPractice.newPatient,
+              genre: e.target.value,
+            },
+          },
+        }))
+      }
+      className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+      required
+    >
+      <option value="Mr">Monsieur</option>
+      <option value="Mme">Madame</option>
+      <option value="Mlle">Mademoiselle</option>
+      <option value="Enfant">Enfant</option>
+     
+    </select>
+  </div>
+  <div className="flex-1">
+    <label className="block text-xs font-medium text-gray-700">
+      <i className="fas fa-user mr-1"></i>Nom <span className="text-red-500">*</span>
+    </label>
+    <input
+      type="text"
+      value={practiceDialog.newPractice.newPatient?.nom || ''}
+      onChange={(e) =>
+        setPracticeDialog((prev) => ({
+          ...prev,
+          newPractice: {
+            ...prev.newPractice,
+            newPatient: {
+              ...prev.newPractice.newPatient,
+              nom: e.target.value,
+            },
+          },
+        }))
+      }
+      className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+      placeholder="Nom"
+      required
+    />
+  </div>
+</div>
+
+
+      {/* Ligne 2 : Genre et Date de naissance */}
       <div className="flex gap-4">
         <div className="flex-1">
           <label className="block text-xs font-medium text-gray-700">
-            <i className="fas fa-user mr-1"></i>Nom
-          </label>
-          <input
-            type="text"
-            value={practiceDialog.newPractice.newPatient?.nom || ''}
-            onChange={(e) =>
-              setPracticeDialog((prev) => ({
-                ...prev,
-                newPractice: {
-                  ...prev.newPractice,
-                  newPatient: {
-                    ...prev.newPractice.newPatient,
-                    nom: e.target.value,
-                  },
-                },
-              }))
-            }
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
-            placeholder="Nom"
-            required
-          />
-        </div>
-        <div className="flex-1">
-          <label className="block text-xs font-medium text-gray-700">
-            <i className="fas fa-user mr-1"></i>Prénom
+            <i className="fas fa-user mr-1"></i>Prénom <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -53,39 +87,9 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
             required
           />
         </div>
-      </div>
-
-      {/* Ligne 2 : Genre et Date de naissance */}
-      <div className="flex gap-4">
         <div className="flex-1">
           <label className="block text-xs font-medium text-gray-700">
-            <i className="fas fa-venus-mars mr-1"></i>Genre
-          </label>
-          <select
-            value={practiceDialog.newPractice.newPatient?.genre || ''}
-            onChange={(e) =>
-              setPracticeDialog((prev) => ({
-                ...prev,
-                newPractice: {
-                  ...prev.newPractice,
-                  newPatient: {
-                    ...prev.newPractice.newPatient,
-                    genre: e.target.value,
-                  },
-                },
-              }))
-            }
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
-            required
-          >
-            <option value="">Sélectionner</option>
-            <option value="Homme">Homme</option>
-            <option value="Femme">Femme</option>
-          </select>
-        </div>
-        <div className="flex-1">
-          <label className="block text-xs font-medium text-gray-700">
-            <i className="fas fa-birthday-cake mr-1"></i>Date de naissance
+            <i className="fas fa-birthday-cake mr-1"></i>Date de naissance <span className="text-red-500">*</span>
           </label>
           <input
             type="date"
@@ -112,7 +116,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
       <div className="flex gap-4">
         <div className="flex-1">
           <label className="block text-xs font-medium text-gray-700">
-            <i className="fas fa-phone mr-1"></i>Téléphone
+            <i className="fas fa-phone mr-1"></i>Téléphone <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -141,7 +145,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
         </div>
         <div className="flex-1">
           <label className="block text-xs font-medium text-gray-700">
-            <i className="fas fa-mobile-alt mr-1"></i>Mobile
+            <i className="fas fa-mobile-alt mr-1"></i>Mobile <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -173,7 +177,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
       {/* Ligne 4 : Email */}
       <div>
         <label className="block text-xs font-medium text-gray-700">
-          <i className="fas fa-envelope mr-1"></i>Email
+          <i className="fas fa-envelope mr-1"></i>Email <span className="text-red-500">*</span>
         </label>
         <input
           type="email"
@@ -199,7 +203,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
       {/* Ligne 5 : Motif */}
       <div>
         <label className="block text-xs font-medium text-gray-700">
-          <i className="fas fa-info-circle mr-1"></i>Motif (obligatoire)
+          <i className="fas fa-info-circle mr-1"></i>Motif <span className="text-red-500">*</span>
         </label>
         <textarea
           type="text"
