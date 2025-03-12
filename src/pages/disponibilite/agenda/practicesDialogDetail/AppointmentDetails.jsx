@@ -84,7 +84,7 @@ const AppointmentDetails = ({ practiceDialog, onTypeChange, onStartChange, setPr
           </label>
 
           <label className="w-1/4 text-xs font-bold text-gray-700">
-            Durée
+            Durée <span className="font-normal">(minute)</span>
             <input
               type="number"
               value={practiceDialog.newPractice.duration}

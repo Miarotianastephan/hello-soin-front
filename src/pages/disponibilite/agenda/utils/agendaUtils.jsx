@@ -30,7 +30,8 @@ export const addMinutes = (time, minutes) => {
 
 export const totalDuration =
   differenceInMinutes(parseTime(AGENDA_END), parseTime(AGENDA_START)) + 1;
-export const DAY_COLUMN_HEIGHT = (1440 / 60) * 128; // 3072px
+
+export const DAY_COLUMN_HEIGHT = ((1440 / 60) * 128) * 1.50; // 3840px
 
 export const VISIBLE_HEIGHT = 10 * 68; // 640px
 

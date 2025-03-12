@@ -247,22 +247,35 @@ const Agenda = () => {
   // Modification : conserver la durée déjà saisie si elle existe, sinon utiliser DEFAULT_DURATION
   const handlePracticeTypeChange = (e) => {
     const type = e.target.value;
+    // Définition de la durée par défaut en fonction du type
+    let newDuration = DEFAULT_DURATION; // Valeur par défaut (20 min)
+    if (type === 'naturopathie') {
+      newDuration = 120;
+    } else if (type === 'acupuncture') {
+      newDuration = 30;
+    } else if (type === 'hypnose') {
+      newDuration = 90;
+    }
+  
     setPracticeDialog(prev => {
-      const duration = prev.newPractice.duration || DEFAULT_DURATION;
       const newPractice = { 
         ...prev.newPractice,
         type,
+        duration: newDuration, // On met à jour la durée par défaut ici
         start: prev.newPractice.start || prev.parentSlot.start 
       };
-      
+  
+      // Si l'heure de début est renseignée et que l'heure de fin n'a pas été modifiée manuellement,
+      // on recalcule l'heure de fin en fonction de la nouvelle durée
       if (newPractice.start && !prev.newPractice.isEndManual) {
         const startDate = parseTime(newPractice.start);
-        const newEndDate = new Date(startDate.getTime() + duration * 60000);
+        const newEndDate = new Date(startDate.getTime() + newDuration * 60000);
         newPractice.end = format(newEndDate, 'HH:mm');
       }
       return { ...prev, newPractice };
     });
   };
+  
   
   const handlePracticeStartChange = (e) => {
     const start = e.target.value;

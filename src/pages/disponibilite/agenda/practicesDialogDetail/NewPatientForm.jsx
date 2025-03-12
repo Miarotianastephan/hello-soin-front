@@ -8,7 +8,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
 <div className="flex gap-4">
   <div className="flex-1">
     <label className="block text-xs font-medium text-gray-700">
-      <i className="fas fa-user mr-1"></i>Civilités  <span className="text-red-500">*</span>
+      <i className="fas fa-user mr-1"></i>Civilité  <span className="text-red-500">*</span>
     </label>
     <select
       value={practiceDialog.newPractice.newPatient?.genre || ''}

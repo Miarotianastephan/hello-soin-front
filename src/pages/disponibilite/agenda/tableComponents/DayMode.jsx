@@ -112,7 +112,7 @@ const DayMode = ({
     if (!isWithinSlot) {
       const formattedDate = format(date, 'dd-MM-yyyy');
       const formattedTime = format(clickedTime, 'HH:mm');
-      // onOpenCreateAppointment(formattedDate, formattedTime);
+      onOpenCreateAppointment(formattedDate, formattedTime);
       console.log('a verifier');
     }
   };
@@ -136,7 +136,7 @@ const DayMode = ({
 
   const totalIntervals = 24 * 4; // 96 créneaux de 15 min
   const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
+    const rect = e.currentTarget.getBoundingClientRect(); 
     const offsetY = e.clientY - rect.top;
     const offsetX = e.clientX - rect.left;
     const blockHeight = contentHeight / totalIntervals;
@@ -167,7 +167,7 @@ const DayMode = ({
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape') { 
         setMultiSelectStart(null);
         setMultiSelectCurrent(null);
       }
@@ -396,7 +396,7 @@ const DayMode = ({
                   >
                     {appointment && (
                       <div
-                        className="absolute inset-0 bg-gray-150 bg-opacity-50 overflow-hidden py-2 px-1"
+                        className="absolute flex inset-0 bg-gray-150 bg-opacity-50 overflow-hidden py-2 px-1"
                         style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: '2px' }}
                       >
                         <div className="text-xs font-bold text-start">{appointment.patient.genre} {appointment.patient.nom} {appointment.patient.prenom}</div>

@@ -19,9 +19,7 @@ const DayColumn = ({
   refreshSchedule,
   selectedPractice
 }) => {
-  const [hoverBlock, setHoverBlock] = useState(null);
-  const [hoverPosition, setHoverPosition] = useState(null);
-  const [hoverTime, setHoverTime] = useState(null);
+  // Retrait des états liés au survol
   const [multiSelectStart, setMultiSelectStart] = useState(null);
   const [multiSelectCurrent, setMultiSelectCurrent] = useState(null);
   const [finalMultiSelectRange, setFinalMultiSelectRange] = useState(null);
@@ -78,7 +76,7 @@ const DayColumn = ({
         setMultiSelectStart(clickedTime);
         setMultiSelectCurrent(clickedTime);
       } else {
-        // Détermination de la sélection dans le bon sens (bidirectionnelle)
+        // Sélection bidirectionnelle
         const startTime = multiSelectStart;
         const endTime = clickedTime;
         const selectionStartTime = startTime < endTime ? startTime : endTime;
@@ -112,7 +110,7 @@ const DayColumn = ({
     if (!isWithinSlot) {
       const formattedDate = format(date, 'dd-MM-yyyy');
       const formattedTime = format(clickedTime, 'HH:mm');
-      // onOpenCreateAppointment(formattedDate, formattedTime);
+      onOpenCreateAppointment(formattedDate, formattedTime);
       console.log('a verifier');
     }
   };
@@ -135,48 +133,8 @@ const DayColumn = ({
   };
 
   const totalIntervals = 24 * 4; // 96 créneaux de 15 min
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const offsetY = e.clientY - rect.top;
-    const offsetX = e.clientX - rect.left;
-    const blockHeight = contentHeight / totalIntervals;
-    setHoverBlock(Math.floor(offsetY / blockHeight));
-    setHoverPosition({ x: offsetX, y: offsetY });
-    const rawMinutes = (offsetY / contentHeight) * totalDuration;
-    const roundedMinutes = Math.round(rawMinutes / 15) * 15;
-    const baseTime = parseTime(AGENDA_START);
-    const agendaStartDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-      baseTime.getHours(),
-      baseTime.getMinutes()
-    );
-    const newTime = addMinutes(agendaStartDate, roundedMinutes);
-    setHoverTime(newTime);
-    if (multiSelectStart) {
-      setMultiSelectCurrent(newTime);
-    }
-  };
 
-  const handleMouseLeave = () => {
-    setHoverBlock(null);
-    setHoverPosition(null);
-    setHoverTime(null);
-  };
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        setMultiSelectStart(null);
-        setMultiSelectCurrent(null);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
+  // La gestion du survol de la souris a été retirée
 
   const computeFreeIntervals = (slot) => {
     const sStart = parseTime(slot.start);
@@ -204,31 +162,8 @@ const DayColumn = ({
     return freeIntervals;
   };
 
-
-
   return (
     <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
-
-
-   
-      {hoverTime && hoverPosition && (
-        <div
-          style={{
-            position: 'absolute',
-            left: `${hoverPosition.x + 5}px`,
-            top: `${hoverPosition.y + 10}px`,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            color: 'white',
-            padding: '2px 5px',
-            borderRadius: '4px',
-            fontSize: '10px',
-            pointerEvents: 'none',
-            zIndex: 100,
-          }}
-        >
-          {format(hoverTime, 'HH:mm')}
-        </div>
-      )}
       <div
         className={`sticky top-0 z-10 p-1 border-l ${isSelected ? 'bg-gray-300 border-b-2 border-green-500' : 'bg-white border-b'}`}
         style={{ height: `${HEADER_HEIGHT}px` }}
@@ -244,46 +179,43 @@ const DayColumn = ({
           right: 0,
           height: `${contentHeight}px`
         }}
-        onMouseMove={isSelectable ? handleMouseMove : undefined}
-        onMouseLeave={isSelectable ? handleMouseLeave : undefined}
         onClick={isSelectable ? handleBackgroundClick : undefined}
       >
-
-{(multiSelectStart && multiSelectCurrent) && (
-  (() => {
-    const startTime = multiSelectStart < multiSelectCurrent ? multiSelectStart : multiSelectCurrent;
-    const endTime = multiSelectStart < multiSelectCurrent ? multiSelectCurrent : multiSelectStart;
-    
-    const baseTime = parseTime(AGENDA_START);
-    const agendaStartDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-      baseTime.getHours(),
-      baseTime.getMinutes()
-    );
-
-    const topOffset = (differenceInMinutes(startTime, agendaStartDate) / totalDuration * contentHeight);
-    const bottomOffset = (differenceInMinutes(endTime, agendaStartDate) / totalDuration * contentHeight);
-    const height = bottomOffset - topOffset;
-
-    return (
-      <div
-        style={{
-          position: 'absolute',
-          top: `${topOffset}px`,
-          height: `${height}px`,
-          left: 0,
-          right: 0,
-          backgroundColor: 'rgba(100, 149, 237, 0.3)', // Bleu clair semi-transparent
-          border: '2px solid rgba(70, 130, 180, 0.7)',
-          pointerEvents: 'none',
-          zIndex: 20,
-        }}
-      />
-    );
-  })()
-)}
+        {(multiSelectStart && multiSelectCurrent) && (
+          (() => {
+            const startTime = multiSelectStart < multiSelectCurrent ? multiSelectStart : multiSelectCurrent;
+            const endTime = multiSelectStart < multiSelectCurrent ? multiSelectCurrent : multiSelectStart;
+            
+            const baseTime = parseTime(AGENDA_START);
+            const agendaStartDate = new Date(
+              date.getFullYear(),
+              date.getMonth(),
+              date.getDate(),
+              baseTime.getHours(),
+              baseTime.getMinutes()
+            );
+        
+            const topOffset = (differenceInMinutes(startTime, agendaStartDate) / totalDuration * contentHeight);
+            const bottomOffset = (differenceInMinutes(endTime, agendaStartDate) / totalDuration * contentHeight);
+            const height = bottomOffset - topOffset;
+        
+            return (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: `${topOffset}px`,
+                  height: `${height}px`,
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'rgba(100, 149, 237, 0.3)',
+                  border: '2px solid rgba(70, 130, 180, 0.7)',
+                  pointerEvents: 'none',
+                  zIndex: 20,
+                }}
+              />
+            );
+          })()
+        )}
         {slots.map((slot, idx) => {
           const slotStart = parseTime(slot.start);
           const slotEnd = parseTime(slot.end);
@@ -304,12 +236,11 @@ const DayColumn = ({
             <div
               key={idx}
               className={`absolute border rounded-lg ${isSelectable && !isSlotPast ? 'cursor-pointer bg-white' : ''} ${!isSelectable ? 'bg-gray-300' : ''}`}
-              style={{ ...{
-                  top: `${offset}px`,
-                  height: `${slotHeight}px`,
-                  left: 0,
-                  right: 0,
-                },
+              style={{ 
+                top: `${offset}px`,
+                height: `${slotHeight}px`,
+                left: 0,
+                right: 0,
                 ...pastStyle
               }}
               onClick={isSelectable && !isSlotPast ? (e => {
@@ -372,7 +303,7 @@ const DayColumn = ({
                 return (
                   <div
                     key={pIdx}
-                    className="absolute cursor-pointer border-2 rounded-md text-center hover:bg-gray-200 transition-colors duration-200"
+                    className="absolute cursor-pointer border-2 rounded-md text-center transition-colors duration-200"
                     style={{
                       top: `${pOffset}%`,
                       height: `${pHeight}%`,
@@ -403,7 +334,7 @@ const DayColumn = ({
                           {practice.type}
                         </div>
                         <div className="w-full gap-1 font-bold text-left text-[10px]">
-                        {appointment.patient.genre} {appointment.patient.prenom} {appointment.patient.nom}
+                          {appointment.patient.genre} {appointment.patient.prenom} {appointment.patient.nom}
                         </div>
                         <div className="flex items-center justify-start gap-1 w-full">
                           <Phone size={12} />
@@ -429,20 +360,6 @@ const DayColumn = ({
               zIndex: 5,
               pointerEvents: 'none',
             }}
-          />
-        )}
-        {hoverBlock !== null && (
-          <div
-            style={{
-              position: 'absolute',
-              top: `${hoverBlock * (contentHeight / totalIntervals)}px`,
-              height: `${contentHeight / totalIntervals}px`,
-              left: 0,
-              right: 0,
-              backgroundColor: '#BCE2D326',
-              pointerEvents: 'none'
-            }}
-            className='rounded-lg'
           />
         )}
       </div>
