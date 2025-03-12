@@ -56,7 +56,7 @@ const AccueilPraticien = () => {
   return (
     <>
       <div className="flex flex-1 flex-col gap-4 m-4 p-4 bg-muted/50 rounded-xl">
-        <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-2">
           {/* First Card */}
           <div className="flex items-start justify-between p-5 bg-helloSoin rounded-xl shadow-sm">
             <div className="flex flex-col justify-between h-full">
@@ -127,7 +127,7 @@ const AccueilPraticien = () => {
             </div>
           </div>
           {/* third cart */}
-          <div className="flex items-start justify-between p-5 bg-helloPurple rounded-xl shadow-sm">
+          {/* <div className="flex items-start justify-between p-5 bg-helloPurple rounded-xl shadow-sm">
             <div className="flex flex-col justify-between h-full">
               <div className="text-sm text-white ">
                 Nombres de <br />
@@ -153,7 +153,7 @@ const AccueilPraticien = () => {
                 ></path>
               </svg>
             </div>
-          </div>
+          </div> */}
           {/* fourth cart */}
           {/* <div className="flex items-start justify-between p-5 bg-helloBlue rounded-xl shadow-sm">
             <div className="flex flex-col justify-between h-full">

@@ -115,7 +115,7 @@ const AppointmentsList = ({ appointments }) => (
                     {app.date}
                   </Typography>
                 </td>
-                <td className="px-4">{app.practice.type}</td>
+                <td className="px-4 capitalize">{app.practice.type}</td>
                 <td className="w-max px-2">
                   <Typography
                     variant="small"
