@@ -137,3 +137,14 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/src/assets/fonts/poppins/Poppins-Regular.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body, * {
+  font-family: 'Poppins' !important;
+}
