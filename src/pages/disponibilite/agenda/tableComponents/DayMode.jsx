@@ -1,6 +1,6 @@
 // tableComponents/DayMode.js
-import React, { useState, useEffect } from 'react';
-import { format, addMinutes, differenceInMinutes, isSameDay, startOfDay } from 'date-fns';
+import React, { useState, useEffect, useRef } from 'react';
+import { format, addMinutes, differenceInMinutes, isSameDay, startOfDay, isPast } from 'date-fns';
 import { dayNames, parseTime, totalDuration, DAY_COLUMN_HEIGHT, AGENDA_START, getColorByType } from '../utils/agendaUtils';
 import { createPlageHoraire } from '../utils/scheduleUtils';
 import { Phone, Mail, CalendarCheck, Notebook, User } from 'lucide-react';
@@ -20,12 +20,15 @@ const DayMode = ({
   refreshSchedule,
   selectedPractice
 }) => {
-  const [hoverBlock, setHoverBlock] = useState(null);
-  const [hoverPosition, setHoverPosition] = useState(null);
-  const [hoverTime, setHoverTime] = useState(null);
+  // Gestion de la sélection multiple
   const [multiSelectStart, setMultiSelectStart] = useState(null);
   const [multiSelectCurrent, setMultiSelectCurrent] = useState(null);
   const [finalMultiSelectRange, setFinalMultiSelectRange] = useState(null);
+
+  // Références pour tooltip et bloc de survol (hover) sans passer par le state
+  const tooltipRef = useRef(null);
+  const hoverBlockRef = useRef(null);
+  const animationFrameId = useRef(null);
 
   const slots = daySchedule ? daySchedule.timeSlots || [] : [];
   const contentHeight = DAY_COLUMN_HEIGHT - HEADER_HEIGHT;
@@ -50,6 +53,7 @@ const DayMode = ({
     }
   }
 
+  // Gestion du clic en arrière-plan
   const handleBackgroundClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
@@ -79,6 +83,7 @@ const DayMode = ({
         setMultiSelectStart(clickedTime);
         setMultiSelectCurrent(clickedTime);
       } else {
+        // Sélection bidirectionnelle
         const startTime = multiSelectStart;
         const endTime = clickedTime;
         const selectionStartTime = startTime < endTime ? startTime : endTime;
@@ -117,6 +122,7 @@ const DayMode = ({
     }
   };
 
+  // Gestion du clic sur un slot spécifique
   const handleClick = (e, daySchedule, slotIndex, sourceType, clickedSlot, slotHeight) => {
     const clickY = e.clientY - e.currentTarget.getBoundingClientRect().top;
     const slotStart = parseTime(clickedSlot.start);
@@ -134,40 +140,61 @@ const DayMode = ({
     });
   };
 
-  const totalIntervals = 24 * 4; // 96 créneaux de 15 min
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect(); 
-    const offsetY = e.clientY - rect.top;
-    const offsetX = e.clientX - rect.left;
-    const blockHeight = contentHeight / totalIntervals;
-    setHoverBlock(Math.floor(offsetY / blockHeight));
-    setHoverPosition({ x: offsetX, y: offsetY });
-    const rawMinutes = (offsetY / contentHeight) * totalDuration;
-    const roundedMinutes = Math.round(rawMinutes / 15) * 15;
-    const baseTime = parseTime(AGENDA_START);
-    const agendaStartDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-      baseTime.getHours(),
-      baseTime.getMinutes()
-    );
-    const newTime = addMinutes(agendaStartDate, roundedMinutes);
-    setHoverTime(newTime);
-    if (multiSelectStart) {
-      setMultiSelectCurrent(newTime);
-    }
+  const totalIntervals = 24 * 4; // 96 intervalles de 15 min
+
+  // Gestion du mouvement de la souris avec requestAnimationFrame
+  const throttledHandleMouseMove = (e) => {
+    if (animationFrameId.current) return;
+    const target = e.currentTarget;
+    animationFrameId.current = requestAnimationFrame(() => {
+      animationFrameId.current = null;
+      const rect = target.getBoundingClientRect();
+      const offsetY = e.clientY - rect.top;
+      const offsetX = e.clientX - rect.left;
+      const blockHeight = contentHeight / totalIntervals;
+      const blockIndex = Math.floor(offsetY / blockHeight);
+      const newTimeMinutes = Math.round((offsetY / contentHeight) * totalDuration / 15) * 15;
+      const baseTime = parseTime(AGENDA_START);
+      const agendaStartDate = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        baseTime.getHours(),
+        baseTime.getMinutes()
+      );
+      const newTime = addMinutes(agendaStartDate, newTimeMinutes);
+      
+      // Mise à jour directe de l'info-bulle (tooltip)
+      if (tooltipRef.current) {
+        tooltipRef.current.style.left = `${offsetX + 5}px`;
+        tooltipRef.current.style.top = `${offsetY + HEADER_HEIGHT + 10}px`;
+        tooltipRef.current.innerText = format(newTime, 'HH:mm');
+        tooltipRef.current.style.display = 'block';
+      }
+      
+      // Mise à jour directe du bloc de surbrillance (hoverBlock)
+      if (hoverBlockRef.current) {
+        const blockTop = blockIndex * blockHeight;
+        hoverBlockRef.current.style.top = `${blockTop + HEADER_HEIGHT}px`;
+        hoverBlockRef.current.style.height = `${blockHeight}px`;
+        hoverBlockRef.current.style.display = 'block';
+      }
+      
+      // Mise à jour de la sélection multiple si active
+      if (multiSelectStart) {
+        setMultiSelectCurrent(newTime);
+      }
+    });
   };
 
   const handleMouseLeave = () => {
-    setHoverBlock(null);
-    setHoverPosition(null);
-    setHoverTime(null);
+    if (tooltipRef.current) tooltipRef.current.style.display = 'none';
+    if (hoverBlockRef.current) hoverBlockRef.current.style.display = 'none';
   };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') { 
+      if (e.key === 'Escape') {
         setMultiSelectStart(null);
         setMultiSelectCurrent(null);
       }
@@ -175,6 +202,7 @@ const DayMode = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
     };
   }, []);
 
@@ -206,25 +234,37 @@ const DayMode = ({
 
   return (
     <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
-      {hoverTime && hoverPosition && (
-        <div
-          style={{
-            position: 'absolute',
-            left: `${hoverPosition.x + 5}px`,
-            top: `${hoverPosition.y + 10}px`,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            color: 'white',
-            padding: '2px 5px',
-            borderRadius: '4px',
-            fontSize: '10px',
-            pointerEvents: 'none',
-            zIndex: 100,
-          }}
-        >
-          {format(hoverTime, 'HH:mm')}
-        </div>
-      )}
-      {/* Header : affichage en 4 colonnes */}
+      {/* Info-bulle pour le survol */}
+      <div
+        ref={tooltipRef}
+        style={{
+          position: 'absolute',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          color: 'white',
+          padding: '2px 5px',
+          borderRadius: '4px',
+          fontSize: '10px',
+          pointerEvents: 'none',
+          zIndex: 100,
+          display: 'none',
+        }}
+        className="ml-10"
+      />
+      {/* Bloc de surbrillance pour le survol */}
+      <div
+        ref={hoverBlockRef}
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          backgroundColor: '#BCE2D326',
+          pointerEvents: 'none',
+          zIndex: 50,
+          display: 'none',
+        }}
+        className="rounded-lg"
+      />
+      {/* Header affiché en 5 colonnes */}
       <div
         className="sticky top-0 z-10 p-1 border-l bg-white"
         style={{ 
@@ -241,6 +281,7 @@ const DayMode = ({
         <div className="text-gray-500 text-xs font-bold">Type de rendez-vous</div>
         <div className="text-gray-500 text-xs font-bold">Motif</div>
       </div>
+      {/* Zone principale de l'agenda */}
       <div
         style={{
           position: 'absolute',
@@ -249,7 +290,7 @@ const DayMode = ({
           right: 0,
           height: `${contentHeight}px`
         }}
-        onMouseMove={isSelectable ? handleMouseMove : undefined}
+        onMouseMove={isSelectable ? throttledHandleMouseMove : undefined}
         onMouseLeave={isSelectable ? handleMouseLeave : undefined}
         onClick={isSelectable ? handleBackgroundClick : undefined}
       >
@@ -302,7 +343,7 @@ const DayMode = ({
           return (
             <div
               key={idx}
-              className={`absolute border rounded-lg ${isSelectable && !isSlotPast ? 'cursor-pointer bg-white' : ''} ${!isSelectable ? 'bg-gray-300' : ''}`}
+              className={`absolute border ${isSelectable && !isSlotPast ? 'cursor-pointer bg-white' : ''} ${!isSelectable ? 'bg-gray-300' : ''}`}
               style={{ 
                 ...{
                   top: `${offset}px`,
@@ -317,9 +358,26 @@ const DayMode = ({
                 handleClick(e, daySchedule, idx, daySchedule.sourceType, slot, slotHeight);
               }) : null}
             >
-              {selectedPractice && freeIntervals.map((interval, i) => {
+              {selectedPractice && isPast && freeIntervals.map((interval, i) => {
                 const relTop = (differenceInMinutes(interval.start, slotStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
                 const relHeight = (differenceInMinutes(interval.end, interval.start) / differenceInMinutes(slotEnd, slotStart)) * 100;
+                
+                let newDuration = 0;
+                const type = selectedPractice.type;
+                if (type === 'naturopathie') {
+                  newDuration = 120;
+                } else if (type === 'acupuncture') {
+                  newDuration = 30;
+                } else if (type === 'hypnose') {
+                  newDuration = 90;
+                }
+                
+                const intervalDuration = differenceInMinutes(interval.end, interval.start);
+                // Ajout d'une bordure vive si l'intervalle dure au moins newDuration minutes
+                const borderStyle = (intervalDuration >= newDuration)
+                  ? { border: `2px solid ${getColorByType(selectedPractice)}` }
+                  : {};
+                
                 return (
                   <div
                     key={`free-${i}`}
@@ -331,10 +389,13 @@ const DayMode = ({
                       height: `${relHeight}%`,
                       backgroundColor: getColorByType(selectedPractice) + "20",
                       zIndex: 0,
+                      ...borderStyle,
                     }}
                   />
                 );
               })}
+              
+              
               {isToday && !isSlotPast && (() => {
                 const currentTime = new Date();
                 if (currentTime >= slotStart && currentTime < slotEnd) {
@@ -350,8 +411,6 @@ const DayMode = ({
                         right: 0,
                         height: `${overlayHeight}%`,
                         backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                        borderTopLeftRadius: '8px',
-                        borderTopRightRadius: '8px',
                       }}
                       onClick={(e) => e.stopPropagation()}
                     />
@@ -372,7 +431,7 @@ const DayMode = ({
                 return (
                   <div
                     key={pIdx}
-                    className="absolute cursor-pointer border-none rounded-2xl text-center hover:bg-gray-200 transition-colors duration-200"
+                    className="absolute cursor-pointer border-2 rounded-2xl text-center hover:bg-gray-200 transition-colors duration-200"
                     style={{
                       top: `${pOffset}%`,
                       height: `${pHeight}%`,
@@ -381,7 +440,7 @@ const DayMode = ({
                       borderColor: getColorByType(practice.type),
                       color: getColorByType(practice.type),
                       backgroundColor: `${getColorByType(practice.type)}30`,
-                      borderRadius: "8px"
+                      borderRadius: "4px"
                     }}
                     title={`${practice.type} (${practiceStart} - ${practiceEnd}) ${appointment ? 'Réservé' : ''}`}
                     onClick={(e) => {
@@ -397,13 +456,22 @@ const DayMode = ({
                     {appointment && (
                       <div
                         className="absolute flex inset-0 bg-gray-150 bg-opacity-50 overflow-hidden py-2 px-1"
-                        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: '2px' }}
+                        style={{ 
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr',
+                          gap: '2px',
+                          alignItems: 'center'  // Ajout pour centrer verticalement
+                        }}
                       >
-                        <div className="text-xs font-bold text-start">{appointment.patient.genre} {appointment.patient.nom} {appointment.patient.prenom}</div>
-                        <div className="text-xs font-bold text-start flex items-start  gap-2" ><Phone size={12}/> {appointment.patient.numero}</div>
-                        <div className="text-xs font-bold  text-start">{appointment.patient.email}</div>
-                        <div className="text-xs font-bold  text-start">{practice.type}</div>
-                        <div className="text-xs font-bold  text-start">{practice.motif}</div>
+                        <div className="text-xs font-bold text-start">
+                          {appointment.patient.genre} {appointment.patient.nom} {appointment.patient.prenom}
+                        </div>
+                        <div className="text-xs font-bold text-start flex items-center gap-2">
+                          <Phone size={12}/> {appointment.patient.numero}
+                        </div>
+                        <div className="text-xs font-bold text-start">{appointment.patient.email}</div>
+                        <div className="text-xs font-bold text-start">{practice.type}</div>
+                        <div className="text-xs font-bold text-start">{practice.motif}</div>
                       </div>
                     )}
                   </div>
@@ -424,20 +492,6 @@ const DayMode = ({
               zIndex: 5,
               pointerEvents: 'none',
             }}
-          />
-        )}
-        {hoverBlock !== null && (
-          <div
-            style={{
-              position: 'absolute',
-              top: `${hoverBlock * (contentHeight / totalIntervals)}px`,
-              height: `${contentHeight / totalIntervals}px`,
-              left: 0,
-              right: 0,
-              backgroundColor: '#BCE2D326',
-              pointerEvents: 'none'
-            }}
-            className='rounded-lg'
           />
         )}
       </div>

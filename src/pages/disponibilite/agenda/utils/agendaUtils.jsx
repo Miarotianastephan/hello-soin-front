@@ -50,7 +50,7 @@ export const getColorByType = (type) => {
     case 'naturopathie':
       return '#FF6B6B';
     case 'acupuncture':
-      return '#4ECDC4';
+      return '#3A96B0FF';
     case 'hypnose':
       return '#45B7D1';
     default:
