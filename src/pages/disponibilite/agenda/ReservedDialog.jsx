@@ -16,7 +16,7 @@ const ReservedDialog = ({ reservedDialog, setReservedDialog }) => {
             <div>Patient : {reservedDialog.appointment.patient.prenom} {reservedDialog.appointment.patient.nom}</div>
             <div>Numéro : {reservedDialog.appointment.patient.numero}</div>
             <div>Âge : {reservedDialog.appointment.patient.age} ans</div>
-            <div>Type : {reservedDialog.appointment.practice.type}</div>
+            <div>Type de rendezvous : {reservedDialog.appointment.practice.type}</div>
             <div>Heure : {reservedDialog.appointment.practice.start} - {reservedDialog.appointment.practice.end}</div>
             <div>Date : {reservedDialog.appointment.date}</div>
             <div>Motif : {reservedDialog.appointment.motif}</div>

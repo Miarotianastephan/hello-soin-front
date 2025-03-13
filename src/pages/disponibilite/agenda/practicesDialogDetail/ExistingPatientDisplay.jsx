@@ -7,7 +7,7 @@ const ExistingPatientDisplay = ({ selectedPatient, practiceDialog, setPracticeDi
       <div className="flex gap-4">
         <div className="flex-1">
             <label className="block text-xs font-medium text-gray-700">
-              <i className="fas fa-venus-mars mr-1"></i>Civilités 
+              <i className="fas fa-venus-mars mr-1"></i>Civilité 
             </label>
             <input
               type="text"

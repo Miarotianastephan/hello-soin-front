@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { format, addMinutes, differenceInMinutes, isSameDay, startOfDay } from 'date-fns';
+import React, { useState, useEffect, useRef } from 'react';
+import { format, addMinutes, differenceInMinutes, isSameDay, startOfDay, isBefore } from 'date-fns';
 import { dayNames, parseTime, totalDuration, DAY_COLUMN_HEIGHT, AGENDA_START, getColorByType } from '../utils/agendaUtils';
 import { createPlageHoraire } from '../utils/scheduleUtils';
 import { Phone } from 'lucide-react';
@@ -19,12 +19,15 @@ const DayColumn = ({
   refreshSchedule,
   selectedPractice
 }) => {
-  const [hoverBlock, setHoverBlock] = useState(null);
-  const [hoverPosition, setHoverPosition] = useState(null);
-  const [hoverTime, setHoverTime] = useState(null);
+  // Les états de sélection multiple sont conservés
   const [multiSelectStart, setMultiSelectStart] = useState(null);
   const [multiSelectCurrent, setMultiSelectCurrent] = useState(null);
   const [finalMultiSelectRange, setFinalMultiSelectRange] = useState(null);
+
+  // Références pour la gestion des effets "hover" sans déclencher de re-rendu
+  const tooltipRef = useRef(null);
+  const hoverBlockRef = useRef(null);
+  const animationFrameId = useRef(null);
 
   const slots = daySchedule ? daySchedule.timeSlots || [] : [];
   const contentHeight = DAY_COLUMN_HEIGHT - HEADER_HEIGHT;
@@ -78,7 +81,7 @@ const DayColumn = ({
         setMultiSelectStart(clickedTime);
         setMultiSelectCurrent(clickedTime);
       } else {
-        // Détermination de la sélection dans le bon sens (bidirectionnelle)
+        // Sélection bidirectionnelle
         const startTime = multiSelectStart;
         const endTime = clickedTime;
         const selectionStartTime = startTime < endTime ? startTime : endTime;
@@ -112,7 +115,7 @@ const DayColumn = ({
     if (!isWithinSlot) {
       const formattedDate = format(date, 'dd-MM-yyyy');
       const formattedTime = format(clickedTime, 'HH:mm');
-      // onOpenCreateAppointment(formattedDate, formattedTime);
+      onOpenCreateAppointment(formattedDate, formattedTime);
       console.log('a verifier');
     }
   };
@@ -134,35 +137,61 @@ const DayColumn = ({
     });
   };
 
-  const totalIntervals = 24 * 4; // 96 créneaux de 15 min
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const offsetY = e.clientY - rect.top;
-    const offsetX = e.clientX - rect.left;
-    const blockHeight = contentHeight / totalIntervals;
-    setHoverBlock(Math.floor(offsetY / blockHeight));
-    setHoverPosition({ x: offsetX, y: offsetY });
-    const rawMinutes = (offsetY / contentHeight) * totalDuration;
-    const roundedMinutes = Math.round(rawMinutes / 15) * 15;
-    const baseTime = parseTime(AGENDA_START);
-    const agendaStartDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-      baseTime.getHours(),
-      baseTime.getMinutes()
-    );
-    const newTime = addMinutes(agendaStartDate, roundedMinutes);
-    setHoverTime(newTime);
-    if (multiSelectStart) {
-      setMultiSelectCurrent(newTime);
-    }
+  const totalIntervals = 24 * 4; // 96 intervalles de 15 min
+
+  // Gestion du mouvement du curseur sans modifier le state
+  const throttledHandleMouseMove = (e) => {
+    const { clientX, clientY } = e;
+    const target = e.currentTarget;
+    if (animationFrameId.current) return;
+    animationFrameId.current = requestAnimationFrame(() => {
+      animationFrameId.current = null;
+      const rect = target.getBoundingClientRect();
+      const offsetY = clientY - rect.top;
+      const offsetX = clientX - rect.left;
+      const blockHeight = contentHeight / totalIntervals;
+      const blockIndex = Math.floor(offsetY / blockHeight);
+      const newTimeMinutes = Math.round((offsetY / contentHeight) * totalDuration / 15) * 15;
+      const baseTime = parseTime(AGENDA_START);
+      const agendaStartDate = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        baseTime.getHours(),
+        baseTime.getMinutes()
+      );
+      const newTime = addMinutes(agendaStartDate, newTimeMinutes);
+      
+      // Mise à jour directe de l'info-bulle (ajout du HEADER_HEIGHT)
+      if (tooltipRef.current) {
+        tooltipRef.current.style.left = `${offsetX + 5}px`;
+        tooltipRef.current.style.top = `${offsetY + HEADER_HEIGHT + 10}px`;
+        tooltipRef.current.innerText = format(newTime, 'HH:mm');
+        tooltipRef.current.style.display = 'block';
+      }
+      
+      // Mise à jour directe du bloc de surbrillance (ajout du HEADER_HEIGHT)
+      if (hoverBlockRef.current) {
+        const blockTop = blockIndex * blockHeight;
+        hoverBlockRef.current.style.top = `${blockTop + HEADER_HEIGHT}px`;
+        hoverBlockRef.current.style.height = `${blockHeight}px`;
+        hoverBlockRef.current.style.display = 'block';
+      }
+      
+      // Mise à jour de la sélection multiple si active
+      if (multiSelectStart) {
+        setMultiSelectCurrent(newTime);
+      }
+    });
   };
 
   const handleMouseLeave = () => {
-    setHoverBlock(null);
-    setHoverPosition(null);
-    setHoverTime(null);
+    if (tooltipRef.current) {
+      tooltipRef.current.style.display = 'none';
+    }
+    if (hoverBlockRef.current) {
+      hoverBlockRef.current.style.display = 'none';
+    }
   };
 
   useEffect(() => {
@@ -178,6 +207,7 @@ const DayColumn = ({
     };
   }, []);
 
+  // Calcul des intervalles libres pour une plage donnée
   const computeFreeIntervals = (slot) => {
     const sStart = parseTime(slot.start);
     const sEnd = parseTime(slot.end);
@@ -204,31 +234,47 @@ const DayColumn = ({
     return freeIntervals;
   };
 
-
+  // Nettoyage de requestAnimationFrame au démontage
+  useEffect(() => {
+    return () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
-
-
-   
-      {hoverTime && hoverPosition && (
-        <div
-          style={{
-            position: 'absolute',
-            left: `${hoverPosition.x + 5}px`,
-            top: `${hoverPosition.y + 10}px`,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            color: 'white',
-            padding: '2px 5px',
-            borderRadius: '4px',
-            fontSize: '10px',
-            pointerEvents: 'none',
-            zIndex: 100,
-          }}
-        >
-          {format(hoverTime, 'HH:mm')}
-        </div>
-      )}
+      {/* Info-bulle de l'effet hover, gérée par ref */}
+      <div
+        ref={tooltipRef}
+        style={{
+          position: 'absolute',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          color: 'white',
+          padding: '2px 5px',
+          borderRadius: '4px',
+          fontSize: '10px',
+          pointerEvents: 'none',
+          zIndex: 100,
+          display: 'none',
+        }}
+        className='ml-10'
+      />
+      {/* Bloc de surbrillance lors du hover */}
+      <div
+        ref={hoverBlockRef}
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          backgroundColor: '#BCE2D326',
+          pointerEvents: 'none',
+          zIndex: 50,
+          display: 'none',
+        }}
+        className="rounded-lg"
+      />
       <div
         className={`sticky top-0 z-10 p-1 border-l ${isSelected ? 'bg-gray-300 border-b-2 border-green-500' : 'bg-white border-b'}`}
         style={{ height: `${HEADER_HEIGHT}px` }}
@@ -244,46 +290,42 @@ const DayColumn = ({
           right: 0,
           height: `${contentHeight}px`
         }}
-        onMouseMove={isSelectable ? handleMouseMove : undefined}
+        onMouseMove={isSelectable ? throttledHandleMouseMove : undefined}
         onMouseLeave={isSelectable ? handleMouseLeave : undefined}
         onClick={isSelectable ? handleBackgroundClick : undefined}
       >
-
-{(multiSelectStart && multiSelectCurrent) && (
-  (() => {
-    const startTime = multiSelectStart < multiSelectCurrent ? multiSelectStart : multiSelectCurrent;
-    const endTime = multiSelectStart < multiSelectCurrent ? multiSelectCurrent : multiSelectStart;
-    
-    const baseTime = parseTime(AGENDA_START);
-    const agendaStartDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-      baseTime.getHours(),
-      baseTime.getMinutes()
-    );
-
-    const topOffset = (differenceInMinutes(startTime, agendaStartDate) / totalDuration * contentHeight);
-    const bottomOffset = (differenceInMinutes(endTime, agendaStartDate) / totalDuration * contentHeight);
-    const height = bottomOffset - topOffset;
-
-    return (
-      <div
-        style={{
-          position: 'absolute',
-          top: `${topOffset}px`,
-          height: `${height}px`,
-          left: 0,
-          right: 0,
-          backgroundColor: 'rgba(100, 149, 237, 0.3)', // Bleu clair semi-transparent
-          border: '2px solid rgba(70, 130, 180, 0.7)',
-          pointerEvents: 'none',
-          zIndex: 20,
-        }}
-      />
-    );
-  })()
-)}
+        {(multiSelectStart && multiSelectCurrent) && (
+          (() => {
+            const startTime = multiSelectStart < multiSelectCurrent ? multiSelectStart : multiSelectCurrent;
+            const endTime = multiSelectStart < multiSelectCurrent ? multiSelectCurrent : multiSelectStart;
+            const baseTime = parseTime(AGENDA_START);
+            const agendaStartDate = new Date(
+              date.getFullYear(),
+              date.getMonth(),
+              date.getDate(),
+              baseTime.getHours(),
+              baseTime.getMinutes()
+            );
+            const topOffset = (differenceInMinutes(startTime, agendaStartDate) / totalDuration * contentHeight);
+            const bottomOffset = (differenceInMinutes(endTime, agendaStartDate) / totalDuration * contentHeight);
+            const height = bottomOffset - topOffset;
+            return (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: `${topOffset}px`,
+                  height: `${height}px`,
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'rgba(100, 149, 237, 0.3)',
+                  border: '2px solid rgba(70, 130, 180, 0.7)',
+                  pointerEvents: 'none',
+                  zIndex: 20,
+                }}
+              />
+            );
+          })()
+        )}
         {slots.map((slot, idx) => {
           const slotStart = parseTime(slot.start);
           const slotEnd = parseTime(slot.end);
@@ -303,7 +345,7 @@ const DayColumn = ({
           return (
             <div
               key={idx}
-              className={`absolute border rounded-lg ${isSelectable && !isSlotPast ? 'cursor-pointer bg-white' : ''} ${!isSelectable ? 'bg-gray-300' : ''}`}
+              className={`absolute ${isSelectable && !isSlotPast ? 'cursor-pointer bg-white' : ''} ${!isSelectable ? 'bg-gray-300' : ''}`}
               style={{ ...{
                   top: `${offset}px`,
                   height: `${slotHeight}px`,
@@ -317,24 +359,44 @@ const DayColumn = ({
                 handleClick(e, daySchedule, idx, daySchedule.sourceType, slot, slotHeight);
               }) : null}
             >
-              {selectedPractice && freeIntervals.map((interval, i) => {
-                const relTop = (differenceInMinutes(interval.start, slotStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
-                const relHeight = (differenceInMinutes(interval.end, interval.start) / differenceInMinutes(slotEnd, slotStart)) * 100;
-                return (
-                  <div
-                    key={`free-${i}`}
-                    style={{
-                      position: 'absolute',
-                      top: `${relTop}%`,
-                      left: 0,
-                      right: 0,
-                      height: `${relHeight}%`,
-                      backgroundColor: getColorByType(selectedPractice) + "20",
-                      zIndex: 0,
-                    }}
-                  />
-                );
-              })}
+{selectedPractice && isSelectable && freeIntervals.map((interval, i) => {
+  const relTop = (differenceInMinutes(interval.start, slotStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
+  const relHeight = (differenceInMinutes(interval.end, interval.start) / differenceInMinutes(slotEnd, slotStart)) * 100;
+  
+  let newDuration = 0;
+  const type = selectedPractice.type;
+  if (type === 'naturopathie') {
+    newDuration = 120;
+  } else if (type === 'acupuncture') {
+    newDuration = 30;
+  } else if (type === 'hypnose') {
+    newDuration = 90;
+  }
+  
+  const intervalDuration = differenceInMinutes(interval.end, interval.start);
+  // Ajout d'une bordure vive si l'intervalle dure au moins newDuration minutes
+  const borderStyle = (intervalDuration >= newDuration)
+    ? { border: `2px solid ${getColorByType(selectedPractice)}` }
+    : {};
+  
+  return (
+    <div
+      key={`free-${i}`}
+      style={{
+        position: 'absolute',
+        top: `${relTop}%`,
+        left: 0,
+        right: 0,
+        height: `${relHeight}%`,
+        backgroundColor: 'white',
+        zIndex: 0,
+        ...borderStyle,
+      }}
+    />
+  );
+})}
+
+
               {isToday && !isSlotPast && (() => {
                 const currentTime = new Date();
                 if (currentTime >= slotStart && currentTime < slotEnd) {
@@ -350,8 +412,6 @@ const DayColumn = ({
                         right: 0,
                         height: `${overlayHeight}%`,
                         backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                        borderTopLeftRadius: '8px',
-                        borderTopRightRadius: '8px',
                       }}
                       onClick={(e) => e.stopPropagation()}
                     />
@@ -381,7 +441,7 @@ const DayColumn = ({
                       borderColor: getColorByType(practice.type),
                       color: getColorByType(practice.type),
                       backgroundColor: `${getColorByType(practice.type)}10`,
-                      borderRadius: "8px"
+                      borderRadius: "4px"
                     }}
                     title={`${practice.type} (${practiceStart} - ${practiceEnd}) ${appointment ? 'Réservé' : ''}`}
                     onClick={(e) => {
@@ -403,7 +463,7 @@ const DayColumn = ({
                           {practice.type}
                         </div>
                         <div className="w-full gap-1 font-bold text-left text-[10px]">
-                        {appointment.patient.genre} {appointment.patient.prenom} {appointment.patient.nom}
+                          {appointment.patient.genre} {appointment.patient.prenom} {appointment.patient.nom}
                         </div>
                         <div className="flex items-center justify-start gap-1 w-full">
                           <Phone size={12} />
@@ -429,20 +489,6 @@ const DayColumn = ({
               zIndex: 5,
               pointerEvents: 'none',
             }}
-          />
-        )}
-        {hoverBlock !== null && (
-          <div
-            style={{
-              position: 'absolute',
-              top: `${hoverBlock * (contentHeight / totalIntervals)}px`,
-              height: `${contentHeight / totalIntervals}px`,
-              left: 0,
-              right: 0,
-              backgroundColor: '#BCE2D326',
-              pointerEvents: 'none'
-            }}
-            className='rounded-lg'
           />
         )}
       </div>
