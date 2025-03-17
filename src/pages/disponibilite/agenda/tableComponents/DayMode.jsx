@@ -1,6 +1,5 @@
-// tableComponents/DayMode.js
 import React, { useState, useEffect, useRef } from 'react';
-import { format, addMinutes, differenceInMinutes, isSameDay, startOfDay, isPast } from 'date-fns';
+import { format, addMinutes, differenceInMinutes, isSameDay, startOfDay } from 'date-fns';
 import { dayNames, parseTime, totalDuration, DAY_COLUMN_HEIGHT, AGENDA_START, getColorByType } from '../utils/agendaUtils';
 import { createPlageHoraire } from '../utils/scheduleUtils';
 import { Phone, Mail, CalendarCheck, Notebook, User } from 'lucide-react';
@@ -25,7 +24,7 @@ const DayMode = ({
   const [multiSelectCurrent, setMultiSelectCurrent] = useState(null);
   const [finalMultiSelectRange, setFinalMultiSelectRange] = useState(null);
 
-  // Références pour tooltip et bloc de survol (hover) sans passer par le state
+  // Références pour tooltip et bloc de survol (hover)
   const tooltipRef = useRef(null);
   const hoverBlockRef = useRef(null);
   const animationFrameId = useRef(null);
@@ -53,7 +52,7 @@ const DayMode = ({
     }
   }
 
-  // Gestion du clic en arrière-plan
+  // Gestion du clic sur le fond (pour créer une plage horaire)
   const handleBackgroundClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
@@ -83,14 +82,11 @@ const DayMode = ({
         setMultiSelectStart(clickedTime);
         setMultiSelectCurrent(clickedTime);
       } else {
-        // Sélection bidirectionnelle
-        const startTime = multiSelectStart;
-        const endTime = clickedTime;
-        const selectionStartTime = startTime < endTime ? startTime : endTime;
-        const selectionEndTime = startTime < endTime ? endTime : startTime;
+        const startTime = multiSelectStart < multiSelectCurrent ? multiSelectStart : multiSelectCurrent;
+        const endTime = multiSelectStart < multiSelectCurrent ? multiSelectCurrent : multiSelectStart;
         const formattedDate = format(date, 'dd-MM-yyyy');
-        const formattedStart = format(selectionStartTime, 'HH:mm');
-        const formattedEnd = format(selectionEndTime, 'HH:mm');
+        const formattedStart = format(startTime, 'HH:mm');
+        const formattedEnd = format(endTime, 'HH:mm');
         try {
           createPlageHoraire(formattedDate, formattedStart, formattedEnd);
           if (typeof refreshSchedule === 'function') {
@@ -99,7 +95,7 @@ const DayMode = ({
         } catch (error) {
           alert(error.message);
         }
-        setFinalMultiSelectRange({ start: selectionStartTime, end: selectionEndTime });
+        setFinalMultiSelectRange({ start: startTime, end: endTime });
         setMultiSelectStart(null);
         setMultiSelectCurrent(null);
         setTimeout(() => setFinalMultiSelectRange(null), 3000);
@@ -164,7 +160,7 @@ const DayMode = ({
       );
       const newTime = addMinutes(agendaStartDate, newTimeMinutes);
       
-      // Mise à jour directe de l'info-bulle (tooltip)
+      // Mise à jour de l'info-bulle (tooltip)
       if (tooltipRef.current) {
         tooltipRef.current.style.left = `${offsetX + 5}px`;
         tooltipRef.current.style.top = `${offsetY + HEADER_HEIGHT + 10}px`;
@@ -172,7 +168,7 @@ const DayMode = ({
         tooltipRef.current.style.display = 'block';
       }
       
-      // Mise à jour directe du bloc de surbrillance (hoverBlock)
+      // Mise à jour du bloc de survol (hoverBlock)
       if (hoverBlockRef.current) {
         const blockTop = blockIndex * blockHeight;
         hoverBlockRef.current.style.top = `${blockTop + HEADER_HEIGHT}px`;
@@ -206,35 +202,9 @@ const DayMode = ({
     };
   }, []);
 
-  const computeFreeIntervals = (slot) => {
-    const sStart = parseTime(slot.start);
-    const sEnd = parseTime(slot.end);
-    let freeIntervals = [];
-    if (slot.practices && slot.practices.length > 0) {
-      const sortedAppointments = slot.practices.slice().sort((a, b) => parseTime(a.start) - parseTime(b.start));
-      let current = sStart;
-      sortedAppointments.forEach(practice => {
-        const pStart = parseTime(practice.start || slot.start);
-        const pEnd = parseTime(practice.end || slot.end);
-        if (pStart > current) {
-          freeIntervals.push({ start: current, end: pStart });
-        }
-        if (pEnd > current) {
-          current = pEnd;
-        }
-      });
-      if (current < sEnd) {
-        freeIntervals.push({ start: current, end: sEnd });
-      }
-    } else {
-      freeIntervals.push({ start: sStart, end: sEnd });
-    }
-    return freeIntervals;
-  };
-
   return (
     <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
-      {/* Info-bulle pour le survol */}
+      {/* Tooltip pour le survol */}
       <div
         ref={tooltipRef}
         style={{
@@ -250,7 +220,7 @@ const DayMode = ({
         }}
         className="ml-10"
       />
-      {/* Bloc de surbrillance pour le survol */}
+      {/* Bloc de survol */}
       <div
         ref={hoverBlockRef}
         style={{
@@ -276,9 +246,9 @@ const DayMode = ({
         }}
       >
         <div className="text-gray-500 text-xs font-bold">Nom</div>
-        <div className="text-gray-500 text-xs font-bold">Telephone</div>
+        <div className="text-gray-500 text-xs font-bold">Téléphone</div>
         <div className="text-gray-500 text-xs font-bold">Email</div>
-        <div className="text-gray-500 text-xs font-bold">Type de rendez-vous</div>
+        <div className="text-gray-500 text-xs font-bold">Type</div>
         <div className="text-gray-500 text-xs font-bold">Motif</div>
       </div>
       {/* Zone principale de l'agenda */}
@@ -336,21 +306,16 @@ const DayMode = ({
             isSlotPast = slotEndDate < new Date();
           }
           const pastStyle = !isSelectable ? { backgroundColor: '#f0f0f0', opacity: 0.6 } : {};
-          let freeIntervals = [];
-          if (selectedPractice) {
-            freeIntervals = computeFreeIntervals(slot);
-          }
+
           return (
             <div
               key={idx}
-              className={`absolute border ${isSelectable && !isSlotPast ? 'cursor-pointer bg-white' : ''} ${!isSelectable ? 'bg-gray-300' : ''}`}
+              className={`absolute ${isSelectable && !isSlotPast ? 'cursor-pointer bg-white' : ''} ${!isSelectable ? 'bg-gray-300' : ''}`}
               style={{ 
-                ...{
-                  top: `${offset}px`,
-                  height: `${slotHeight}px`,
-                  left: 0,
-                  right: 0,
-                },
+                top: `${offset}px`,
+                height: `${slotHeight}px`,
+                left: 0,
+                right: 0,
                 ...pastStyle
               }}
               onClick={isSelectable && !isSlotPast ? (e => {
@@ -358,44 +323,70 @@ const DayMode = ({
                 handleClick(e, daySchedule, idx, daySchedule.sourceType, slot, slotHeight);
               }) : null}
             >
-              {selectedPractice && isPast && freeIntervals.map((interval, i) => {
-                const relTop = (differenceInMinutes(interval.start, slotStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
-                const relHeight = (differenceInMinutes(interval.end, interval.start) / differenceInMinutes(slotEnd, slotStart)) * 100;
-                
-                let newDuration = 0;
-                const type = selectedPractice.type;
-                if (type === 'naturopathie') {
-                  newDuration = 120;
-                } else if (type === 'acupuncture') {
-                  newDuration = 30;
-                } else if (type === 'hypnose') {
-                  newDuration = 90;
-                }
-                
-                const intervalDuration = differenceInMinutes(interval.end, interval.start);
-                // Ajout d'une bordure vive si l'intervalle dure au moins newDuration minutes
-                const borderStyle = (intervalDuration >= newDuration)
-                  ? { border: `2px solid ${getColorByType(selectedPractice)}` }
-                  : {};
-                
-                return (
-                  <div
-                    key={`free-${i}`}
-                    style={{
-                      position: 'absolute',
-                      top: `${relTop}%`,
-                      left: 0,
-                      right: 0,
-                      height: `${relHeight}%`,
-                      backgroundColor: getColorByType(selectedPractice) + "20",
-                      zIndex: 0,
-                      ...borderStyle,
-                    }}
-                  />
-                );
-              })}
-              
-              
+              {/* Affichage des appointments filtrés par date et plage horaire */}
+              {appointments
+                .filter(app => {
+                  // On affiche uniquement les rendez-vous dont la date correspond à celle de la colonne
+                  if (format(new Date(app.date), 'dd-MM-yyyy') !== format(date, 'dd-MM-yyyy')) {
+                    return false;
+                  }
+                  // On vérifie que l'heure de début de l'appointment se situe dans le créneau courant
+                  const appStart = parseTime(app.practice_start);
+                  const sStart = parseTime(slot.start);
+                  const sEnd = parseTime(slot.end);
+                  return appStart >= sStart && appStart < sEnd && (practiceFilter.tous || practiceFilter[app.practice_type]);
+                })
+                .map((appointment, pIdx) => {
+                  const appointmentStart = parseTime(appointment.practice_start);
+                  const appointmentEnd = parseTime(appointment.practice_end);
+                  const practiceStartFormatted = format(appointmentStart, 'HH:mm');
+                  const practiceEndFormatted = format(appointmentEnd, 'HH:mm');
+                  const pOffset = (differenceInMinutes(appointmentStart, slotStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
+                  const pHeight = (differenceInMinutes(appointmentEnd, appointmentStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
+                  return (
+                    <div
+                      key={pIdx}
+                      className="absolute cursor-pointer border-2 rounded-2xl text-center hover:bg-gray-200 transition-colors duration-200"
+                      style={{
+                        top: `${pOffset}%`,
+                        height: `${pHeight}%`,
+                        left: 0,
+                        right: 0,
+                        borderColor: getColorByType(appointment.practice_type),
+                        color: getColorByType(appointment.practice_type),
+                        backgroundColor: `${getColorByType(appointment.practice_type)}30`,
+                        borderRadius: "4px"
+                      }}
+                      title={`${appointment.practice_type} (${practiceStartFormatted} - ${practiceEndFormatted}) Réservé`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onReservedClick && onReservedClick(appointment);
+                      }}
+                    >
+                      <div
+                        className="absolute flex inset-0 bg-gray-150 bg-opacity-50 overflow-hidden py-2 px-1"
+                        style={{ 
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr',
+                          gap: '2px',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <div className="text-xs font-bold text-start">
+                          {appointment.genre} {appointment.nom} {appointment.prenom}
+                        </div>
+                        <div className="text-xs font-bold text-start flex items-center gap-2">
+                          <Phone size={12}/> {appointment.numero}
+                        </div>
+                        <div className="text-xs font-bold text-start">{appointment.email}</div>
+                        <div className="text-xs font-bold text-start">{appointment.practice_type}</div>
+                        <div className="text-xs font-bold text-start">{appointment.motif}</div>
+                      </div>
+                    </div>
+                  );
+                })
+              }
+              {/* Affichage de l'overlay indiquant l'heure actuelle dans le slot */}
               {isToday && !isSlotPast && (() => {
                 const currentTime = new Date();
                 if (currentTime >= slotStart && currentTime < slotEnd) {
@@ -418,65 +409,6 @@ const DayMode = ({
                 }
                 return null;
               })()}
-              {slot.practices && slot.practices.length > 0 && slot.practices.map((practice, pIdx) => {
-                if (!practiceFilter.tous && !practiceFilter[practice.type]) return null;
-                const practiceStart = practice.start || slot.start;
-                const practiceEnd = practice.end || slot.end;
-                const pStart = parseTime(practiceStart);
-                const pEnd = parseTime(practiceEnd);
-                const pOffset = (differenceInMinutes(pStart, slotStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
-                const pHeight = (differenceInMinutes(pEnd, pStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
-                const appointmentKey = `${daySchedule.date}_${slot.start}_${slot.end}_${practiceStart}_${practice.type}`;
-                const appointment = appointments.find(app => app.key === appointmentKey);
-                return (
-                  <div
-                    key={pIdx}
-                    className="absolute cursor-pointer border-2 rounded-2xl text-center hover:bg-gray-200 transition-colors duration-200"
-                    style={{
-                      top: `${pOffset}%`,
-                      height: `${pHeight}%`,
-                      left: 0,
-                      right: 0,
-                      borderColor: getColorByType(practice.type),
-                      color: getColorByType(practice.type),
-                      backgroundColor: `${getColorByType(practice.type)}30`,
-                      borderRadius: "4px"
-                    }}
-                    title={`${practice.type} (${practiceStart} - ${practiceEnd}) ${appointment ? 'Réservé' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (appointment) {
-                        onReservedClick && onReservedClick(appointment);
-                      } else {
-                        const defaultPractice = { ...practice, start: practice.start || slot.start, end: practice.end || slot.end };
-                        onPracticeClick && onPracticeClick(daySchedule, idx, defaultPractice, appointmentKey);
-                      }
-                    }}
-                  >
-                    {appointment && (
-                      <div
-                        className="absolute flex inset-0 bg-gray-150 bg-opacity-50 overflow-hidden py-2 px-1"
-                        style={{ 
-                          display: 'grid',
-                          gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr',
-                          gap: '2px',
-                          alignItems: 'center'  // Ajout pour centrer verticalement
-                        }}
-                      >
-                        <div className="text-xs font-bold text-start">
-                          {appointment.patient.genre} {appointment.patient.nom} {appointment.patient.prenom}
-                        </div>
-                        <div className="text-xs font-bold text-start flex items-center gap-2">
-                          <Phone size={12}/> {appointment.patient.numero}
-                        </div>
-                        <div className="text-xs font-bold text-start">{appointment.patient.email}</div>
-                        <div className="text-xs font-bold text-start">{practice.type}</div>
-                        <div className="text-xs font-bold text-start">{practice.motif}</div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
             </div>
           );
         })}

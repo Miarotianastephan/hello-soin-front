@@ -10,6 +10,7 @@ import SuccessDialog from './dialogs/SuccessDialog';
 import OverwriteDialog from './dialogs/OverwriteDialog';
 import PracticeDialog from './dialogs/PracticeDialog';
 import { getDurationInMinutes, getColorByType, getDateFromTime } from './utils/scheduleUtils';
+import BASE_URL from '@/pages/config/baseurl';
 
 class GeneralEntreDates extends Component {
   constructor(props) {
@@ -226,108 +227,91 @@ class GeneralEntreDates extends Component {
     };
   };
 
+  // La fonction handleSave interroge l'API pour vérifier les dates existantes avant de sauvegarder
   handleSave = () => {
     if (!this.validateData()) return;
-  
     const newPlanning = this.buildNewPlanningData();
-    const existingStr = localStorage.getItem('planning');
-    let overlappingDates = [];
-    if (existingStr) {
-      try {
-        const existingPlanning = JSON.parse(existingStr);
-        overlappingDates = newPlanning.datesWithSlots
-          .filter(newItem => 
-            existingPlanning.datesWithSlots &&
-            existingPlanning.datesWithSlots.some(oldItem => oldItem.date === newItem.date)
-          )
+
+    // On interroge l'API pour récupérer la planification existante
+    fetch(`${BASE_URL}/specificDates`)
+      .then(response => response.json())
+      .then(existingDates => {
+        // Convertir les dates existantes en format dd-MM-yyyy
+        const existingDatesFormatted = existingDates.map(entry =>
+          format(new Date(entry.specific_date), 'dd-MM-yyyy')
+        );
+        const overlappingDates = newPlanning.datesWithSlots
+          .filter(newItem => existingDatesFormatted.includes(newItem.date))
           .map(item => item.date);
-      } catch (err) {
-        // En cas d'erreur, on procède à la sauvegarde
-      }
-    }
-    
-    const appointmentsStr = localStorage.getItem('appointments');
-    let appointmentsToOverwrite = [];
-    if (appointmentsStr) {
-      try {
-        const appointments = JSON.parse(appointmentsStr);
-        appointmentsToOverwrite = appointments
-          .filter(app => overlappingDates.includes(app.date))
-          .map(app => app.date);
-        appointmentsToOverwrite = [...new Set(appointmentsToOverwrite)];
-      } catch (err) {
-        console.error('Erreur lors du parsing des appointments', err);
-      }
-    }
-  
-    if (overlappingDates.length > 0 || appointmentsToOverwrite.length > 0) {
-      this.setState({
-        overwriteDialog: { 
-          isOpen: true, 
-          overlappingDates, 
-          appointmentsToOverwrite 
-        },
-        pendingPlanningData: newPlanning,
-      });
-      return;
-    }
-  
-    this.savePlanningData(newPlanning);
-  };
-  
-  savePlanningData = (newPlanning) => {
-    const existingStr = localStorage.getItem('planning');
-    if (existingStr) {
-      try {
-        const existingPlanning = JSON.parse(existingStr);
-        let mergedDates = existingPlanning.datesWithSlots || [];
-        newPlanning.datesWithSlots.forEach(newItem => {
-          const index = mergedDates.findIndex(item => item.date === newItem.date);
-          if (index !== -1) {
-            mergedDates[index] = newItem;
-          } else {
-            mergedDates.push(newItem);
+
+        // On conserve ici la logique sur les appointments stockés en localStorage (si nécessaire)
+        let appointmentsToOverwrite = [];
+        const appointmentsStr = localStorage.getItem('appointments');
+        if (appointmentsStr) {
+          try {
+            const appointments = JSON.parse(appointmentsStr);
+            appointmentsToOverwrite = appointments
+              .filter(app => overlappingDates.includes(app.date))
+              .map(app => app.date);
+            appointmentsToOverwrite = [...new Set(appointmentsToOverwrite)];
+          } catch (err) {
+            console.error('Erreur lors du parsing des appointments', err);
           }
+        }
+
+        if (overlappingDates.length > 0 || appointmentsToOverwrite.length > 0) {
+          this.setState({
+            overwriteDialog: {
+              isOpen: true,
+              overlappingDates,
+              appointmentsToOverwrite
+            },
+            pendingPlanningData: newPlanning,
+          });
+        } else {
+          this.savePlanningData(newPlanning);
+        }
+      })
+      .catch(error => {
+        console.error('Erreur lors du chargement des planning existants:', error);
+        this.setState({
+          errorDialog: { isOpen: true, message: 'Erreur lors du chargement des planning existants: ' + error.message }
         });
-        const mergedPlanning = {
-          startDate: newPlanning.startDate,
-          endDate: newPlanning.endDate,
-          days: newPlanning.days,
-          datesWithSlots: mergedDates,
-        };
-        localStorage.setItem('planning', JSON.stringify(mergedPlanning));
-        console.log('Données enregistrées :', JSON.stringify(mergedPlanning, null, 2));
+      });
+  };
+
+  // Envoi des données vers l'API via POST
+  savePlanningData = (newPlanning) => {
+    fetch(`${BASE_URL}/specificDates`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newPlanning)
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erreur lors de l\'enregistrement des données');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Données enregistrées :', data);
         this.setState({
           successDialog: { isOpen: true, message: 'Enregistré avec succès' },
           overwriteDialog: { isOpen: false, overlappingDates: [] },
           pendingPlanningData: null,
         });
-        return;
-      } catch (error) {
+      })
+      .catch(error => {
         console.error("Erreur lors de l'enregistrement :", error);
         this.setState({
           errorDialog: { isOpen: true, message: "Erreur lors de l'enregistrement : " + error.message },
         });
-        return;
-      }
-    }
-    try {
-      localStorage.setItem('planning', JSON.stringify(newPlanning));
-      console.log('Données enregistrées :', JSON.stringify(newPlanning, null, 2));
-      this.setState({
-        successDialog: { isOpen: true, message: 'Enregistré avec succès' },
       });
-    } catch (error) {
-      console.error("Erreur lors de l'enregistrement :", error);
-      this.setState({
-        errorDialog: { isOpen: true, message: "Erreur lors de l'enregistrement : " + error.message },
-      });
-    }
   };
 
   handleConfirmOverwrite = () => {
     const { pendingPlanningData, overwriteDialog: { overlappingDates } } = this.state;
-  
+    // Mise à jour locale des appointments (si nécessaire)
     const appointmentsStr = localStorage.getItem('appointments');
     if (appointmentsStr) {
       try {
@@ -338,7 +322,6 @@ class GeneralEntreDates extends Component {
         console.error('Erreur lors de la suppression des appointments', err);
       }
     }
-  
     this.savePlanningData(pendingPlanningData);
   };
 
@@ -542,87 +525,83 @@ class GeneralEntreDates extends Component {
         {/* Affichage du planning */}
         {days.length > 0 && (
           <div>
-            <div className="">
-              <div className="flex w-full border-y-2 py-4 items-center justify-between">
-                <div>
-                  <div className="flex flex-wrap gap-6">
-                    {days.map((day, index) => (
-                      <label key={day.name} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={day.selected}
-                          onChange={() => this.handleCheckboxChange(index)}
-                        />
-                        <span>{day.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <div className="flex flex-wrap gap-2 my-2 items-center text-gray-500 text-sm">
-                    <InfoIcon/>
-                    <p>Seuls les jours sélectionnés seront modifiés par rapport à l'agenda général.</p>
-                  </div>
+            <div className="flex w-full border-y-2 py-4 items-center justify-between">
+              <div>
+                <div className="flex flex-wrap gap-6">
+                  {days.map((day, index) => (
+                    <label key={day.name} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={day.selected}
+                        onChange={() => this.handleCheckboxChange(index)}
+                      />
+                      <span>{day.name}</span>
+                    </label>
+                  ))}
                 </div>
-                <Button type="submit" className="flex items-center bg-[#0f2b3d]" onClick={this.handleSave}>
-                  <SaveIcon /> Enregistrer
-                </Button>
+                <div className="flex flex-wrap gap-2 my-2 items-center text-gray-500 text-sm">
+                  <InfoIcon/>
+                  <p>Seuls les jours sélectionnés seront modifiés par rapport à l'agenda général.</p>
+                </div>
               </div>
-              {/* Gestion des créneaux */}
-             {/* Gestion des créneaux pour chaque jour sélectionné */}
-<div className="mt-4">
-  {days.map((day, index) => {
-    if (!day.selected) return null;
-    return (
-      <div key={day.name} className="mb-4 border p-4 rounded-lg">
-        <div className="grid grid-cols-3 gap-4 items-start">
-          {/* Colonne 1 : Nom du jour */}
-          <div className="flex text-left items-start justify-start font-bold">
-            {day.name}
-          </div>
-          {/* Colonne 2 : Plages horaires ou message indisponible */}
-          <div className="flex flex-col items-center justify-center">
-            {day.work === false ? (
-              <p className="text-gray-500 font-bold text-center">Marqué comme non disponible</p>
-            ) : (
-              day.times.map((time, timeIndex) => (
-                <div key={timeIndex} className="flex flex-col gap-2 mb-2">
-                  <div className="flex items-center justify-center gap-2">
-                    {this.renderTimeInput(index, timeIndex, 'start')}
-                    <span>à</span>
-                    {this.renderTimeInput(index, timeIndex, 'end')}
-                    <Button
-                      className="bg-red-500 text-white"
-                      onClick={() => this.handleRemoveTimeSlot(index, timeIndex)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          {/* Colonne 3 : Boutons d'action */}
-          <div className="flex flex-col items-end">
-            {day.work !== false && (
-              <Button
-                className="flex items-center bg-[#2b7a72] text-white mb-2"
-                onClick={() => this.handleAddTimeSlot(index)}
-              >
-                <PlusCircle size={16} /> Ajouter une plage horaire
+              <Button type="submit" className="flex items-center bg-[#0f2b3d]" onClick={this.handleSave}>
+                <SaveIcon /> Enregistrer
               </Button>
-            )}
-            <Button
-              className="bg-gray-500 text-white"
-              onClick={() => this.handleNotWorking(index)}
-            >
-              <Ban /> Ne pas travailler
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  })}
-</div>
-
+            </div>
+            {/* Gestion des créneaux pour chaque jour sélectionné */}
+            <div className="mt-4">
+              {days.map((day, index) => {
+                if (!day.selected) return null;
+                return (
+                  <div key={day.name} className="mb-4 border p-4 rounded-lg">
+                    <div className="grid grid-cols-3 gap-4 items-start">
+                      {/* Colonne 1 : Nom du jour */}
+                      <div className="flex text-left items-start justify-start font-bold">
+                        {day.name}
+                      </div>
+                      {/* Colonne 2 : Plages horaires ou message indisponible */}
+                      <div className="flex flex-col items-center justify-center">
+                        {day.work === false ? (
+                          <p className="text-gray-500 font-bold text-center">Marqué comme non disponible</p>
+                        ) : (
+                          day.times.map((time, timeIndex) => (
+                            <div key={timeIndex} className="flex flex-col gap-2 mb-2">
+                              <div className="flex items-center justify-center gap-2">
+                                {this.renderTimeInput(index, timeIndex, 'start')}
+                                <span>à</span>
+                                {this.renderTimeInput(index, timeIndex, 'end')}
+                                <Button
+                                  className="bg-red-500 text-white"
+                                  onClick={() => this.handleRemoveTimeSlot(index, timeIndex)}
+                                >
+                                  <Trash2 size={16} />
+                                </Button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      {/* Colonne 3 : Boutons d'action */}
+                      <div className="flex flex-col items-end">
+                        {day.work !== false && (
+                          <Button
+                            className="flex items-center bg-[#2b7a72] text-white mb-2"
+                            onClick={() => this.handleAddTimeSlot(index)}
+                          >
+                            <PlusCircle size={16} /> Ajouter une plage horaire
+                          </Button>
+                        )}
+                        <Button
+                          className="bg-gray-500 text-white"
+                          onClick={() => this.handleNotWorking(index)}
+                        >
+                          <Ban /> Ne pas travailler
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

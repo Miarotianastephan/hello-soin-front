@@ -1,101 +1,99 @@
 // src/components/Agenda/Agenda.js
 import React, { useState, useEffect } from 'react';
-import { format, subDays, subWeeks, subMonths, addDays, addWeeks, addMonths, parse, differenceInYears, startOfDay } from 'date-fns';
+import { format, subDays, subWeeks, subMonths, addDays, addWeeks, addMonths, parse, startOfDay } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { dayNames, parseTime, getColorByType, isValidTime } from './utils/agendaUtils'; // getDurationInMinutes supprimé
+import { dayNames, parseTime, getColorByType, isValidTime } from './utils/agendaUtils';
 import AgendaTable from './AgendaTable';
 import AgendaSidebar from './AgendaSidebar';
 import PracticeDialog from './PracticeDialog';
 import AppointmentDialog from './AppointmentDialog';
 import ReservedDialog from './ReservedDialog';
-import { ChevronLeft, ChevronRight, PhoneCall } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import CreateAppointmentDialog from './CreateAppointmentDialog';
 import fr from 'date-fns/locale/fr';
+import BASE_URL from '@/pages/config/baseurl';
 
 const Agenda = () => {
-  // Données fictives par défaut avec email, dateNaissance, mobile et propriété appointments ajoutée
+  // Données fictives par défaut
   const defaultFakePatients = [
     { id: '2', nom: 'Lemoine', prenom: 'Sophie', email: 'sophie.lemoine@example.com', numero: '07 98 76 54 32', age: 28, genre: 'Mme', adresse: '25 Avenue des Champs-Élysées, 75008 Paris', mobile: '06 01 02 03 04', dateNaissance: '1992-03-15', appointments: [] },
     { id: '3', nom: 'Martin', prenom: 'Luc', email: 'luc.martin@example.com', numero: '06 11 22 33 44', age: 45, genre: 'Mr', adresse: '5 Boulevard Haussmann, 75009 Paris', mobile: '06 02 03 04 05', dateNaissance: '1975-05-10', appointments: [] },
-    // ... autres patients
     { id: '30', nom: 'Rey', prenom: 'Eva', email: 'eva.rey@example.com', numero: '07 88 99 11 22', age: 26, genre: 'Mme', adresse: '19 Rue des Martyrs, 75009 Paris', mobile: '06 29 30 31 32', dateNaissance: '1990-03-03', appointments: [] }
   ];
 
   const DEFAULT_DURATION = 20;
 
-  // Chargement des patients depuis le localStorage
+  // Chargement des patients via l’API
   const [fakePatientsData, setFakePatientsData] = useState([]);
   const [createAppointmentDialog, setCreateAppointmentDialog] = useState(false);
   const [selectedPractice, setSelectedPractice] = useState(null);
 
-  const handleDayClick = (day) => {
-    setCurrentDate(day);
-    setViewMode('day');
-  };
-
   useEffect(() => {
-    const storedFakeData = localStorage.getItem('fakedatauser');
-    if (storedFakeData) {
+    const fetchFakePatients = async () => {
       try {
-        const parsed = JSON.parse(storedFakeData);
-        setFakePatientsData(Array.isArray(parsed) ? parsed : defaultFakePatients);
+        const response = await fetch(`${BASE_URL}/fakeUsers`);
+        const data = await response.json();
+        setFakePatientsData(data);
       } catch (error) {
-        console.error('Erreur de parsing de fakedatauser', error);
+        console.error('Erreur de chargement des patients', error);
         setFakePatientsData(defaultFakePatients);
       }
-    } else {
-      localStorage.setItem('fakedatauser', JSON.stringify(defaultFakePatients));
-      setFakePatientsData(defaultFakePatients);
-    }
+    };
+    fetchFakePatients();
   }, []);
 
+  // Chargement du planning via l’API (général et spécifique)
   const [schedule, setSchedule] = useState({ defaultGeneral: [], specific: [] });
-  const [selectedSlotInfo, setSelectedSlotInfo] = useState({ date: '', startTime: '' });
-  
-  // Fonction de rafraîchissement du planning
-  const refreshSchedule = () => {
-    let defaultGeneral = [];
-    const generalStr = localStorage.getItem('general');
-    if (generalStr) {
-      try {
-        defaultGeneral = JSON.parse(generalStr);
-      } catch (err) {
-        console.error('Erreur lors du parsing du planning général', err);
-      }
-    } else {
-      defaultGeneral = [
-        { name: 'Lundi', selected: false, times: [] },
-        { name: 'Mardi', selected: false, times: [] },
-        { name: 'Mercredi', selected: false, times: [] },
-        { name: 'Jeudi', selected: false, times: [] },
-        { name: 'Vendredi', selected: false, times: [] },
-        { name: 'Samedi', selected: false, times: [] },
-        { name: 'Dimanche', selected: false, times: [] }
-      ];
+  const refreshSchedule = async () => {
+    try {
+      const generalRes = await fetch(`${BASE_URL}/planning`);
+      let defaultGeneral = await generalRes.json();
+      defaultGeneral = defaultGeneral.map(day => ({
+        ...day,
+        name: day.day_name,
+        times: day.times
+      }));
+
+      const specificRes = await fetch(`${BASE_URL}/specificDates`);
+      const specificRaw = await specificRes.json();
+      const specific = specificRaw.map(item => ({
+        ...item,
+        date: format(new Date(item.specific_date), 'dd-MM-yyyy'),
+        timeSlots: item.timeSlots?.map(slot => ({
+          ...slot,
+          practices: slot.practices || []
+        })) || []
+      }));
+      setSchedule({ defaultGeneral, specific });
+    } catch (err) {
+      console.error('Erreur de chargement du planning', err);
     }
-    let specific = [];
-    const specificStr = localStorage.getItem('planning');
-    if (specificStr) {
-      try {
-        const data = JSON.parse(specificStr);
-        if (data.datesWithSlots) {
-          specific = data.datesWithSlots;
-        }
-      } catch (err) {
-        console.error('Erreur lors du parsing du planning spécifique', err);
-      }
-    }
-    setSchedule({ defaultGeneral, specific });
   };
 
   useEffect(() => {
-    // Initialisation du planning au montage du composant
     refreshSchedule();
+  }, []);
+
+  // Chargement des rendez‑vous via l’API
+  const [appointments, setAppointments] = useState([]);
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/appointments`);
+        const data = await response.json();
+        setAppointments(data);
+      } catch (err) {
+        console.error('Erreur de chargement des rendez‑vous', err);
+      }
+    };
+    fetchAppointments();
   }, []);
 
   const [viewMode, setViewMode] = useState('week'); // 'day', 'week' ou 'month'
   const [currentDate, setCurrentDate] = useState(new Date());
-  // Initialisation du state practiceDialog
+  const [selectedSlotInfo, setSelectedSlotInfo] = useState({ date: '', startTime: '' });
+
+  // State pour la gestion du dialogue de pratique
   const [practiceDialog, setPracticeDialog] = useState({
     isOpen: false,
     date: null,
@@ -118,7 +116,7 @@ const Agenda = () => {
     error: ''
   });
 
-  const [appointments, setAppointments] = useState([]);
+  // State pour le dialogue de rendez‑vous
   const [appointmentDialog, setAppointmentDialog] = useState({
     isOpen: false,
     daySchedule: null,
@@ -137,61 +135,19 @@ const Agenda = () => {
     hypnose: true
   });
   const [specifiqueOnly, setSpecifiqueOnly] = useState(false);
-  
-  useEffect(() => {
-    let defaultGeneral = [];
-    const generalStr = localStorage.getItem('general');
-    if (generalStr) {
-      try {
-        defaultGeneral = JSON.parse(generalStr);
-      } catch (err) {
-        console.error('Erreur lors du parsing du planning général', err);
-      }
-    } else {
-      defaultGeneral = [
-        { name: 'Lundi', selected: false, times: [] },
-        { name: 'Mardi', selected: false, times: [] },
-        { name: 'Mercredi', selected: false, times: [] },
-        { name: 'Jeudi', selected: false, times: [] },
-        { name: 'Vendredi', selected: false, times: [] },
-        { name: 'Samedi', selected: false, times: [] },
-        { name: 'Dimanche', selected: false, times: [] }
-      ];
-    }
-    let specific = [];
-    const specificStr = localStorage.getItem('planning');
-    if (specificStr) {
-      try {
-        const data = JSON.parse(specificStr);
-        if (data.datesWithSlots) {
-          specific = data.datesWithSlots;
-        }
-      } catch (err) {
-        console.error('Erreur lors du parsing du planning spécifique', err);
-      }
-    }
-    setSchedule({ defaultGeneral, specific });
-  }, []);
 
-  useEffect(() => {
-    const storedAppointments = localStorage.getItem('appointments');
-    if (storedAppointments) {
-      try {
-        setAppointments(JSON.parse(storedAppointments));
-      } catch(err) {
-        console.error('Erreur lors du parsing des appointments', err);
-      }
-    }
-  }, []); 
+  const handleDayClick = (day) => {
+    setCurrentDate(day);
+    setViewMode('day');
+  };
 
+  // Lors de l'ouverture du dialogue de pratique
   const handleSlotClick = (daySchedule, slotIndex, sourceType, clickedSlot) => {
     const parentSlot = daySchedule.timeSlots[slotIndex];
-  
     if (!parentSlot || !clickedSlot) {
       console.error('Slot information missing');
       return;
     }
-  
     let defaultStart;
     if (isValidTime(clickedSlot.start)) {
       const parsed = parseTime(clickedSlot.start);
@@ -199,8 +155,6 @@ const Agenda = () => {
     } else {
       defaultStart = parentSlot.start;
     }
-  
-    // Réinitialisation complète du dialogue
     setPracticeDialog({
       isOpen: true,
       date: daySchedule.date,
@@ -227,7 +181,6 @@ const Agenda = () => {
   const handlePracticeClick = (daySchedule, slotIndex, practice, appointmentKey) => {
     const defaultStartTime = practice?.start || daySchedule.timeSlots[slotIndex].start;
     const defaultEndTime = practice?.end || daySchedule.timeSlots[slotIndex].end;
-  
     setAppointmentDialog({
       isOpen: true,
       daySchedule,
@@ -244,11 +197,9 @@ const Agenda = () => {
     setReservedDialog({ isOpen: true, appointment });
   };
 
-  // Modification : conserver la durée déjà saisie si elle existe, sinon utiliser DEFAULT_DURATION
   const handlePracticeTypeChange = (e) => {
     const type = e.target.value;
-    // Définition de la durée par défaut en fonction du type
-    let newDuration = DEFAULT_DURATION; // Valeur par défaut (20 min)
+    let newDuration = DEFAULT_DURATION;
     if (type === 'naturopathie') {
       newDuration = 120;
     } else if (type === 'acupuncture') {
@@ -256,17 +207,13 @@ const Agenda = () => {
     } else if (type === 'hypnose') {
       newDuration = 90;
     }
-  
     setPracticeDialog(prev => {
       const newPractice = { 
         ...prev.newPractice,
         type,
-        duration: newDuration, // On met à jour la durée par défaut ici
+        duration: newDuration,
         start: prev.newPractice.start || prev.parentSlot.start 
       };
-  
-      // Si l'heure de début est renseignée et que l'heure de fin n'a pas été modifiée manuellement,
-      // on recalcule l'heure de fin en fonction de la nouvelle durée
       if (newPractice.start && !prev.newPractice.isEndManual) {
         const startDate = parseTime(newPractice.start);
         const newEndDate = new Date(startDate.getTime() + newDuration * 60000);
@@ -275,14 +222,11 @@ const Agenda = () => {
       return { ...prev, newPractice };
     });
   };
-  
-  
+
   const handlePracticeStartChange = (e) => {
     const start = e.target.value;
     setPracticeDialog(prev => {
       const newPractice = { ...prev.newPractice, start };
-      
-      // Si l'heure de fin n'a pas été modifiée manuellement, recalcule la fin par défaut
       if (start && !prev.newPractice.isEndManual) {
         const startDate = parseTime(start);
         const duration = newPractice.duration;
@@ -292,8 +236,7 @@ const Agenda = () => {
       return { ...prev, newPractice };
     });
   };
-  
-  // Gestion du changement manuel de l'heure de fin
+
   const handlePracticeEndChange = (e) => {
     const end = e.target.value;
     setPracticeDialog(prev => ({
@@ -301,15 +244,14 @@ const Agenda = () => {
       newPractice: {
         ...prev.newPractice,
         end,
-        isEndManual: true // L'utilisateur a modifié manuellement l'heure de fin
+        isEndManual: true
       }
     }));
   };
-  
-  const handleSavePractices = () => {
-    const { date, slotIndex, sourceType, newPractice, parentSlot } = practiceDialog;
-  
-    // Vérifier que l'heure de début est renseignée
+
+  // Sauvegarde d’un rendez‑vous créé via l’ajout d’une pratique
+  const handleSavePractices = async () => {
+    const { date, slotIndex, newPractice, parentSlot } = practiceDialog;
     if (!newPractice.start) {
       setPracticeDialog(prev => ({
         ...prev,
@@ -317,8 +259,6 @@ const Agenda = () => {
       }));
       return;
     }
-  
-    // Vérifier que le type de pratique est sélectionné
     if (!newPractice.type) {
       setPracticeDialog(prev => ({
         ...prev,
@@ -326,8 +266,6 @@ const Agenda = () => {
       }));
       return;
     }
-
-    // Vérifier que le type de pratique est sélectionné
     if (!newPractice.motif) {
       setPracticeDialog(prev => ({
         ...prev,
@@ -335,11 +273,7 @@ const Agenda = () => {
       }));
       return;
     }
-  
-    // Calculer l'heure de début
     const newStart = parseTime(newPractice.start);
-  
-    // Si l'heure de fin n'est pas renseignée, calculer par défaut selon la durée par défaut (20 minutes)
     let newEnd;
     if (!newPractice.end) {
       newEnd = new Date(newStart.getTime() + DEFAULT_DURATION * 60000);
@@ -349,12 +283,8 @@ const Agenda = () => {
     } else {
       newEnd = parseTime(newPractice.end);
     }
-  
-    // Calculer les heures du créneau parent
     const parentStart = parseTime(parentSlot.start);
     const parentEnd = parseTime(parentSlot.end);
-  
-    // La pratique doit être entièrement contenue dans le créneau parent
     if (newStart < parentStart || newEnd > parentEnd) {
       setPracticeDialog(prev => ({
         ...prev,
@@ -362,8 +292,7 @@ const Agenda = () => {
       }));
       return;
     }
-  
-    // Vérification des chevauchements avec les pratiques déjà ajoutées dans ce créneau
+    // Vérification des chevauchements dans le créneau et avec d'autres rendez‑vous
     for (let p of practiceDialog.practices) {
       const existingStart = parseTime(p.start);
       const existingEnd = parseTime(p.end);
@@ -375,12 +304,11 @@ const Agenda = () => {
         return;
       }
     }
-  
-    // Vérification des chevauchements avec les rendez‑vous déjà existants pour cette date
     const appointmentsForDate = appointments.filter(app => app.date === date);
     for (const app of appointmentsForDate) {
-      const appStart = parseTime(app.practice.start);
-      const appEnd = parseTime(app.practice.end);
+      // Utilisation des propriétés plates renvoyées par l'API
+      const appStart = parseTime(app.practice_start);
+      const appEnd = parseTime(app.practice_end);
       if (newStart < appEnd && newEnd > appStart) {
         setPracticeDialog(prev => ({
           ...prev,
@@ -389,16 +317,10 @@ const Agenda = () => {
         return;
       }
     }
-  
-    // Création d'une clé unique pour le rendez‑vous
     const appointmentKey = `${date}_${parentSlot.start}_${parentSlot.end}_${newPractice.start}_${newPractice.type}`;
-  
-    // Récupérer les informations du patient
     let patient;
     if (newPractice.isNewPatient) {
       const { prenom, nom, email, numero, mobile, dateNaissance } = newPractice.newPatient;
-    
-      // Vérification des champs vides
       if (!prenom || !nom || !email || !numero || !mobile || !dateNaissance) {
         setPracticeDialog(prev => ({
           ...prev,
@@ -406,111 +328,62 @@ const Agenda = () => {
         }));
         return;
       }
-    
-      // Suppression des espaces et vérification de la longueur du numéro de téléphone
-      const numeroSanitized = numero.replace(/\s+/g, "");
-      const mobileSanitized = mobile.replace(/\s+/g, "");
-    
-      if (numeroSanitized.length !== 10 || mobileSanitized.length !== 10) {
+      try {
+        const patientRes = await fetch(`${BASE_URL}/fakeUsers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newPractice.newPatient)
+        });
+        const patientData = await patientRes.json();
+        patient = { ...newPractice.newPatient, id: patientData.id, appointments: [] };
+        setFakePatientsData(prev => [...prev, patient]);
+      } catch (error) {
+        console.error("Erreur lors de la sauvegarde du patient", error);
         setPracticeDialog(prev => ({
           ...prev,
-          newPractice: { ...prev.newPractice, error: "Le numéro de téléphone doit contenir exactement 10 caractères." }
+          newPractice: { ...prev.newPractice, error: "Erreur lors de la sauvegarde du patient." }
         }));
         return;
       }
-    
-      // Calcul de l'âge
-      const computedAge = differenceInYears(new Date(), new Date(dateNaissance));
-    
-      // Génération d'un nouvel ID
-      const newId = (Math.max(...fakePatientsData.map(p => parseInt(p.id))) + 1).toString();
-    
-      // Création de l'objet patient
-      patient = { ...newPractice.newPatient, id: newId, age: computedAge, appointments: [] };
-    
-      // Mise à jour des données
-      const updatedFakePatients = [...fakePatientsData, patient];
-      setFakePatientsData(updatedFakePatients);
-      localStorage.setItem('fakedatauser', JSON.stringify(updatedFakePatients));
-    }
-    else {
+    } else {
       if (!practiceDialog.selectedPatientId) {
         setPracticeDialog(prev => ({ ...prev, error: 'Veuillez sélectionner un patient.' }));
         return;
       }
       patient = fakePatientsData.find(p => p.id === practiceDialog.selectedPatientId);
     }
-  
-    // Création du rendez‑vous
+    // Construction de l'objet appointment avec la propriété imbriquée practice
     const newAppointment = {
-      key: appointmentKey,
+      appointment_key: appointmentKey,
       date,
-      slotIndex,
-      practice: { ...newPractice },
-      patient,
-      motif: newPractice.motif || ''
+      slot_index: slotIndex,
+      practice: {
+        type: newPractice.type,
+        start: newPractice.start,
+        end: newPractice.end
+      },
+      motif: newPractice.motif,
+      fake_user_id: patient.id
     };
-  
-    const updatedAppointments = [...appointments, newAppointment];
-    setAppointments(updatedAppointments);
-    localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
-  
-    // Mise à jour du planning spécifique pour la date concernée uniquement.
-    setSchedule(prev => {
-      const specificUpdated = [...prev.specific];
-      const dateIndex = specificUpdated.findIndex(item => item.date === date);
-      if (dateIndex !== -1) {
-        // La date existe déjà dans le planning spécifique
-        const existingSlot = specificUpdated[dateIndex].timeSlots.find(
-          slot => slot.start === parentSlot.start && slot.end === parentSlot.end
-        );
-        if (existingSlot) {
-          existingSlot.practices = [
-            ...(existingSlot.practices || []),
-            { ...newPractice, error: '' }
-          ];
-        } else {
-          specificUpdated[dateIndex].timeSlots.push({
-            ...parentSlot,
-            practices: [{ ...newPractice, error: '' }]
-          });
-        }
-      } else {
-        // La date n'existe pas encore dans le planning spécifique
-        let clonedTimeSlots = [];
-        if (sourceType === 'general') {
-          const dateParts = date.split('-');
-          const appointmentDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
-          const dayIndex = appointmentDate.getDay();
-          const mappedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-          const generalDay = prev.defaultGeneral[mappedIndex];
-          if (generalDay && Array.isArray(generalDay.times)) {
-            clonedTimeSlots = JSON.parse(JSON.stringify(generalDay.times));
-          }
-        }
-        // Ajouter le créneau du rendez‑vous dans le planning cloné
-        const existingSlotIndex = clonedTimeSlots.findIndex(
-          slot => slot.start === parentSlot.start && slot.end === parentSlot.end
-        );
-        if (existingSlotIndex !== -1) {
-          clonedTimeSlots[existingSlotIndex].practices.push({ ...newPractice, error: '' });
-        } else {
-          clonedTimeSlots.push({
-            ...parentSlot,
-            practices: [{ ...newPractice, error: '' }]
-          });
-        }
-        specificUpdated.push({
-          date,
-          dayName: format(parse(date, 'dd-MM-yyyy', new Date()), 'EEEE', { locale: fr }),
-          timeSlots: clonedTimeSlots
-        });
-      }
-      localStorage.setItem('planning', JSON.stringify({ datesWithSlots: specificUpdated }));
-      return { ...prev, specific: specificUpdated };
-    });
-  
-    // Réinitialisation du dialogue
+    try {
+      const response = await fetch(`${BASE_URL}/appointments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAppointment)
+      });
+      await response.json();
+      await refreshSchedule();
+      const appointmentsRes = await fetch(`${BASE_URL}/appointments`);
+      const updatedAppointments = await appointmentsRes.json();
+      setAppointments(updatedAppointments);
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde du rendez‑vous", error);
+      setPracticeDialog(prev => ({
+        ...prev,
+        newPractice: { ...prev.newPractice, error: "Erreur lors de la sauvegarde du rendez‑vous." }
+      }));
+      return;
+    }
     setPracticeDialog({
       isOpen: false,
       date: null,
@@ -522,49 +395,66 @@ const Agenda = () => {
         type: '', 
         start: '', 
         end: '', 
-        error: '', 
+        error: '',
         motif: '',
-        duration: DEFAULT_DURATION, 
-        isNewPatient: false, 
-        newPatient: {} 
+        duration: DEFAULT_DURATION,
+        createAppointment: false,
+        isNewPatient: false,
+        newPatient: {}
       },
       selectedPatientId: '',
       error: ''
     });
   };
-  
-  
-  const handleAddAppointment = () => {
+
+  // Ajout d’un rendez‑vous via le dialogue dédié
+  const handleAddAppointment = async () => {
     if (!appointmentDialog.selectedPatientId) {
       setAppointmentDialog(prev => ({ ...prev, error: 'Veuillez sélectionner un patient.' }));
       return;
     }
-    if (appointments.find(app => app.key === appointmentDialog.appointmentKey)) {
+    if (appointments.find(app => app.appointment_key === appointmentDialog.appointmentKey)) {
       setAppointmentDialog(prev => ({ ...prev, error: 'Ce créneau est déjà réservé.' }));
       return;
     }
     const patient = fakePatientsData.find(p => p.id === appointmentDialog.selectedPatientId);
+    // Construction de l'objet appointment avec la propriété imbriquée practice
     const newAppointment = {
-      key: appointmentDialog.appointmentKey,
+      appointment_key: appointmentDialog.appointmentKey,
       date: appointmentDialog.daySchedule.date,
-      slotIndex: appointmentDialog.slotIndex,
-      practice: appointmentDialog.practice,
-      patient,
-      motif: appointmentDialog.motif
+      slot_index: appointmentDialog.slotIndex,
+      practice: {
+        type: appointmentDialog.practice.type,
+        start: appointmentDialog.practice.start,
+        end: appointmentDialog.practice.end
+      },
+      motif: appointmentDialog.motif,
+      fake_user_id: patient.id
     };
-    const updatedAppointments = [...appointments, newAppointment];
-    setAppointments(updatedAppointments);
-    localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
-    setAppointmentDialog({
-      isOpen: false,
-      daySchedule: null,
-      slotIndex: null,
-      practice: null,
-      appointmentKey: '',
-      selectedPatientId: '',
-      motif: '',
-      error: ''
-    });
+    try {
+      const response = await fetch(`${BASE_URL}/appointments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAppointment)
+      });
+      await response.json();
+      const appointmentsRes = await fetch(`${BASE_URL}/appointments`);
+      const updatedAppointments = await appointmentsRes.json();
+      setAppointments(updatedAppointments);
+      setAppointmentDialog({
+        isOpen: false,
+        daySchedule: null,
+        slotIndex: null,
+        practice: null,
+        appointmentKey: '',
+        selectedPatientId: '',
+        motif: '',
+        error: ''
+      });
+    } catch (error) {
+      console.error("Erreur lors de l'ajout du rendez‑vous", error);
+      setAppointmentDialog(prev => ({ ...prev, error: "Erreur lors de l'ajout du rendez‑vous." }));
+    }
   };
 
   const goToday = () => setCurrentDate(new Date());
@@ -621,7 +511,7 @@ const Agenda = () => {
         end: '', 
         error: '',
         motif: '',
-        duration: 20,
+        duration: DEFAULT_DURATION,
         createAppointment: false,
         isNewPatient: false,
         newPatient: {}
@@ -723,10 +613,15 @@ const Agenda = () => {
         currentDate={currentDate}
         initialDate={selectedSlotInfo.date}
         initialStartTime={selectedSlotInfo.startTime}
-        onSave={() => {
-          refreshSchedule();
-          const storedAppointments = localStorage.getItem('appointments');
-          setAppointments(storedAppointments ? JSON.parse(storedAppointments) : []);
+        onSave={async () => {
+          await refreshSchedule();
+          try {
+            const appointmentsRes = await fetch(`${BASE_URL}/appointments`);
+            const updatedAppointments = await appointmentsRes.json();
+            setAppointments(updatedAppointments);
+          } catch (err) {
+            console.error('Erreur lors du rafraîchissement des rendez‑vous', err);
+          }
         }}
       />
       {practiceDialog.isOpen && (

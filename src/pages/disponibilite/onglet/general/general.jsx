@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { Button } from '@/components/ui/button';
 import { SaveIcon, PlusCircle, Trash2, CalendarClock, InfoIcon } from 'lucide-react';
 import { parse, isBefore, addMinutes, format } from 'date-fns';
+import BASE_URL from '@/pages/config/baseurl';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ import {
 import { getDurationInMinutes, getColorByType } from './utils/planningUtils';
 import PracticeDialog from './dialogs/PracticeDialog';
 import TimeInput from './dialogs/TimeInput';
-import { Link } from 'react-router-dom'; // (optionnel, si vous souhaitez extraire le champ de saisie de l'heure)
+import { Link } from 'react-router-dom';
 
 export class General extends Component {
   constructor(props) {
@@ -37,7 +38,7 @@ export class General extends Component {
         isOpen: false,
         message: '',
       },
-      // Etat pour la gestion de la boîte de dialogue des pratiques
+      // Etat pour la gestion du dialogue de pratique
       practiceDialog: {
         isOpen: false,
         dayIndex: null,
@@ -54,28 +55,39 @@ export class General extends Component {
   }
 
   componentDidMount() {
-    const savedPlanning = localStorage.getItem('general');
-    if (savedPlanning) {
-      try {
-        let days = JSON.parse(savedPlanning);
-        if (Array.isArray(days)) {
-          // Normalisation des données enregistrées
-          days = days.map((day) => ({
-            ...day,
-            selected: day.selected || (day.times && day.times.length > 0),
-            times: (day.times || []).map((slot) => ({
-              ...slot,
-              errors: slot.errors || { start: false, end: false },
-              practices: slot.practices || [],
-            })),
-          }));
-          this.setState({ days });
+    // Récupérer la planification via l'API
+    fetch(`${BASE_URL}/planning`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erreur lors du chargement des données');
         }
-      } catch (e) {
-        console.error('Erreur lors du chargement du planning', e);
-      }
-    }
+        return response.json();
+      })
+      .then(data => {
+        // Transformation des données reçues pour correspondre au format de l'application
+        const days = data.map(day => ({
+          name: day.day_name,
+          selected: !!day.selected,
+          times: (day.times || []).map(slot => ({
+            start: slot.start.slice(0, 5), // Extrait HH:mm de "08:00:00"
+            end: slot.end.slice(0, 5),
+            errors: { start: false, end: false },
+            practices: slot.practices || [],
+          })),
+        }));
+        this.setState({ days });
+      })
+      .catch(error => {
+        console.error('Erreur lors du chargement du planning', error);
+        this.setState({
+          errorDialog: {
+            isOpen: true,
+            message: 'Erreur lors du chargement du planning: ' + error.message,
+          },
+        });
+      });
   }
+  
 
   // Convertir une chaîne "HH:mm" en objet Date (avec une date de base fixe)
   getDateFromTime = (timeStr) => parse(timeStr, 'HH:mm', new Date(1970, 0, 1));
@@ -199,24 +211,33 @@ export class General extends Component {
   handleSave = () => {
     if (!this.validateData()) return;
 
-    try {
-      localStorage.setItem('general', JSON.stringify(this.state.days));
-      console.log(
-        'Données enregistrées :',
-        JSON.stringify(this.state.days, null, 2)
-      );
-      this.setState({
-        successDialog: { isOpen: true, message: 'Enregistré avec succès' },
+    // Sauvegarder la planification via l'API (remplacement du localStorage)
+    fetch(`${BASE_URL}/planning`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(this.state.days),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erreur lors de l\'enregistrement des données');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Données enregistrées :', data);
+        this.setState({
+          successDialog: { isOpen: true, message: 'Enregistré avec succès' },
+        });
+      })
+      .catch(error => {
+        console.error("Erreur lors de l'enregistrement :", error);
+        this.setState({
+          errorDialog: {
+            isOpen: true,
+            message: "Erreur lors de l'enregistrement : " + error.message,
+          },
+        });
       });
-    } catch (error) {
-      console.error("Erreur lors de l'enregistrement :", error);
-      this.setState({
-        errorDialog: {
-          isOpen: true,
-          message: "Erreur lors de l'enregistrement : " + error.message,
-        },
-      });
-    }
   };
 
   // Exemple d'utilisation d'un composant TimeInput (optionnel)
@@ -273,10 +294,7 @@ export class General extends Component {
   handlePracticeStartChange = (e) => {
     const start = e.target.value;
     this.setState((prevState) => {
-      const newPractice = {
-        ...prevState.practiceDialog.newPractice,
-        start,
-      };
+      const newPractice = { ...prevState.practiceDialog.newPractice, start };
       if (start) {
         const startDate = this.getDateFromTime(start);
         const duration = getDurationInMinutes(newPractice.type);
@@ -319,10 +337,7 @@ export class General extends Component {
       return {
         practiceDialog: {
           ...prevState.practiceDialog,
-          newPractice: {
-            ...newPractice,
-            error,
-          },
+          newPractice: { ...newPractice, error },
         },
       };
     });
@@ -337,9 +352,7 @@ export class General extends Component {
 
       if (!newPractice.start) {
         newPractice.error = "Veuillez saisir l'heure de début.";
-        return {
-          practiceDialog: { ...prevState.practiceDialog, newPractice },
-        };
+        return { practiceDialog: { ...prevState.practiceDialog, newPractice } };
       }
 
       const newStart = this.getDateFromTime(newPractice.start);
@@ -347,9 +360,7 @@ export class General extends Component {
 
       if (newStart < parentStart || newEnd > parentEnd) {
         newPractice.error = "La pratique doit être dans la plage horaire sélectionnée.";
-        return {
-          practiceDialog: { ...prevState.practiceDialog, newPractice },
-        };
+        return { practiceDialog: { ...prevState.practiceDialog, newPractice } };
       }
 
       for (let practice of practices) {
@@ -357,20 +368,13 @@ export class General extends Component {
         const existingEnd = this.getDateFromTime(practice.end);
         if (newStart < existingEnd && newEnd > existingStart) {
           newPractice.error = "Chevauchement d'horaires détecté.";
-          return {
-            practiceDialog: { ...prevState.practiceDialog, newPractice },
-          };
+          return { practiceDialog: { ...prevState.practiceDialog, newPractice } };
         }
       }
 
       newPractice.error = '';
       const updatedPractices = [...practices, { ...newPractice }];
-      const resetNewPractice = {
-        type: newPractice.type,
-        start: '',
-        end: '',
-        error: '',
-      };
+      const resetNewPractice = { type: newPractice.type, start: '', end: '', error: '' };
       return {
         practiceDialog: {
           ...prevState.practiceDialog,
@@ -383,14 +387,9 @@ export class General extends Component {
 
   handleRemovePractice = (index) => {
     this.setState((prevState) => {
-      const updatedPractices = prevState.practiceDialog.practices.filter(
-        (_, i) => i !== index
-      );
+      const updatedPractices = prevState.practiceDialog.practices.filter((_, i) => i !== index);
       return {
-        practiceDialog: {
-          ...prevState.practiceDialog,
-          practices: updatedPractices,
-        },
+        practiceDialog: { ...prevState.practiceDialog, practices: updatedPractices },
       };
     });
   };
@@ -499,8 +498,11 @@ export class General extends Component {
             <DialogDescription>{successDialog.message}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Link to= {"/agenda"}  onClick={() => this.setState({ successDialog: { isOpen: false, message: '' } })}
-            className='bg-[#0f2b3d] w-1/4 h-full p-1 flex justify-center items-center rounded-lg'>
+            <Link
+              to={"/agenda"}
+              onClick={() => this.setState({ successDialog: { isOpen: false, message: '' } })}
+              className="bg-[#0f2b3d] w-1/4 h-full p-1 flex justify-center items-center rounded-lg"
+            >
               <span className="text-white font-bold">Ok</span>
             </Link>
           </DialogFooter>
@@ -535,8 +537,7 @@ export class General extends Component {
               <div className="flex flex-wrap gap-2 my-2 items-center text-gray-500 text-sm">
                 <InfoIcon />
                 <p>
-                  Les jours et pratiques sélectionnés seront considérés comme vos
-                  jours de travail par défaut !
+                  Les jours et pratiques sélectionnés seront considérés comme vos jours de travail par défaut !
                 </p>
               </div>
             </div>

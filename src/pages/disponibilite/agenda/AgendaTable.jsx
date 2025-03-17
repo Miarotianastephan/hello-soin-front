@@ -49,8 +49,9 @@ const AgendaTable = ({
       } else {
         const dayName = dayNames[currentDate.getDay()];
         const generalEntry = schedule.defaultGeneral.find(
-          d => d.name.toLowerCase() === dayName.toLowerCase()
+          d => d.day_name.toLowerCase() === dayName.toLowerCase()
         );
+        
         daySchedule = { date: formattedDate, dayName, timeSlots: generalEntry ? generalEntry.times : [] };
       }
     }

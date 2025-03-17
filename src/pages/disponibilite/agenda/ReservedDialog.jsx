@@ -1,33 +1,39 @@
-// src/components/Agenda/ReservedDialog.js
+// src/components/Agenda/ReservedDrawer.js
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 
-const ReservedDialog = ({ reservedDialog, setReservedDialog }) => {
+const ReservedDrawer = ({ reservedDialog, setReservedDialog }) => {
   return (
-    <Dialog
+    <Drawer
       open={reservedDialog.isOpen}
-      onOpenChange={(open) => { if (!open) setReservedDialog({ isOpen: false, appointment: null }); }}
+      onOpenChange={(open) => {
+        if (!open) setReservedDialog({ isOpen: false, appointment: null });
+      }}
+      placement="right"
+      className="h-full w-1/2" // Assure que le drawer occupe toute la hauteur
     >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Détails du Rendez‑vous</DialogTitle>
-          <DialogDescription>
-            <div>Patient : {reservedDialog.appointment.patient.prenom} {reservedDialog.appointment.patient.nom}</div>
-            <div>Numéro : {reservedDialog.appointment.patient.numero}</div>
-            <div>Âge : {reservedDialog.appointment.patient.age} ans</div>
-            <div>Type de rendezvous : {reservedDialog.appointment.practice.type}</div>
-            <div>Heure : {reservedDialog.appointment.practice.start} - {reservedDialog.appointment.practice.end}</div>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Détails du Rendez‑vous</DrawerTitle>
+          <DrawerDescription>
+            <div>Patient : {reservedDialog.appointment.prenom} {reservedDialog.appointment.nom}</div>
+            <div>Numéro : {reservedDialog.appointment.numero}</div>
+            <div>Âge : {reservedDialog.appointment.age} ans</div>
+            <div>Type de rendezvous : {reservedDialog.appointment.practice_type}</div>
+            <div>Heure : {reservedDialog.appointment.practice_start} - {reservedDialog.appointment.practice_end}</div>
             <div>Date : {reservedDialog.appointment.date}</div>
             <div>Motif : {reservedDialog.appointment.motif}</div>
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button onClick={() => setReservedDialog({ isOpen: false, appointment: null })}>Fermer</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerDescription>
+        </DrawerHeader>
+        <DrawerFooter>
+          <Button onClick={() => setReservedDialog({ isOpen: false, appointment: null })}>
+            Fermer
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 };
 
-export default ReservedDialog;
+export default ReservedDrawer;

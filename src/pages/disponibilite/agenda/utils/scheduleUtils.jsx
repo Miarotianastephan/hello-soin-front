@@ -1,28 +1,17 @@
 import { format, parse, isBefore } from 'date-fns';
 import { fr } from 'date-fns/locale';
-
-export function createPlageHoraire(date, heureDebut, heureFin) {
-  // Récupérer le planning spécifique existant
-  let planning;
-  try {
-    const existingData = localStorage.getItem('planning');
-    planning = existingData ? JSON.parse(existingData) : null;
-  } catch (error) {
-    planning = null;
-  }
-  if (!planning || typeof planning !== 'object' || !Array.isArray(planning.datesWithSlots)) {
-    planning = { datesWithSlots: [] };
-  }
-
-  // Récupérer le planning général s'il existe
-  let general = null;
-  try {
-    const generalData = localStorage.getItem('general');
-    general = generalData ? JSON.parse(generalData) : null;
-  } catch (error) {
-    general = null;
-  }
-
+import BASE_URL from '@/pages/config/baseurl';
+/**
+ * Crée une nouvelle plage horaire spécifique pour une date donnée.
+ * Au lieu d'utiliser le localStorage, cette fonction fait appel à l'API addSpecificTimeSlots.
+ *
+ * @param {string} date - La date au format "dd-MM-yyyy"
+ * @param {string} heureDebut - Heure de début au format "HH:mm"
+ * @param {string} heureFin - Heure de fin au format "HH:mm"
+ * @returns {Promise<Object>} La réponse de l'API en cas de succès.
+ * @throws {Error} En cas d'erreur de format ou d'appel API.
+ */
+export async function createPlageHoraire(date, heureDebut, heureFin) {
   // Vérifier le format des heures
   const timeFormat = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
   if (!timeFormat.test(heureDebut))
@@ -36,58 +25,41 @@ export function createPlageHoraire(date, heureDebut, heureFin) {
   if (isBefore(end, start))
     throw new Error("L'heure de fin doit être après l'heure de début");
 
-  // Calculer le nom du jour à partir de la date (ex: 'Lundi')
+  // Calculer le nom du jour à partir de la date (ex: 'lundi')
   const dayName = format(parse(date, 'dd-MM-yyyy', new Date()), 'EEEE', { locale: fr });
 
-  // Chercher ou créer l'entrée pour la date dans le planning spécifique
-  let dateEntry = planning.datesWithSlots.find(d => d.date === date);
-  if (!dateEntry) {
-    // Si le planning général existe, cloner les créneaux de la journée correspondante
-    let clonedTimes = [];
-    if (general && Array.isArray(general)) {
-      // general est supposé être un tableau d'objets { name, selected, times }
-      const generalDay = general.find(
-        d => d.name.toLowerCase() === dayName.toLowerCase()
-      );
-      if (generalDay && Array.isArray(generalDay.times)) {
-        // Deep clone du tableau de créneaux
-        clonedTimes = JSON.parse(JSON.stringify(generalDay.times));
-      }
-    }
-    dateEntry = {
-      date,
-      dayName,
-      timeSlots: clonedTimes
-    };
-    planning.datesWithSlots.push(dateEntry);
-  } else {
-    // S'assurer que timeSlots est un tableau
-    if (!Array.isArray(dateEntry.timeSlots)) {
-      dateEntry.timeSlots = [];
-    }
-  }
-
-  // Vérifier les chevauchements avec les créneaux existants pour cette date
-  const hasOverlap = dateEntry.timeSlots.some(slot => {
-    const slotStart = getDateFromTime(slot.start);
-    const slotEnd = getDateFromTime(slot.end);
-    return (start < slotEnd && end > slotStart);
-  });
-  if (hasOverlap) throw new Error("Chevauchement avec un créneau existant");
-
-  // Ajouter le nouveau créneau horaire
-  dateEntry.timeSlots.push({
+  // Préparer la nouvelle plage horaire à ajouter
+  const newTimeSlot = {
     start: heureDebut,
     end: heureFin,
-    practices: [],
-    errors: { start: false, end: false }
+    practices: [] // On peut ajouter des pratiques ultérieurement si besoin
+  };
+
+  // Appel de l'API addSpecificTimeSlots
+  const response = await fetch(`${BASE_URL}/addSpecificTimeSlots`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      date, // Format "dd-MM-yyyy"
+      newTimeSlots: [newTimeSlot]
+    })
   });
 
-  // Sauvegarder le planning spécifique mis à jour dans le localStorage
-  localStorage.setItem('planning', JSON.stringify(planning));
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Erreur lors de l'ajout de la plage horaire");
+  }
+
+  const data = await response.json();
+  return data;
 }
 
-// Helper function pour convertir une heure au format HH:mm en objet Date
+/**
+ * Helper function pour convertir une heure au format "HH:mm" en objet Date.
+ *
+ * @param {string} timeStr - L'heure au format "HH:mm"
+ * @returns {Date} L'objet Date correspondant à l'heure indiquée (la date du jour est utilisée).
+ */
 export function getDateFromTime(timeStr) {
   const [hours, minutes] = timeStr.split(':').map(Number);
   const date = new Date();
