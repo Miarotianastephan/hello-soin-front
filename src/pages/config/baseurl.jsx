@@ -1,3 +1,3 @@
-const BASE_URL = "http://localhost:8888/api";
+const BASE_URL = "https://hellosoins21.netlify.app/api";
 
 export default BASE_URL;

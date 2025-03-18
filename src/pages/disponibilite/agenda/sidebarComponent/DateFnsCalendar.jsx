@@ -19,8 +19,17 @@ const DateFnsCalendar = ({ selected, onSelect, locale, renderHeader, dayClassNam
   const [currentMonth, setCurrentMonth] = useState(selected || new Date());
   const today = startOfDay(new Date());
 
-  // Récupération du planning spécifique via l'API
-  const [specificDates, setSpecificDates] = useState([]);
+  // Initialisation du planning spécifique à partir du localStorage
+  const [specificDates, setSpecificDates] = useState(() => {
+    const saved = localStorage.getItem('specificDates');
+    return saved ? JSON.parse(saved) : [];
+  });
+  // MàJ du localStorage dès que specificDates change
+  useEffect(() => {
+    localStorage.setItem('specificDates', JSON.stringify(specificDates));
+  }, [specificDates]);
+
+  // Chargement du planning spécifique via l'API
   useEffect(() => {
     fetch(`${BASE_URL}/specificDates`)
       .then(response => {
@@ -38,8 +47,17 @@ const DateFnsCalendar = ({ selected, onSelect, locale, renderHeader, dayClassNam
       });
   }, []);
 
-  // Récupération du planning général via l'API
-  const [general, setGeneral] = useState([]);
+  // Initialisation du planning général à partir du localStorage
+  const [general, setGeneral] = useState(() => {
+    const saved = localStorage.getItem('general');
+    return saved ? JSON.parse(saved) : [];
+  });
+  // MàJ du localStorage dès que general change
+  useEffect(() => {
+    localStorage.setItem('general', JSON.stringify(general));
+  }, [general]);
+
+  // Chargement du planning général via l'API
   useEffect(() => {
     fetch(`${BASE_URL}/planning`)
       .then(response => {

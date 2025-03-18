@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   startOfMonth,
   endOfMonth,
@@ -11,11 +11,24 @@ import {
   isBefore,
   isAfter,
   startOfDay,
+  isSameDay,
+  parseISO,
 } from 'date-fns';
 import fr from 'date-fns/locale/fr';
 import { getColorByType } from '../utils/agendaUtils';
+import BASE_URL from '@/pages/config/baseurl';
 
-const MonthView = ({ currentDate, appointments, onDayClick }) => {
+const MonthView = ({ currentDate, onDayClick }) => {
+  const [appointments, setAppointments] = useState([]);
+
+  useEffect(() => {
+    // Remplacez l'URL par celle de votre API
+    fetch(`${BASE_URL}/appointments`)
+      .then((res) => res.json())
+      .then((data) => setAppointments(data))
+      .catch((err) => console.error('Erreur lors de la récupération des rendez‑vous :', err));
+  }, []);
+
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -28,10 +41,9 @@ const MonthView = ({ currentDate, appointments, onDayClick }) => {
     return monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
   })();
 
-  // Filtrer les rendez‑vous pour un jour donné
+  // Filtrer les rendez‑vous pour un jour donné (en comparant la date ISO)
   const getAppointmentsForDay = (day) => {
-    const dayString = format(day, 'dd-MM-yyyy');
-    return appointments.filter(app => app.date === dayString);
+    return appointments.filter(app => isSameDay(parseISO(app.date), day));
   };
 
   const today = startOfDay(new Date());
@@ -39,7 +51,7 @@ const MonthView = ({ currentDate, appointments, onDayClick }) => {
   return (
     <div className="p-2">
       <p className="font-bold text-lg mb-2">{formattedMonthYear}</p>
-      {/* Entête des jours de la semaine */}
+      {/* En-tête des jours de la semaine */}
       <div className="grid grid-cols-7 gap-1 mb-1">
         {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((dayName, index) => (
           <div key={index} className="text-center font-bold text-sm">
@@ -53,7 +65,7 @@ const MonthView = ({ currentDate, appointments, onDayClick }) => {
           const dayAppointments = getAppointmentsForDay(day);
           const isPast = isBefore(day, today);
           const isFuture = isAfter(day, today);
-          const clickable = !isPast; // dates passées non cliquables
+          const clickable = !isPast; // les dates passées ne sont pas cliquables
 
           return (
             <div 
@@ -75,9 +87,9 @@ const MonthView = ({ currentDate, appointments, onDayClick }) => {
                   <div 
                     key={i} 
                     className="truncate" 
-                    style={{ color: getColorByType(app.practice?.type) }}
+                    style={{ color: getColorByType(app.practice_type) }}
                   >
-                    {app.practice && app.practice.type ? app.practice.type : 'RDV'}
+                    {app.practice_type ? app.practice_type : 'RDV'}
                   </div>
                 ))}
                 {dayAppointments.length > 2 && (

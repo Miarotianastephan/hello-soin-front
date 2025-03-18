@@ -30,6 +30,7 @@ export class General extends Component {
         { name: 'Samedi', selected: false, times: [] },
         { name: 'Dimanche', selected: false, times: [] },
       ],
+      isLoading: true, // Indicateur de chargement
       errorDialog: {
         isOpen: false,
         message: '',
@@ -38,7 +39,6 @@ export class General extends Component {
         isOpen: false,
         message: '',
       },
-      // Etat pour la gestion du dialogue de pratique
       practiceDialog: {
         isOpen: false,
         dayIndex: null,
@@ -55,39 +55,50 @@ export class General extends Component {
   }
 
   componentDidMount() {
-    // Récupérer la planification via l'API
-    fetch(`${BASE_URL}/planning`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Erreur lors du chargement des données');
-        }
-        return response.json();
-      })
-      .then(data => {
-        // Transformation des données reçues pour correspondre au format de l'application
-        const days = data.map(day => ({
-          name: day.day_name,
-          selected: !!day.selected,
-          times: (day.times || []).map(slot => ({
-            start: slot.start.slice(0, 5), // Extrait HH:mm de "08:00:00"
-            end: slot.end.slice(0, 5),
-            errors: { start: false, end: false },
-            practices: slot.practices || [],
-          })),
-        }));
-        this.setState({ days });
-      })
-      .catch(error => {
-        console.error('Erreur lors du chargement du planning', error);
-        this.setState({
-          errorDialog: {
-            isOpen: true,
-            message: 'Erreur lors du chargement du planning: ' + error.message,
-          },
+    const storedDays = localStorage.getItem('days');
+    if (storedDays) {
+      this.setState({ days: JSON.parse(storedDays), isLoading: false });
+    } else {
+      // Récupérer la planification via l'API
+      fetch(`${BASE_URL}/planning`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Erreur lors du chargement des données');
+          }
+          return response.json();
+        })
+        .then(data => {
+          const days = data.map(day => ({
+            name: day.day_name,
+            selected: !!day.selected,
+            times: (day.times || []).map(slot => ({
+              start: slot.start.slice(0, 5),
+              end: slot.end.slice(0, 5),
+              errors: { start: false, end: false },
+              practices: slot.practices || [],
+            })),
+          }));
+          this.setState({ days, isLoading: false });
+          localStorage.setItem('days', JSON.stringify(days));
+        })
+        .catch(error => {
+          console.error('Erreur lors du chargement du planning', error);
+          this.setState({
+            errorDialog: {
+              isOpen: true,
+              message: 'Erreur lors du chargement du planning: ' + error.message,
+            },
+            isLoading: false,
+          });
         });
-      });
+    }
   }
-  
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.days !== this.state.days) {
+      localStorage.setItem('days', JSON.stringify(this.state.days));
+    }
+  }
 
   // Convertir une chaîne "HH:mm" en objet Date (avec une date de base fixe)
   getDateFromTime = (timeStr) => parse(timeStr, 'HH:mm', new Date(1970, 0, 1));
@@ -211,7 +222,6 @@ export class General extends Component {
   handleSave = () => {
     if (!this.validateData()) return;
 
-    // Sauvegarder la planification via l'API (remplacement du localStorage)
     fetch(`${BASE_URL}/planning`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -225,6 +235,7 @@ export class General extends Component {
       })
       .then(data => {
         console.log('Données enregistrées :', data);
+        localStorage.setItem('days', JSON.stringify(this.state.days));
         this.setState({
           successDialog: { isOpen: true, message: 'Enregistré avec succès' },
         });
@@ -240,7 +251,6 @@ export class General extends Component {
       });
   };
 
-  // Exemple d'utilisation d'un composant TimeInput (optionnel)
   renderTimeInput(dayIndex, timeIndex, field) {
     const slot = this.state.days[dayIndex].times[timeIndex];
     const timeValue = slot[field] || '';
@@ -512,7 +522,17 @@ export class General extends Component {
   }
 
   render() {
-    const { days, practiceDialog } = this.state;
+    const { days, practiceDialog, isLoading } = this.state;
+
+    // Affichage d'un indicateur de chargement
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center h-screen">
+          <p>Chargement...</p>
+        </div>
+      );
+    }
+
     return (
       <div>
         <div className="flex w-full border-b-2 py-3 items-center justify-between">
@@ -583,7 +603,6 @@ export class General extends Component {
         </div>
         {this.renderErrorDialog()}
         {this.renderSuccessDialog()}
-        {/* Insertion du composant PracticeDialog */}
         <PracticeDialog
           isOpen={practiceDialog.isOpen}
           parentTimeslot={

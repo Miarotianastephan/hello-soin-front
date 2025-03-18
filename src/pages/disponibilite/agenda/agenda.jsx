@@ -23,11 +23,38 @@ const Agenda = () => {
 
   const DEFAULT_DURATION = 20;
 
-  // Chargement des patients via l’API
-  const [fakePatientsData, setFakePatientsData] = useState([]);
+  // Initialisation des states en récupérant les données du localStorage (si existantes)
+  const [fakePatientsData, setFakePatientsData] = useState(() => {
+    const saved = localStorage.getItem('fakePatientsData');
+    return saved ? JSON.parse(saved) : defaultFakePatients;
+  });
+  const [schedule, setSchedule] = useState(() => {
+    const saved = localStorage.getItem('schedule');
+    return saved ? JSON.parse(saved) : { defaultGeneral: [], specific: [] };
+  });
+  const [appointments, setAppointments] = useState(() => {
+    const saved = localStorage.getItem('appointments');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Mise à jour du localStorage dès que les données changent
+  useEffect(() => {
+    localStorage.setItem('fakePatientsData', JSON.stringify(fakePatientsData));
+  }, [fakePatientsData]);
+
+  useEffect(() => {
+    localStorage.setItem('schedule', JSON.stringify(schedule));
+  }, [schedule]);
+
+  useEffect(() => {
+    localStorage.setItem('appointments', JSON.stringify(appointments));
+  }, [appointments]);
+
+  // Autres états et dialogues
   const [createAppointmentDialog, setCreateAppointmentDialog] = useState(false);
   const [selectedPractice, setSelectedPractice] = useState(null);
 
+  // Chargement des patients via l’API
   useEffect(() => {
     const fetchFakePatients = async () => {
       try {
@@ -43,7 +70,6 @@ const Agenda = () => {
   }, []);
 
   // Chargement du planning via l’API (général et spécifique)
-  const [schedule, setSchedule] = useState({ defaultGeneral: [], specific: [] });
   const refreshSchedule = async () => {
     try {
       const generalRes = await fetch(`${BASE_URL}/planning`);
@@ -75,7 +101,6 @@ const Agenda = () => {
   }, []);
 
   // Chargement des rendez‑vous via l’API
-  const [appointments, setAppointments] = useState([]);
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
@@ -89,11 +114,11 @@ const Agenda = () => {
     fetchAppointments();
   }, []);
 
-  const [viewMode, setViewMode] = useState('week'); // 'day', 'week' ou 'month'
+  const [viewMode, setViewMode] = useState('week'); // 'day', 'week', 'month' ou 'list'
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedSlotInfo, setSelectedSlotInfo] = useState({ date: '', startTime: '' });
 
-  // State pour la gestion du dialogue de pratique
+  // État pour le dialogue de pratique
   const [practiceDialog, setPracticeDialog] = useState({
     isOpen: false,
     date: null,
@@ -116,7 +141,7 @@ const Agenda = () => {
     error: ''
   });
 
-  // State pour le dialogue de rendez‑vous
+  // État pour le dialogue de rendez‑vous
   const [appointmentDialog, setAppointmentDialog] = useState({
     isOpen: false,
     daySchedule: null,
@@ -136,12 +161,13 @@ const Agenda = () => {
   });
   const [specifiqueOnly, setSpecifiqueOnly] = useState(false);
 
+  // Fonctions de gestion de la navigation et des interactions
+
   const handleDayClick = (day) => {
     setCurrentDate(day);
     setViewMode('day');
   };
 
-  // Lors de l'ouverture du dialogue de pratique
   const handleSlotClick = (daySchedule, slotIndex, sourceType, clickedSlot) => {
     const parentSlot = daySchedule.timeSlots[slotIndex];
     if (!parentSlot || !clickedSlot) {
@@ -168,7 +194,7 @@ const Agenda = () => {
         end: '',
         error: '',
         motif: '',
-        duration: 20,
+        duration: DEFAULT_DURATION,
         createAppointment: false,
         isNewPatient: false,
         newPatient: {}
@@ -249,7 +275,6 @@ const Agenda = () => {
     }));
   };
 
-  // Sauvegarde d’un rendez‑vous créé via l’ajout d’une pratique
   const handleSavePractices = async () => {
     const { date, slotIndex, newPractice, parentSlot } = practiceDialog;
     if (!newPractice.start) {
@@ -292,7 +317,7 @@ const Agenda = () => {
       }));
       return;
     }
-    // Vérification des chevauchements dans le créneau et avec d'autres rendez‑vous
+    // Vérification des chevauchements dans le slot
     for (let p of practiceDialog.practices) {
       const existingStart = parseTime(p.start);
       const existingEnd = parseTime(p.end);
@@ -306,7 +331,6 @@ const Agenda = () => {
     }
     const appointmentsForDate = appointments.filter(app => app.date === date);
     for (const app of appointmentsForDate) {
-      // Utilisation des propriétés plates renvoyées par l'API
       const appStart = parseTime(app.practice_start);
       const appEnd = parseTime(app.practice_end);
       if (newStart < appEnd && newEnd > appStart) {
@@ -352,7 +376,7 @@ const Agenda = () => {
       }
       patient = fakePatientsData.find(p => p.id === practiceDialog.selectedPatientId);
     }
-    // Construction de l'objet appointment avec la propriété imbriquée practice
+    // Construction de l'objet appointment
     const newAppointment = {
       appointment_key: appointmentKey,
       date,
@@ -418,7 +442,6 @@ const Agenda = () => {
       return;
     }
     const patient = fakePatientsData.find(p => p.id === appointmentDialog.selectedPatientId);
-    // Construction de l'objet appointment avec la propriété imbriquée practice
     const newAppointment = {
       appointment_key: appointmentDialog.appointmentKey,
       date: appointmentDialog.daySchedule.date,
@@ -533,7 +556,7 @@ const Agenda = () => {
         setSpecifiqueOnly={setSpecifiqueOnly}
         onSelectNextAvailabilityPractice={setSelectedPractice}
       />
-      <div className="flex-grow ">
+      <div className="flex-grow">
         <div className="flex-grow">
           <div className="flex items-center justify-between w-full mb-2 bg-gray-50 h-[40px]">
             <div className="flex items-center gap-1">
@@ -602,7 +625,7 @@ const Agenda = () => {
             setSelectedSlotInfo({ date, startTime });
           }}
           selectedPractice={selectedPractice}
-          onDayClick={handleDayClick} 
+          onDayClick={handleDayClick}
         />
       </div>
 

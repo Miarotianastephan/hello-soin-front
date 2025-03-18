@@ -27,6 +27,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
       className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
       required
     >
+      <option value="">Sélectionner</option>
       <option value="Mr">Monsieur</option>
       <option value="Mme">Madame</option>
       <option value="Mlle">Mademoiselle</option>

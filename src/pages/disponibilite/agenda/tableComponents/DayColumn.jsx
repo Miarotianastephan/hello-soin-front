@@ -363,6 +363,9 @@ const DayColumn = ({
                         <div className="w-[1/2] items-center justify-center rounded-md flex text-white text-[10px] px-2" style={{ backgroundColor: getColorByType(appointment.practice_type) }}>
                           {appointment.practice_type}
                         </div>
+                        <div className="w-full gap-1 font-bold text-left text-[10px] mt-1">
+                          {appointment.numero}
+                        </div>
                         <div className="w-full gap-1 font-bold text-left text-[10px]">
                           {appointment.genre} {appointment.prenom} {appointment.nom}
                         </div>

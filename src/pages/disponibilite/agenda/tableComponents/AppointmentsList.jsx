@@ -69,15 +69,16 @@ const AppointmentsList = ({ appointments }) => (
                       height: '10px',
                       borderRadius: '50%',
                       display: 'inline-block',
-                      backgroundColor: getColorByType(app.practice.type),
+                      backgroundColor: getColorByType(app.practice_type),
                     }}
                   />
                 </td>
                 <td>{app.date}</td>
                 <td>
-                  {app.practice.start} - {app.practice.end}
+                  {app.practice_start} - {app.practice_end}
                 </td>
                 <td>
+                  {app.nom} {app.prenom}
                 </td>
                 <td>{app.motif}</td>
               </tr>
