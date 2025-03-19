@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import DateFnsCalendar from './sidebarComponent/DateFnsCalendar';
-import { getColorByType } from './utils/agendaUtils';
 import "../../../App.css";
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -15,21 +14,43 @@ const AgendaSidebar = ({
   togglePracticeFilter,
   specifiqueOnly,
   setSpecifiqueOnly,
-  // On suppose que la sélection sera remontée vers le parent via ce callback
   onSelectNextAvailabilityPractice,
 }) => {
-  // Etat pour afficher/masquer le dropdown et pour la pratique sélectionnée
+  // État pour afficher/masquer le dropdown de sélection de prochaine disponibilité
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedPracticeForAvailability, setSelectedPracticeForAvailability] = useState(null);
+  // État pour la sélection de pratiques (aucune sélection par défaut)
+  const [selectedPracticeForAvailability, setSelectedPracticeForAvailability] = useState([]);
 
-  const practices = ['naturopathie', 'acupuncture', 'hypnose'];
+  // Récupération des pratiques via l'API
+  const [practices, setPractices] = useState([]);
+  useEffect(() => {
+    fetch("http://localhost:8888/api/practices")
+      .then(res => res.json())
+      .then(data => setPractices(data))
+      .catch(err => console.error("Erreur lors du fetch des pratiques", err));
+  }, []);
 
+  // Retourne la couleur associée à une pratique
+  const getColorByPractice = (practiceType) => {
+    const practice = practices.find(p => p.nom_discipline.toLowerCase() === practiceType.toLowerCase());
+    return practice ? practice.code_couleur : '#000000';
+  };
+
+  // Modification de la sélection d'une pratique (multi‑select)
   const handlePracticeChange = (practice) => {
-    // Si la pratique est déjà sélectionnée, la désélectionner (aucune sélection)
-    const newValue = selectedPracticeForAvailability === practice ? null : practice;
+    let newValue = [];
+    if (selectedPracticeForAvailability.includes(practice)) {
+      newValue = selectedPracticeForAvailability.filter(p => p !== practice);
+    } else {
+      newValue = [...selectedPracticeForAvailability, practice];
+    }
     setSelectedPracticeForAvailability(newValue);
-    // Remonter la sélection (null ou la pratique)
-    onSelectNextAvailabilityPractice(newValue);
+    // Si aucune pratique n'est sélectionnée, on considère que tous doivent être affichés
+    if (newValue.length === 0) {
+      onSelectNextAvailabilityPractice(practices.map(p => p.nom_discipline));
+    } else {
+      onSelectNextAvailabilityPractice(newValue);
+    }
   };
 
   return (
@@ -45,17 +66,17 @@ const AgendaSidebar = ({
         <div className="absolute top-12 left-4 bg-white shadow-md border p-2 z-20">
           <p className="mb-2 font-bold">Sélectionnez une pratique</p>
           {practices.map((practice) => (
-            <label key={practice} className="flex items-center mb-1 text-xs cursor-pointer">
+            <label key={practice.id_pratique} className="flex items-center mb-1 text-xs cursor-pointer">
               <input
                 type="checkbox"
-                checked={selectedPracticeForAvailability === practice}
-                onChange={() => handlePracticeChange(practice)}
+                checked={selectedPracticeForAvailability.includes(practice.nom_discipline)}
+                onChange={() => handlePracticeChange(practice.nom_discipline)}
               />
               <span
                 className="ml-2 inline-block w-3 h-3 rounded-full"
-                style={{ backgroundColor: getColorByType(practice) }}
+                style={{ backgroundColor: getColorByPractice(practice.nom_discipline) }}
               ></span>
-              <span className="ml-1 capitalize">{practice}</span>
+              <span className="ml-1">{practice.nom_discipline}</span>
             </label>
           ))}
           <button
@@ -91,55 +112,25 @@ const AgendaSidebar = ({
         </div>
       </div>
 
-      {/* Filtres sur les pratiques */}
+      {/* Filtres sur les types de rendez‑vous */}
       <div className="mx-4 border-b-2 pb-2 text-xs text-[#405969]">
         <div>
           <h4 className="font-bold mt-2 mb-4 text-xs">Types de rendez‑vous</h4>
         </div>
-        <label className="flex items-center mb-4 text-xs">
-          <input
-            type="checkbox"
-            checked={practiceFilter.tous}
-            onChange={() => togglePracticeFilter('tous')}
-          />
-          <span className="ml-1 text-xs">Tous</span>
-        </label>
-        <label className="flex items-center mb-4 text-xs">
-          <input
-            type="checkbox"
-            checked={practiceFilter.naturopathie}
-            onChange={() => togglePracticeFilter('naturopathie')}
-          />
-          <span
-            className="ml-2 w-3 h-3 rounded-full"
-            style={{ backgroundColor: getColorByType('naturopathie') }}
-          ></span>
-          <span className="ml-1 text-xs">Naturopathie</span>
-        </label>
-        <label className="flex items-center mb-4 text-xs">
-          <input
-            type="checkbox"
-            checked={practiceFilter.acupuncture}
-            onChange={() => togglePracticeFilter('acupuncture')}
-          />
-          <span
-            className="ml-2 w-3 h-3 rounded-full"
-            style={{ backgroundColor: getColorByType('acupuncture') }}
-          ></span>
-          <span className="ml-1 text-xs">Acupuncture</span>
-        </label>
-        <label className="flex items-center text-xs">
-          <input
-            type="checkbox"
-            checked={practiceFilter.hypnose}
-            onChange={() => togglePracticeFilter('hypnose')}
-          />
-          <span
-            className="ml-2 w-3 h-3 rounded-full"
-            style={{ backgroundColor: getColorByType('hypnose') }}
-          ></span>
-          <span className="ml-1 text-xs">Hypnose</span>
-        </label>
+        {practices.map((practice) => (
+          <label key={practice.id_pratique} className="flex items-center mb-4 text-xs">
+            <input
+              type="checkbox"
+              checked={practiceFilter[practice.nom_discipline.toLowerCase()]}
+              onChange={() => togglePracticeFilter(practice.nom_discipline.toLowerCase())}
+            />
+            <span
+              className="ml-2 w-3 h-3 rounded-full"
+              style={{ backgroundColor: getColorByPractice(practice.nom_discipline) }}
+            ></span>
+            <span className="ml-1">{practice.nom_discipline}</span>
+          </label>
+        ))}
       </div>
 
       {/* Légende */}

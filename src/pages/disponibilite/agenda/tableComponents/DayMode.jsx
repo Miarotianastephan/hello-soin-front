@@ -1,8 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { format, addMinutes, differenceInMinutes, isSameDay, startOfDay } from 'date-fns';
-import { dayNames, parseTime, totalDuration, DAY_COLUMN_HEIGHT, AGENDA_START, getColorByType } from '../utils/agendaUtils';
+import { 
+  format, 
+  addMinutes, 
+  differenceInMinutes, 
+  isSameDay, 
+  startOfDay, 
+  parse 
+} from 'date-fns';
+import { 
+  dayNames, 
+  parseTime, 
+  totalDuration, 
+  DAY_COLUMN_HEIGHT, 
+  AGENDA_START 
+} from '../utils/agendaUtils';
 import { createPlageHoraire } from '../utils/scheduleUtils';
 import { Phone, Mail, CalendarCheck, Notebook, User } from 'lucide-react';
+
+// Fonction utilitaire pour formater une date en toute sécurité
+const safeFormat = (dateValue, dateFormat) => {
+  const d = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  return !isNaN(d.getTime()) ? format(d, dateFormat) : '';
+};
 
 const HEADER_HEIGHT = 60;
 
@@ -19,12 +38,27 @@ const DayMode = ({
   refreshSchedule,
   selectedPractice
 }) => {
+  // Récupération des pratiques via l'API
+  const [practices, setPractices] = useState([]);
+  useEffect(() => {
+    fetch("http://localhost:8888/api/practices")
+      .then(res => res.json())
+      .then(data => setPractices(data))
+      .catch(err => console.error("Erreur lors du fetch des pratiques", err));
+  }, []);
+
+  // Fonction pour obtenir la couleur associée à une pratique (comparaison insensible à la casse)
+  const getColorByPractice = (practiceType) => {
+    const practice = practices.find(p => p.nom_discipline.toLowerCase() === practiceType.toLowerCase());
+    return practice ? practice.code_couleur : '#000000';
+  };
+
   // Gestion de la sélection multiple
   const [multiSelectStart, setMultiSelectStart] = useState(null);
   const [multiSelectCurrent, setMultiSelectCurrent] = useState(null);
   const [finalMultiSelectRange, setFinalMultiSelectRange] = useState(null);
 
-  // Références pour tooltip et bloc de survol (hover)
+  // Références pour tooltip et bloc de survol
   const tooltipRef = useRef(null);
   const hoverBlockRef = useRef(null);
   const animationFrameId = useRef(null);
@@ -52,7 +86,7 @@ const DayMode = ({
     }
   }
 
-  // Gestion du clic sur le fond (pour créer une plage horaire)
+  // Gestion du clic sur le fond (création d'une plage horaire)
   const handleBackgroundClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
@@ -84,9 +118,9 @@ const DayMode = ({
       } else {
         const startTime = multiSelectStart < multiSelectCurrent ? multiSelectStart : multiSelectCurrent;
         const endTime = multiSelectStart < multiSelectCurrent ? multiSelectCurrent : multiSelectStart;
-        const formattedDate = format(date, 'dd-MM-yyyy');
-        const formattedStart = format(startTime, 'HH:mm');
-        const formattedEnd = format(endTime, 'HH:mm');
+        const formattedDate = safeFormat(date, 'dd-MM-yyyy');
+        const formattedStart = safeFormat(startTime, 'HH:mm');
+        const formattedEnd = safeFormat(endTime, 'HH:mm');
         try {
           createPlageHoraire(formattedDate, formattedStart, formattedEnd);
           if (typeof refreshSchedule === 'function') {
@@ -111,8 +145,8 @@ const DayMode = ({
     });
     
     if (!isWithinSlot) {
-      const formattedDate = format(date, 'dd-MM-yyyy');
-      const formattedTime = format(clickedTime, 'HH:mm');
+      const formattedDate = safeFormat(date, 'dd-MM-yyyy');
+      const formattedTime = safeFormat(clickedTime, 'HH:mm');
       onOpenCreateAppointment(formattedDate, formattedTime);
       console.log('a verifier');
     }
@@ -129,7 +163,7 @@ const DayMode = ({
     const offsetMinutes = Math.round(rawMinutes / 15) * 15;
     const clampedMinutes = Math.max(0, Math.min(offsetMinutes, slotDuration));
     const newTime = new Date(slotStart.getTime() + clampedMinutes * 60000);
-    const formattedTime = format(newTime, 'HH:mm');
+    const formattedTime = safeFormat(newTime, 'HH:mm');
     onSlotClick(daySchedule, slotIndex, sourceType, {
       ...clickedSlot,
       start: formattedTime
@@ -138,7 +172,7 @@ const DayMode = ({
 
   const totalIntervals = 24 * 4; // 96 intervalles de 15 min
 
-  // Gestion du mouvement de la souris avec requestAnimationFrame
+  // Gestion du mouvement de la souris
   const throttledHandleMouseMove = (e) => {
     if (animationFrameId.current) return;
     const target = e.currentTarget;
@@ -160,15 +194,13 @@ const DayMode = ({
       );
       const newTime = addMinutes(agendaStartDate, newTimeMinutes);
       
-      // Mise à jour de l'info-bulle (tooltip)
       if (tooltipRef.current) {
         tooltipRef.current.style.left = `${offsetX + 5}px`;
         tooltipRef.current.style.top = `${offsetY + HEADER_HEIGHT + 10}px`;
-        tooltipRef.current.innerText = format(newTime, 'HH:mm');
+        tooltipRef.current.innerText = safeFormat(newTime, 'HH:mm');
         tooltipRef.current.style.display = 'block';
       }
       
-      // Mise à jour du bloc de survol (hoverBlock)
       if (hoverBlockRef.current) {
         const blockTop = blockIndex * blockHeight;
         hoverBlockRef.current.style.top = `${blockTop + HEADER_HEIGHT}px`;
@@ -176,7 +208,6 @@ const DayMode = ({
         hoverBlockRef.current.style.display = 'block';
       }
       
-      // Mise à jour de la sélection multiple si active
       if (multiSelectStart) {
         setMultiSelectCurrent(newTime);
       }
@@ -204,7 +235,7 @@ const DayMode = ({
 
   return (
     <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
-      {/* Tooltip pour le survol */}
+      {/* Tooltip */}
       <div
         ref={tooltipRef}
         style={{
@@ -234,7 +265,7 @@ const DayMode = ({
         }}
         className="rounded-lg"
       />
-      {/* Header affiché en 5 colonnes */}
+      {/* Header en 5 colonnes */}
       <div
         className="sticky top-0 z-10 p-1 border-l bg-white"
         style={{ 
@@ -306,7 +337,7 @@ const DayMode = ({
             isSlotPast = slotEndDate < new Date();
           }
           const pastStyle = !isSelectable ? { backgroundColor: '#f0f0f0', opacity: 0.6 } : {};
-
+          
           return (
             <div
               key={idx}
@@ -323,24 +354,25 @@ const DayMode = ({
                 handleClick(e, daySchedule, idx, daySchedule.sourceType, slot, slotHeight);
               }) : null}
             >
-              {/* Affichage des appointments filtrés par date et plage horaire */}
               {appointments
                 .filter(app => {
-                  // On affiche uniquement les rendez-vous dont la date correspond à celle de la colonne
-                  if (format(new Date(app.date), 'dd-MM-yyyy') !== format(date, 'dd-MM-yyyy')) {
+                  // Vérifier que la date de l'appointment correspond à celle de la colonne
+                  const appDate = parse(app.date, 'dd-MM-yyyy', new Date());
+                  if (safeFormat(appDate, 'dd-MM-yyyy') !== safeFormat(date, 'dd-MM-yyyy')) {
                     return false;
                   }
-                  // On vérifie que l'heure de début de l'appointment se situe dans le créneau courant
+                  // Vérifier que l'heure de début se situe dans le slot courant
                   const appStart = parseTime(app.practice_start);
                   const sStart = parseTime(slot.start);
                   const sEnd = parseTime(slot.end);
-                  return appStart >= sStart && appStart < sEnd && (practiceFilter.tous || practiceFilter[app.practice_type]);
+                  // Normalisation de la clé de pratique (en minuscules)
+                  return appStart >= sStart && appStart < sEnd && (practiceFilter.tous || practiceFilter[app.practice_type.toLowerCase()]);
                 })
                 .map((appointment, pIdx) => {
                   const appointmentStart = parseTime(appointment.practice_start);
                   const appointmentEnd = parseTime(appointment.practice_end);
-                  const practiceStartFormatted = format(appointmentStart, 'HH:mm');
-                  const practiceEndFormatted = format(appointmentEnd, 'HH:mm');
+                  const practiceStartFormatted = safeFormat(appointmentStart, 'HH:mm');
+                  const practiceEndFormatted = safeFormat(appointmentEnd, 'HH:mm');
                   const pOffset = (differenceInMinutes(appointmentStart, slotStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
                   const pHeight = (differenceInMinutes(appointmentEnd, appointmentStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
                   return (
@@ -352,9 +384,9 @@ const DayMode = ({
                         height: `${pHeight}%`,
                         left: 0,
                         right: 0,
-                        borderColor: getColorByType(appointment.practice_type),
-                        color: getColorByType(appointment.practice_type),
-                        backgroundColor: `${getColorByType(appointment.practice_type)}30`,
+                        borderColor: getColorByPractice(appointment.practice_type),
+                        color: getColorByPractice(appointment.practice_type),
+                        backgroundColor: `${getColorByPractice(appointment.practice_type)}30`,
                         borderRadius: "4px"
                       }}
                       title={`${appointment.practice_type} (${practiceStartFormatted} - ${practiceEndFormatted}) Réservé`}
@@ -386,7 +418,7 @@ const DayMode = ({
                   );
                 })
               }
-              {/* Affichage de l'overlay indiquant l'heure actuelle dans le slot */}
+              
               {isToday && !isSlotPast && (() => {
                 const currentTime = new Date();
                 if (currentTime >= slotStart && currentTime < slotEnd) {

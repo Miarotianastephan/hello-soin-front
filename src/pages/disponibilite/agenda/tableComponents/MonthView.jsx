@@ -19,14 +19,25 @@ import { getColorByType } from '../utils/agendaUtils';
 import BASE_URL from '@/pages/config/baseurl';
 
 const MonthView = ({ currentDate, onDayClick }) => {
-  const [appointments, setAppointments] = useState([]);
+  // Initialisation des rendez‑vous à partir du localStorage
+  const [appointments, setAppointments] = useState(() => {
+    const saved = localStorage.getItem('appointments');
+    return saved ? JSON.parse(saved) : [];
+  });
 
+  // Mise à jour du localStorage dès que les rendez‑vous changent
   useEffect(() => {
-    // Remplacez l'URL par celle de votre API
+    localStorage.setItem('appointments', JSON.stringify(appointments));
+  }, [appointments]);
+
+  // Chargement des rendez‑vous via l’API
+  useEffect(() => {
     fetch(`${BASE_URL}/appointments`)
       .then((res) => res.json())
       .then((data) => setAppointments(data))
-      .catch((err) => console.error('Erreur lors de la récupération des rendez‑vous :', err));
+      .catch((err) =>
+        console.error('Erreur lors de la récupération des rendez‑vous :', err)
+      );
   }, []);
 
   const monthStart = startOfMonth(currentDate);
@@ -43,7 +54,7 @@ const MonthView = ({ currentDate, onDayClick }) => {
 
   // Filtrer les rendez‑vous pour un jour donné (en comparant la date ISO)
   const getAppointmentsForDay = (day) => {
-    return appointments.filter(app => isSameDay(parseISO(app.date), day));
+    return appointments.filter((app) => isSameDay(parseISO(app.date), day));
   };
 
   const today = startOfDay(new Date());
@@ -68,8 +79,8 @@ const MonthView = ({ currentDate, onDayClick }) => {
           const clickable = !isPast; // les dates passées ne sont pas cliquables
 
           return (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`border p-1 h-24 text-xs 
                 ${!isSameMonth(day, currentDate) ? 'bg-gray-100' : ''} 
                 ${isToday(day) ? 'bg-green-50' : ''} 
@@ -84,9 +95,9 @@ const MonthView = ({ currentDate, onDayClick }) => {
               </div>
               <div className="mt-1">
                 {dayAppointments.slice(0, 2).map((app, i) => (
-                  <div 
-                    key={i} 
-                    className="truncate" 
+                  <div
+                    key={i}
+                    className="truncate"
                     style={{ color: getColorByType(app.practice_type) }}
                   >
                     {app.practice_type ? app.practice_type : 'RDV'}

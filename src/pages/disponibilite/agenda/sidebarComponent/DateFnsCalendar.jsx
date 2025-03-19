@@ -12,19 +12,27 @@ import {
   isSameDay,
   isBefore,
   startOfDay,
+  parse,
+  isValid
 } from 'date-fns';
 import BASE_URL from '@/pages/config/baseurl';
+
+// Fonction utilitaire qui tente de parser une chaîne selon le format donné et retourne null si invalide
+const safeParseDate = (dateString, dateFormat) => {
+  if (!dateString) return null;
+  const parsed = parse(dateString, dateFormat, new Date());
+  return isValid(parsed) ? parsed : null;
+};
 
 const DateFnsCalendar = ({ selected, onSelect, locale, renderHeader, dayClassName }) => {
   const [currentMonth, setCurrentMonth] = useState(selected || new Date());
   const today = startOfDay(new Date());
 
-  // Initialisation du planning spécifique à partir du localStorage
+  // Initialisation du planning spécifique depuis le localStorage
   const [specificDates, setSpecificDates] = useState(() => {
     const saved = localStorage.getItem('specificDates');
     return saved ? JSON.parse(saved) : [];
   });
-  // MàJ du localStorage dès que specificDates change
   useEffect(() => {
     localStorage.setItem('specificDates', JSON.stringify(specificDates));
   }, [specificDates]);
@@ -47,12 +55,11 @@ const DateFnsCalendar = ({ selected, onSelect, locale, renderHeader, dayClassNam
       });
   }, []);
 
-  // Initialisation du planning général à partir du localStorage
+  // Initialisation du planning général depuis le localStorage
   const [general, setGeneral] = useState(() => {
     const saved = localStorage.getItem('general');
     return saved ? JSON.parse(saved) : [];
   });
-  // MàJ du localStorage dès que general change
   useEffect(() => {
     localStorage.setItem('general', JSON.stringify(general));
   }, [general]);
@@ -84,20 +91,23 @@ const DateFnsCalendar = ({ selected, onSelect, locale, renderHeader, dayClassNam
       });
   }, []);
 
-  // Détermine si une date est disponible (cliquable) en vérifiant le planning spécifique et général
+  // Détermine si une date est disponible en vérifiant le planning spécifique et général
   const isDayAvailable = (date) => {
     const dateStr = format(date, 'dd-MM-yyyy');
-
+  
     // Vérification dans le planning spécifique
     const specificEntry = specificDates.find(entry => {
-      const entryDate = format(new Date(entry.specific_date), 'dd-MM-yyyy');
+      // On parse la date spécifique avec le format "dd-MM-yyyy"
+      const parsed = safeParseDate(entry.specific_date, 'dd-MM-yyyy');
+      if (!parsed) return false;
+      const entryDate = format(parsed, 'dd-MM-yyyy');
       return entryDate === dateStr;
     });
     if (specificEntry && specificEntry.timeSlots && specificEntry.timeSlots.length > 0) {
       return true;
     }
-
-    // Sinon, vérification dans le planning général
+  
+    // Vérification dans le planning général
     const dayIndex = date.getDay(); // 0 = dimanche, 1 = lundi, etc.
     // On considère que le planning général commence par lundi à l'indice 0 :
     const mappedIndex = dayIndex === 0 ? 6 : dayIndex - 1;

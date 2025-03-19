@@ -35,7 +35,7 @@ const ExistingPatientSearch = ({
                   onClick={() => {
                     setPracticeDialog((prev) => ({
                       ...prev,
-                      selectedPatientId: patient.id,
+                      selectedPatientId:  patient.id_user,
                       error: '',
                     }));
                     setSearchTerm('');

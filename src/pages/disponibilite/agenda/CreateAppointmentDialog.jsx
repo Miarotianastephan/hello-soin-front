@@ -29,17 +29,19 @@ const CreateAppointmentDialog = ({
     }
   };
 
-  // On place isNewPatient et newPatient dans newPractice pour être cohérent
+  // On fixe ici praticien_id à 3
   const [formData, setFormData] = useState({
     date: getDefaultDate(),
     newPractice: {
-      type: 'naturopathie',
+      type: '',
       start: initialStartTime || '08:00',
       duration: '60',
       end: '09:00',
       motif: '',
       isNewPatient: false,
       newPatient: {},
+      praticien_id: 3,  // Fixe praticien_id à 3
+      id_pratique: 1,   // ID de la pratique (à adapter selon votre contexte)
     },
     selectedPatientId: '',
     error: ''
@@ -96,7 +98,7 @@ const CreateAppointmentDialog = ({
   const createFakeUser = async () => {
     try {
       // Utilisation de newPractice.newPatient pour récupérer les données du nouveau patient
-      const response = await fetch(`${BASE_URL}/fakeUsers`, {
+      const response = await fetch(`${BASE_URL}/utilisateurs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData.newPractice.newPatient)
@@ -133,12 +135,15 @@ const CreateAppointmentDialog = ({
 
     const appointmentKey = `${formData.date}_${formData.newPractice.start}_${formData.newPractice.end}_${formData.newPractice.type}`;
 
+    // Construction du payload en incluant tous les champs obligatoires
     const appointmentPayload = {
       appointment_key: appointmentKey,
       date: formData.date,
       slot_index: 0,
       motif: formData.newPractice.motif,
       fake_user_id: parseInt(fakeUserId, 10),
+      praticien_id: formData.newPractice.praticien_id,
+      id_pratique: formData.newPractice.id_pratique,
       practice: {
         type: formData.newPractice.type,
         start: formData.newPractice.start,

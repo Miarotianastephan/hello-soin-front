@@ -236,15 +236,15 @@ class GeneralEntreDates extends Component {
     fetch(`${BASE_URL}/specificDates`)
       .then(response => response.json())
       .then(existingDates => {
-        // Convertir les dates existantes en format dd-MM-yyyy
-        const existingDatesFormatted = existingDates.map(entry =>
-          format(new Date(entry.specific_date), 'dd-MM-yyyy')
-        );
+        // Conversion des dates existantes en format dd-MM-yyyy avec parse()
+        const existingDatesFormatted = existingDates.map(entry => {
+          const parsedDate = parse(entry.specific_date, 'dd-MM-yyyy', new Date());
+          return format(parsedDate, 'dd-MM-yyyy');
+        });
         const overlappingDates = newPlanning.datesWithSlots
           .filter(newItem => existingDatesFormatted.includes(newItem.date))
           .map(item => item.date);
 
-        // On conserve ici la logique sur les appointments stockés en localStorage (si nécessaire)
         let appointmentsToOverwrite = [];
         const appointmentsStr = localStorage.getItem('appointments');
         if (appointmentsStr) {
@@ -311,7 +311,6 @@ class GeneralEntreDates extends Component {
 
   handleConfirmOverwrite = () => {
     const { pendingPlanningData, overwriteDialog: { overlappingDates } } = this.state;
-    // Mise à jour locale des appointments (si nécessaire)
     const appointmentsStr = localStorage.getItem('appointments');
     if (appointmentsStr) {
       try {

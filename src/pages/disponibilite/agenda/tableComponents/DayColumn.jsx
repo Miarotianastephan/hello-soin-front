@@ -1,10 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { format, addMinutes, differenceInMinutes, isSameDay, startOfDay } from 'date-fns';
-import { dayNames, parseTime, totalDuration, DAY_COLUMN_HEIGHT, AGENDA_START, getColorByType } from '../utils/agendaUtils';
+import { 
+  format, 
+  addMinutes, 
+  differenceInMinutes, 
+  isSameDay, 
+  startOfDay, 
+  parse 
+} from 'date-fns';
+import { 
+  dayNames, 
+  parseTime, 
+  totalDuration, 
+  DAY_COLUMN_HEIGHT, 
+  AGENDA_START 
+} from '../utils/agendaUtils';
 import { createPlageHoraire } from '../utils/scheduleUtils';
 import { Phone } from 'lucide-react';
 
 const HEADER_HEIGHT = 60;
+
+// Fonction utilitaire pour formater une date en toute sécurité
+const safeFormat = (dateValue, dateFormat) => {
+  const d = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  return !isNaN(d.getTime()) ? format(d, dateFormat) : '';
+};
 
 const DayColumn = ({
   daySchedule,
@@ -17,6 +36,22 @@ const DayColumn = ({
   onOpenCreateAppointment,
   refreshSchedule
 }) => {
+  // Récupération des pratiques depuis l'API
+  const [practices, setPractices] = useState([]);
+  useEffect(() => {
+    fetch("http://localhost:8888/api/practices")
+      .then(res => res.json())
+      .then(data => setPractices(data))
+      .catch(err => console.error("Erreur lors du fetch des pratiques", err));
+  }, []);
+
+  // Fonction qui retourne la couleur associée à la pratique (en comparant en minuscules)
+  const getColorByPractice = (practiceType) => {
+    const practice = practices.find(p => p.nom_discipline.toLowerCase() === practiceType.toLowerCase());
+    return practice ? practice.code_couleur : '#000000'; // couleur par défaut
+  };
+
+  // Les autres states et refs
   const [multiSelectStart, setMultiSelectStart] = useState(null);
   const [multiSelectCurrent, setMultiSelectCurrent] = useState(null);
   const [finalMultiSelectRange, setFinalMultiSelectRange] = useState(null);
@@ -79,9 +114,9 @@ const DayColumn = ({
       } else {
         const startTime = multiSelectStart < multiSelectCurrent ? multiSelectStart : multiSelectCurrent;
         const endTime = multiSelectStart < multiSelectCurrent ? multiSelectCurrent : multiSelectStart;
-        const formattedDate = format(date, 'dd-MM-yyyy');
-        const formattedStart = format(startTime, 'HH:mm');
-        const formattedEnd = format(endTime, 'HH:mm');
+        const formattedDate = safeFormat(date, 'dd-MM-yyyy');
+        const formattedStart = safeFormat(startTime, 'HH:mm');
+        const formattedEnd = safeFormat(endTime, 'HH:mm');
         try {
           createPlageHoraire(formattedDate, formattedStart, formattedEnd);
           if (typeof refreshSchedule === 'function') {
@@ -106,8 +141,8 @@ const DayColumn = ({
     });
     
     if (!isWithinSlot) {
-      const formattedDate = format(date, 'dd-MM-yyyy');
-      const formattedTime = format(clickedTime, 'HH:mm');
+      const formattedDate = safeFormat(date, 'dd-MM-yyyy');
+      const formattedTime = safeFormat(clickedTime, 'HH:mm');
       onOpenCreateAppointment(formattedDate, formattedTime);
       console.log('a verifier');
     }
@@ -123,7 +158,7 @@ const DayColumn = ({
     const offsetMinutes = Math.round(rawMinutes / 15) * 15;
     const clampedMinutes = Math.max(0, Math.min(offsetMinutes, slotDuration));
     const newTime = new Date(slotStart.getTime() + clampedMinutes * 60000);
-    const formattedTime = format(newTime, 'HH:mm');
+    const formattedTime = safeFormat(newTime, 'HH:mm');
     onSlotClick(daySchedule, slotIndex, sourceType, {
       ...clickedSlot,
       start: formattedTime
@@ -157,7 +192,7 @@ const DayColumn = ({
       if (tooltipRef.current) {
         tooltipRef.current.style.left = `${offsetX + 5}px`;
         tooltipRef.current.style.top = `${offsetY + HEADER_HEIGHT + 10}px`;
-        tooltipRef.current.innerText = format(newTime, 'HH:mm');
+        tooltipRef.current.innerText = safeFormat(newTime, 'HH:mm');
         tooltipRef.current.style.display = 'block';
       }
       
@@ -241,7 +276,7 @@ const DayColumn = ({
         style={{ height: `${HEADER_HEIGHT}px` }}
       >
         <p className="text-gray-700 font-bold text-xs text-start">{dayNames[date.getDay()]}</p>
-        <p className="font-bold text-lg text-start">{format(date, 'dd')}</p>
+        <p className="font-bold text-lg text-start">{safeFormat(date, 'dd')}</p>
       </div>
       <div
         style={{
@@ -316,24 +351,26 @@ const DayColumn = ({
                 handleClick(e, daySchedule, idx, daySchedule.sourceType, slot, slotHeight);
               }) : null}
             >
-              {/* Affichage des appointments correspondant à la date de la colonne */}
               {appointments
                 .filter(app => {
-                  // On compare la date de l'appointment et celle de la colonne (format dd-MM-yyyy)
-                  if (format(new Date(app.date), 'dd-MM-yyyy') !== format(date, 'dd-MM-yyyy')) {
+                  // Vérifier que la date de l'appointment correspond à la date de la colonne
+                  const appDate = parse(app.date, 'dd-MM-yyyy', new Date());
+                  if (safeFormat(appDate, 'dd-MM-yyyy') !== safeFormat(date, 'dd-MM-yyyy')) {
                     return false;
                   }
-                  // On vérifie que l'heure de début de la pratique se trouve dans le slot courant
+                  // Vérifier que l'heure de début se trouve dans le slot courant
                   const appStart = parseTime(app.practice_start);
                   const sStart = parseTime(slot.start);
                   const sEnd = parseTime(slot.end);
-                  return appStart >= sStart && appStart < sEnd && (practiceFilter.tous || practiceFilter[app.practice_type]);
+                  // Normalisation de la clé de pratique (en minuscules)
+                  const practiceTypeKey = app.practice_type.toLowerCase();
+                  return appStart >= sStart && appStart < sEnd && (practiceFilter.tous || practiceFilter[practiceTypeKey]);
                 })
                 .map((appointment, pIdx) => {
                   const appointmentStart = parseTime(appointment.practice_start);
                   const appointmentEnd = parseTime(appointment.practice_end);
-                  const practiceStartFormatted = format(appointmentStart, 'HH:mm');
-                  const practiceEndFormatted = format(appointmentEnd, 'HH:mm');
+                  const practiceStartFormatted = safeFormat(appointmentStart, 'HH:mm');
+                  const practiceEndFormatted = safeFormat(appointmentEnd, 'HH:mm');
                   const pOffset = (differenceInMinutes(appointmentStart, slotStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
                   const pHeight = (differenceInMinutes(appointmentEnd, appointmentStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
                   return (
@@ -345,9 +382,9 @@ const DayColumn = ({
                         height: `${pHeight}%`,
                         left: 0,
                         right: 0,
-                        borderColor: getColorByType(appointment.practice_type),
-                        color: getColorByType(appointment.practice_type),
-                        backgroundColor: `${getColorByType(appointment.practice_type)}10`,
+                        borderColor: getColorByPractice(appointment.practice_type),
+                        color: getColorByPractice(appointment.practice_type),
+                        backgroundColor: `${getColorByPractice(appointment.practice_type)}10`,
                         borderRadius: "4px"
                       }}
                       title={`${appointment.practice_type} (${practiceStartFormatted} - ${practiceEndFormatted}) Réservé`}
@@ -360,7 +397,7 @@ const DayColumn = ({
                         <div className="flex items-center justify-between pr-2 mt-1 gap-1 w-full">
                           <div className="font-tsy-bold text-[10px]">{practiceStartFormatted} - {practiceEndFormatted}</div>
                         </div>
-                        <div className="w-[1/2] items-center justify-center rounded-md flex text-white text-[10px] px-2" style={{ backgroundColor: getColorByType(appointment.practice_type) }}>
+                        <div className="w-[1/2] items-center justify-center rounded-md flex text-white text-[10px] px-2" style={{ backgroundColor: getColorByPractice(appointment.practice_type) }}>
                           {appointment.practice_type}
                         </div>
                         <div className="w-full gap-1 font-bold text-left text-[10px] mt-1">
@@ -370,7 +407,7 @@ const DayColumn = ({
                           {appointment.genre} {appointment.prenom} {appointment.nom}
                         </div>
                         <div className="w-full gap-1 font-bold text-left text-[10px]">
-                          {format(new Date(appointment.date), 'dd-MM-yyyy')}
+                          {safeFormat(parse(appointment.date, 'dd-MM-yyyy', new Date()), 'dd-MM-yyyy')}
                         </div>
                       </div>
                     </div>

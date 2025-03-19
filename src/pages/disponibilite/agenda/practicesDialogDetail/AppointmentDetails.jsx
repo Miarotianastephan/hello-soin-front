@@ -1,11 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { format, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Calendar } from 'lucide-react';
 import { DialogDescription } from '@/components/ui/dialog';
 import { parseTime } from '../utils/agendaUtils';
 
-const AppointmentDetails = ({ practiceDialog, onTypeChange, onStartChange, setPracticeDialog }) => {
+const AppointmentDetails = ({ practiceDialog, onStartChange, setPracticeDialog }) => {
+  // Récupérer la liste des pratiques depuis l'API
+  const [practices, setPractices] = useState([]);
+
+  useEffect(() => {
+    fetch('http://localhost:8888/api/practices')
+      .then(response => response.json())
+      .then(data => setPractices(data))
+      .catch(error => console.error('Erreur lors de la récupération des pratiques : ', error));
+  }, []);
+
   const selectedDate = practiceDialog.date
     ? format(parse(practiceDialog.date, 'dd-MM-yyyy', new Date()), 'EEEE d MMMM yyyy', { locale: fr })
     : 'Date non sélectionnée';
@@ -20,10 +30,29 @@ const AppointmentDetails = ({ practiceDialog, onTypeChange, onStartChange, setPr
     if (start && effectiveDuration) {
       const parsedStart = parseTime(start);
       const newEndDate = new Date(parsedStart.getTime() + parseInt(effectiveDuration, 10) * 60000);
-      return format(newEndDate, 'HH:mm');
+      return format(newEndDate, 'HH:mm'); // Conserver le format HH:mm pour l'UI
     }
     return '';
   };
+
+  // Gestion du changement du type de rendez‑vous et mise à jour de la durée par défaut
+  const handleTypeChange = (e) => {
+    const selectedType = e.target.value;
+    const selectedPractice = practices.find(practice => practice.nom_discipline === selectedType);
+    const defaultDuration = selectedPractice ? Math.round(parseFloat(selectedPractice.duree) * 60) : 20;
+    
+    setPracticeDialog(prev => ({
+      ...prev,
+      newPractice: {
+        ...prev.newPractice,
+        type: selectedType,
+        duration: defaultDuration,
+        end: updateEndTime(prev.newPractice.start, defaultDuration),
+        id_pratique: selectedPractice ? selectedPractice.id_pratique : null
+      }
+    }));
+  };
+  
 
   return (
     <>
@@ -42,14 +71,16 @@ const AppointmentDetails = ({ practiceDialog, onTypeChange, onStartChange, setPr
             Type de rendez‑vous
             <select
               value={practiceDialog.newPractice.type}
-              onChange={onTypeChange}
+              onChange={handleTypeChange}
               className="border p-1 rounded w-full mt-1 h-[30px]"
               required
             >
               <option value="">Sélectionner</option>
-              <option value="naturopathie">Naturopathie</option>
-              <option value="acupuncture">Acupuncture</option>
-              <option value="hypnose">Hypnose</option>
+              {practices.map(practice => (
+                <option key={practice.id_pratique} value={practice.nom_discipline}>
+                  {practice.nom_discipline}
+                </option>
+              ))}
             </select>
           </label>
           
