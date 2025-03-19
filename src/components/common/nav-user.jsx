@@ -29,12 +29,21 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Link } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { decodedToken } from "@/services/api"
 
-export function NavUser({user}) {
-const { isMobile } = useSidebar()
+export function NavUser() {
+  const { isMobile } = useSidebar();
+  const [userData, setUserData] = useState({});
+
+  useEffect(() => {
+    const payloadData = decodedToken();
+    setUserData(payloadData);
+  }, [])
 
   return (
-    <SidebarMenu>
+    
+    ( userData ? <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -43,12 +52,12 @@ const { isMobile } = useSidebar()
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.user_photo} alt={user.user_name} />
+                <AvatarImage src={userData.user_photo || ""} alt={userData.nom || ""} />
                 <AvatarFallback className="rounded-lg">USR</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.user_name} {user.user_forname}</span>
-                <span className="truncate text-xs">{user.user_mail}</span>
+                <span className="truncate font-semibold">{userData.nom} {userData.prenom}</span>
+                <span className="truncate text-xs">{userData.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -62,12 +71,12 @@ const { isMobile } = useSidebar()
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.user_photo} alt={user.user_name} />
+                  <AvatarImage src={userData.user_photo || ""} alt={userData.nom} />
                   <AvatarFallback className="rounded-lg">USR</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.user_name} {user.user_forname}</span>
-                  <span className="truncate text-xs">{user.user_mail}</span>
+                  <span className="truncate font-semibold">{userData.nom} {userData.prenom}</span>
+                  <span className="truncate text-xs">{userData.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -97,6 +106,13 @@ const { isMobile } = useSidebar()
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
-    </SidebarMenu>
+    </SidebarMenu> 
+    : (
+      <>
+        <p>
+          N/A
+        </p>
+      </>
+    )) 
   )
 }

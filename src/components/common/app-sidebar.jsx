@@ -30,23 +30,7 @@ import { DropdownMenuSeparator } from "../ui/dropdown-menu";
 
 const AppSidebar = () => {
   const location = useLocation();
-  const [user_info, setUserInfo] = useState({
-    id_users: undefined,
-    user_name: "Jean",
-    user_forname: "Dupont",
-    adresse: "Ambiatibe",
-    code_postal: "12344",
-    ville: "Tsy hay",
-    user_created_at: "05-02-2025",
-    user_date_naissance: "01-08-2002",
-    user_mail: "jean@mail.jean",
-    user_password: "xxxxxxx",
-    user_phone: "34 21 245 21",
-    user_photo_url:
-      "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-3.jpg",
-    id_type_user: undefined,
-    mot_de_passe: "",
-  });
+  // const [user_info, setUserInfo] = useState({});
 
   // useEffect(() => {
   //   const data = getLocalData('user_data');
@@ -129,7 +113,8 @@ const AppSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user_info} />
+        {/* Resume de l'user connecter */}
+        <NavUser /> 
       </SidebarFooter>
       <SidebarRail title="" className="hover:bg-gray-50" />
     </Sidebar>

@@ -1,6 +1,6 @@
 import logo_login from '@/assets/login_illu.jpg'
 import LoginOptions from "./login-options"
-import { api_login, setLocalData, api_login_test } from "@/services/api"
+import { login_user, setLocalData, api_login_test } from "@/services/api"
 import { AlertCircle, X } from "lucide-react"
  
 import {
@@ -31,33 +31,24 @@ export const LoginForm = ({ className, ...props }) => {
   const [visible, setVisible] = useState(false);
 
   const onSubmit = async (data) => { 
-    console.log(data) 
     setLoading(true);
     try {
-      const response = await api_login_test(data.user_mail,data.mot_de_passe);
+      const response = await login_user(data.user_mail,data.mot_de_passe);
 
+      console.log(response);
       setTimeout(() => {
         setLocalData("token",response.token);
-        setLocalData("user_data",response.user);
         setLoading(false);
+        navigate("/praticien/dashboard");
       }, 1000);
 
-      navigate("/praticien/dashboard");
 
     } catch (error) {
       setMessage(error);
+      setVisible(true);
       setLoading(false);
     } 
   }
-
-  useEffect(() => {
-    if(message) {
-      // On vérifie que message est un objet avec une propriété "message"
-      const errorText = message.message || message;
-      setMessage(errorText);
-      setVisible(true);
-    }
-  }, [message])
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

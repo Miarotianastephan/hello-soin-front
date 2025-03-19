@@ -1,24 +1,24 @@
 import axios from 'axios';
 import { user_test } from '@/components/common/constant';
+import { jwtDecode } from 'jwt-decode';
 
-const API_URL = 'http://192.168.137.1:3000/api';
-// const API_URL = 'https://passion-vins.fr/api';
-
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 export {
   API_URL
 }
+
 // Login API
-export const api_login = async (user_mail, mot_de_passe) => {
+export const login_user = async (user_mail, mot_de_passe) => {
   try {
     const response = await axios.post(`${API_URL}/login`, {
-      user_mail,
-      mot_de_passe
+      "email": user_mail,
+      "password": mot_de_passe
     });
-
-    return response.data; // Retourne la réponse du serveur
+    return response.data;
   } catch (error) {
-    console.error("Erreur lors de la connexion", error);
-    throw error; // Propager l'erreur pour la gérer ailleurs
+    const errorMessage = error.response.data.message;
+    console.error("Erreur lors de la connexion", errorMessage);
+    throw errorMessage;
   }
 };
 
@@ -79,4 +79,10 @@ export const getProfilPraticien = () =>{
 
   // Appel axiosa implementer
   return data_user;
-} 
+}
+
+export const decodedToken = () => {
+  const token = getLocalData('token');
+  const payloadData = jwtDecode(token);
+  return payloadData;
+}
