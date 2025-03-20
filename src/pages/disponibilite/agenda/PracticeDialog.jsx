@@ -13,6 +13,9 @@ const PracticeDialog = ({
   onSave,
   fakePatients,
   setPracticeDialog,
+  selectedPractice,
+  idPractice,
+  durationPractice // nouvelle prop pour la pratique fixée
 }) => {
   // Fonction pour formater une date/heure au format "hh:mm"
   const formatTime = (time) => {
@@ -35,7 +38,7 @@ const PracticeDialog = ({
       <DialogContent className="max-w-xl max-h-8xl">
         <div className="flex flex-row gap-4">
           <div className="w-full">
-            <p className="text-4xs text-gray-600 font-bold">Ajouter un rendez-vous</p>
+            <p className="text-4xs text-gray-600 font-bold">Ajouter un rendez‑vous</p>
             <DialogDescription className="py-2 text-xs">
               Plage horaire :{" "}
               {practiceDialog.parentSlot
@@ -48,6 +51,9 @@ const PracticeDialog = ({
                 onTypeChange={onTypeChange}
                 onStartChange={onStartChange}
                 setPracticeDialog={setPracticeDialog}
+                selectedPractice={selectedPractice}
+                durationPractice={durationPractice}
+                idPractice={idPractice}  // transmission ici
               />
               <PatientForm
                 practiceDialog={practiceDialog}

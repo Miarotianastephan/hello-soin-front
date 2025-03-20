@@ -11,19 +11,35 @@ import {
   dayNames, 
   parseTime, 
   totalDuration, 
-  DAY_COLUMN_HEIGHT, 
+  DAY_COLUMN_HEIGHTW, 
   AGENDA_START 
 } from '../utils/agendaUtils';
 import { createPlageHoraire } from '../utils/scheduleUtils';
 import { Phone } from 'lucide-react';
-
-const HEADER_HEIGHT = 60;
+import BASE_URL from '@/pages/config/baseurl';
 
 // Fonction utilitaire pour formater une date en toute sécurité
 const safeFormat = (dateValue, dateFormat) => {
   const d = dateValue instanceof Date ? dateValue : new Date(dateValue);
   return !isNaN(d.getTime()) ? format(d, dateFormat) : '';
 };
+
+// Fonction qui découpe un intervalle [start, end] en segments d'une durée donnée (en minutes)
+const splitSegmentByDuration = (start, end, durationMinutes) => {
+  const segments = [];
+  let current = start;
+  while (current < end) {
+    let next = addMinutes(current, durationMinutes);
+    if (next > end) {
+      next = end;
+    }
+    segments.push({ start: current, end: next });
+    current = next;
+  }
+  return segments;
+};
+
+const HEADER_HEIGHT = 60;
 
 const DayColumn = ({
   daySchedule,
@@ -34,36 +50,48 @@ const DayColumn = ({
   practiceFilter,
   isSelected,
   onOpenCreateAppointment,
-  refreshSchedule
+  refreshSchedule,
+  selectedPractice 
 }) => {
-  // Récupération des pratiques depuis l'API
+  // Récupération des pratiques depuis l'API OU le localStorage
   const [practices, setPractices] = useState([]);
   useEffect(() => {
-    fetch("http://localhost:8888/api/practices")
-      .then(res => res.json())
-      .then(data => setPractices(data))
-      .catch(err => console.error("Erreur lors du fetch des pratiques", err));
+    const localPractices = localStorage.getItem('practices');
+    if (localPractices) {
+      setPractices(JSON.parse(localPractices));
+    } else {
+      fetch(`${BASE_URL}/practices`)
+        .then(res => res.json())
+        .then(data => {
+          setPractices(data);
+          localStorage.setItem('practices', JSON.stringify(data));
+        })
+        .catch(err => console.error("Erreur lors du fetch des pratiques", err));
+    }
   }, []);
 
-  // Fonction qui retourne la couleur associée à la pratique (en comparant en minuscules)
+  // Retourne la couleur associée à la pratique (comparaison en minuscules)
   const getColorByPractice = (practiceType) => {
     const practice = practices.find(p => p.nom_discipline.toLowerCase() === practiceType.toLowerCase());
     return practice ? practice.code_couleur : '#000000'; // couleur par défaut
   };
 
-  // Les autres states et refs
+  // Pratique active (passée en prop)
+  const activePractice = selectedPractice;
+
+  // States et refs pour la gestion de la multi-sélection et du tooltip
   const [multiSelectStart, setMultiSelectStart] = useState(null);
   const [multiSelectCurrent, setMultiSelectCurrent] = useState(null);
   const [finalMultiSelectRange, setFinalMultiSelectRange] = useState(null);
-
   const tooltipRef = useRef(null);
   const hoverBlockRef = useRef(null);
   const animationFrameId = useRef(null);
 
   const slots = daySchedule ? daySchedule.timeSlots || [] : [];
-  const contentHeight = DAY_COLUMN_HEIGHT - HEADER_HEIGHT;
+  const contentHeight = DAY_COLUMN_HEIGHTW - HEADER_HEIGHT;
   const now = new Date();
   const isToday = isSameDay(date, now);
+  // Pour les dates passées, on rend le jour non-sélectionnable (et n'affiche pas les dispos)
   const isSelectable = startOfDay(date) >= startOfDay(now);
 
   let currentTimeTop = null;
@@ -83,6 +111,7 @@ const DayColumn = ({
     }
   }
 
+  // Gestion du clic sur le fond pour créer une plage horaire
   const handleBackgroundClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
@@ -102,7 +131,7 @@ const DayColumn = ({
     if (
       clickedTime < agendaStartDate ||
       clickedTime >= agendaEndDate ||
-      (isToday && clickedTime < new Date())
+      (isToday && clickedTime < now)
     ) {
       return;
     }
@@ -148,6 +177,7 @@ const DayColumn = ({
     }
   };
 
+  // Gestion du clic sur un slot spécifique
   const handleClick = (e, daySchedule, slotIndex, sourceType, clickedSlot, slotHeight) => {
     const clickY = e.clientY - e.currentTarget.getBoundingClientRect().top;
     const slotStart = parseTime(clickedSlot.start);
@@ -165,8 +195,9 @@ const DayColumn = ({
     });
   };
 
-  const totalIntervals = 24 * 4; // 96 intervalles de 15 min
+  const totalIntervals = 24 * 4; // 96 intervalles de 15 minutes
 
+  // Gestion du mouvement de la souris pour le tooltip et le bloc de survol
   const throttledHandleMouseMove = (e) => {
     const { clientX, clientY } = e;
     const target = e.currentTarget;
@@ -240,8 +271,8 @@ const DayColumn = ({
   }, []);
 
   return (
-    <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
-      {/* Info-bulle gérée par ref */}
+    <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHTW}px` }}>
+      {/* Tooltip */}
       <div
         ref={tooltipRef}
         style={{
@@ -331,7 +362,7 @@ const DayColumn = ({
           if (isToday) {
             const [endHour, endMinute] = slot.end.split(':').map(Number);
             const slotEndDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), endHour, endMinute);
-            isSlotPast = slotEndDate < new Date();
+            isSlotPast = slotEndDate < now;
           }
           const pastStyle = !isSelectable ? { backgroundColor: '#f0f0f0', opacity: 0.6 } : {};
           
@@ -351,18 +382,16 @@ const DayColumn = ({
                 handleClick(e, daySchedule, idx, daySchedule.sourceType, slot, slotHeight);
               }) : null}
             >
+              {/* Rendez-vous réservés */}
               {appointments
                 .filter(app => {
-                  // Vérifier que la date de l'appointment correspond à la date de la colonne
                   const appDate = parse(app.date, 'dd-MM-yyyy', new Date());
                   if (safeFormat(appDate, 'dd-MM-yyyy') !== safeFormat(date, 'dd-MM-yyyy')) {
                     return false;
                   }
-                  // Vérifier que l'heure de début se trouve dans le slot courant
                   const appStart = parseTime(app.practice_start);
                   const sStart = parseTime(slot.start);
                   const sEnd = parseTime(slot.end);
-                  // Normalisation de la clé de pratique (en minuscules)
                   const practiceTypeKey = app.practice_type.toLowerCase();
                   return appStart >= sStart && appStart < sEnd && (practiceFilter.tous || practiceFilter[practiceTypeKey]);
                 })
@@ -414,7 +443,92 @@ const DayColumn = ({
                   );
                 })
               }
-              
+              {/* Affichage des disponibilités pour la pratique sélectionnée uniquement si la date est aujourd'hui ET future */}
+              {activePractice && isSelectable && (() => {
+                const sStart = parseTime(slot.start);
+                const sEnd = parseTime(slot.end);
+                // Filtrer les rendez-vous dans le slot
+                const appointmentsInSlot = appointments.filter(app => {
+                  const appDate = parse(app.date, 'dd-MM-yyyy', new Date());
+                  if (safeFormat(appDate, 'dd-MM-yyyy') !== safeFormat(date, 'dd-MM-yyyy')) return false;
+                  const appStart = parseTime(app.practice_start);
+                  return appStart >= sStart && appStart < sEnd;
+                }).sort((a, b) => parseTime(a.practice_start) - parseTime(b.practice_start));
+
+                let freeSegments = [];
+                let current = sStart;
+                appointmentsInSlot.forEach(app => {
+                  const appStart = parseTime(app.practice_start);
+                  const appEnd = parseTime(app.practice_end);
+                  if (appStart > current) {
+                    freeSegments.push({ start: current, end: appStart });
+                  }
+                  current = appEnd > current ? appEnd : current;
+                });
+                if (current < sEnd) {
+                  freeSegments.push({ start: current, end: sEnd });
+                }
+                
+                // Si la date est aujourd'hui, on ajuste le début des segments si besoin
+                if (isToday) {
+                  freeSegments = freeSegments
+                    .map(seg => {
+                      // Si le segment se termine avant maintenant, on ne le garde pas
+                      if (seg.end <= now) return null;
+                      // Si le segment commence avant maintenant, on ajuste son début à now
+                      if (seg.start < now) {
+                        return { start: now, end: seg.end };
+                      }
+                      return seg;
+                    })
+                    .filter(seg => seg !== null);
+                }
+                
+                // Récupérer la durée en minutes de la pratique sélectionnée
+                const practiceObj = practices.find(p => p.nom_discipline.toLowerCase() === activePractice.toLowerCase());
+                const durationMinutes = practiceObj ? Math.round(practiceObj.duree * 60) : 60;
+                
+                let splittedSegments = [];
+                freeSegments.forEach(seg => {
+                  splittedSegments = splittedSegments.concat(splitSegmentByDuration(seg.start, seg.end, durationMinutes));
+                });
+
+                return splittedSegments.map((seg, index) => {
+                  // Si le segment est complètement dans le passé, on ne l'affiche pas
+                  if (isToday && seg.end <= now) return null;
+                  const segStartOffset = (differenceInMinutes(seg.start, sStart) / differenceInMinutes(sEnd, sStart)) * 100;
+                  const segHeight = (differenceInMinutes(seg.end, seg.start) / differenceInMinutes(sEnd, sStart)) * 100;
+                  return (
+                    <div key={index}
+                      style={{
+                        position: 'absolute',
+                        top: `${segStartOffset}%`,
+                        height: `${segHeight}%`,
+                        left: 0,
+                        right: 0,
+                        border: `2px solid ${getColorByPractice(activePractice)}`,
+                        boxSizing: 'border-box',
+                        pointerEvents: 'none',
+                        borderRadius: '2px'
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        fontSize: '0.75rem',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        padding: '1px',
+                        lineHeight: 1,
+                        color: 'gray',
+                        marginTop:'5px'
+                      }}>
+                        {safeFormat(seg.start, 'HH:mm')} - {safeFormat(seg.end, 'HH:mm')}
+                      </span>
+                    </div>
+                  );
+                });
+              })()}
               {isToday && !isSlotPast && (() => {
                 const currentTime = new Date();
                 if (currentTime >= slotStart && currentTime < slotEnd) {

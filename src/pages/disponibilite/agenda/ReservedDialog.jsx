@@ -146,7 +146,7 @@ const ReservedDialog = ({ reservedDialog, setReservedDialog, refreshSchedule }) 
   };
 
   return (
-    <div className="fixed top-0 right-0 w-1/3 h-full bg-white shadow-lg p-6 z-50">
+    <div className="fixed top-0 right-0 w-1/3 h-full bg-white shadow-lg p-6 z-50 transition-all duration-500">
       <div className="flex justify-between items-start mb-6">
         <h2 className="text-xl font-bold">Détails du Rendez‑vous</h2>
         <button onClick={() => setReservedDialog({ isOpen: false, appointment: null })} className="font-bold">

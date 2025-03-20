@@ -4,13 +4,14 @@ import { fr } from 'date-fns/locale';
 import { Calendar } from 'lucide-react';
 import { DialogDescription } from '@/components/ui/dialog';
 import { parseTime } from '../utils/agendaUtils';
+import BASE_URL from '@/pages/config/baseurl';
 
-const AppointmentDetails = ({ practiceDialog, onStartChange, setPracticeDialog }) => {
+const AppointmentDetails = ({ practiceDialog, onStartChange, setPracticeDialog, durationPractice, idPractice }) => {
   // Récupérer la liste des pratiques depuis l'API
   const [practices, setPractices] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:8888/api/practices')
+    fetch(`${BASE_URL}/practices`)
       .then(response => response.json())
       .then(data => setPractices(data))
       .catch(error => console.error('Erreur lors de la récupération des pratiques : ', error));
@@ -24,22 +25,21 @@ const AppointmentDetails = ({ practiceDialog, onStartChange, setPracticeDialog }
   const formattedDate = selectedDate.charAt(0).toUpperCase() + selectedDate.slice(1);
 
   // Fonction de mise à jour de l'heure de fin en se basant sur l'heure de début et la durée.
-  // Si aucune durée n'est renseignée, on utilise 20 minutes par défaut.
   const updateEndTime = (start, duration) => {
     const effectiveDuration = duration || 20;
     if (start && effectiveDuration) {
       const parsedStart = parseTime(start);
       const newEndDate = new Date(parsedStart.getTime() + parseInt(effectiveDuration, 10) * 60000);
-      return format(newEndDate, 'HH:mm'); // Conserver le format HH:mm pour l'UI
+      return format(newEndDate, 'HH:mm'); // format HH:mm pour l'UI
     }
     return '';
   };
 
-  // Gestion du changement du type de rendez‑vous et mise à jour de la durée par défaut
+  // Gestion du changement du type de rendez‑vous (pour modification manuelle)
   const handleTypeChange = (e) => {
     const selectedType = e.target.value;
-    const selectedPractice = practices.find(practice => practice.nom_discipline === selectedType);
-    const defaultDuration = selectedPractice ? Math.round(parseFloat(selectedPractice.duree) * 60) : 20;
+    const selectedPracticeObj = practices.find(practice => practice.nom_discipline === selectedType);
+    const defaultDuration = selectedPracticeObj ? Math.round(parseFloat(selectedPracticeObj.duree) * 60) : 20;
     
     setPracticeDialog(prev => ({
       ...prev,
@@ -48,11 +48,50 @@ const AppointmentDetails = ({ practiceDialog, onStartChange, setPracticeDialog }
         type: selectedType,
         duration: defaultDuration,
         end: updateEndTime(prev.newPractice.start, defaultDuration),
-        id_pratique: selectedPractice ? selectedPractice.id_pratique : null
+        id_pratique: selectedPracticeObj ? selectedPracticeObj.id_pratique : null
       }
     }));
   };
-  
+
+  // Si aucune pratique fixe n'est définie (idPractice vide) et aucun type n'est sélectionné,
+  // on sélectionne par défaut la première pratique de la liste.
+  useEffect(() => {
+    if (!idPractice && practices.length > 0 && !practiceDialog.newPractice.type) {
+      const defaultPractice = practices[0];
+      const defaultDuration = Math.round(parseFloat(defaultPractice.duree) * 60) || 20;
+      setPracticeDialog(prev => ({
+        ...prev,
+        newPractice: {
+          ...prev.newPractice,
+          type: defaultPractice.nom_discipline,
+          duration: defaultDuration,
+          end: updateEndTime(prev.newPractice.start, defaultDuration),
+          id_pratique: defaultPractice.id_practice
+        }
+      }));
+    }
+  }, [idPractice, practices, practiceDialog.newPractice.type, setPracticeDialog]);
+
+  // Si une pratique fixe est fournie (idPractice et durationPractice), on fixe automatiquement le formulaire.
+  useEffect(() => {
+    if (idPractice && !practiceDialog.newPractice.type) {
+      // On recherche l'objet pratique correspondant à idPractice
+      const fixedPractice = practices.find(practice => practice.id_pratique === idPractice);
+      // Si durationPractice est fournie en heures, on la convertit en minutes
+      const defaultDuration = durationPractice ? Math.round(durationPractice * 60)
+        : (fixedPractice ? Math.round(parseFloat(fixedPractice.duree) * 60) : 20);
+      setPracticeDialog(prev => ({
+        ...prev,
+        newPractice: {
+          ...prev.newPractice,
+          type: fixedPractice ? fixedPractice.nom_discipline : '',
+          duration: defaultDuration,
+          end: updateEndTime(prev.newPractice.start, defaultDuration),
+          id_pratique: idPractice
+        }
+      }));
+    }
+  }, [idPractice, durationPractice, practiceDialog.newPractice.type, practices, setPracticeDialog]);
 
   return (
     <>
@@ -74,13 +113,22 @@ const AppointmentDetails = ({ practiceDialog, onStartChange, setPracticeDialog }
               onChange={handleTypeChange}
               className="border p-1 rounded w-full mt-1 h-[30px]"
               required
+              disabled={!!idPractice}  // Désactivation si une pratique fixe est fournie
             >
-              <option value="">Sélectionner</option>
-              {practices.map(practice => (
-                <option key={practice.id_pratique} value={practice.nom_discipline}>
-                  {practice.nom_discipline}
+              {idPractice ? (
+                <option value={practiceDialog.newPractice.type}>
+                  {practiceDialog.newPractice.type}
                 </option>
-              ))}
+              ) : (
+                <>
+                  <option value="">Sélectionner</option>
+                  {practices.map(practice => (
+                    <option key={practice.id_pratique} value={practice.nom_discipline}>
+                      {practice.nom_discipline}
+                    </option>
+                  ))}
+                </>
+              )}
             </select>
           </label>
           

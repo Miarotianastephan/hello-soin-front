@@ -62,7 +62,10 @@ const Agenda = () => {
     const saved = localStorage.getItem('appointments');
     return saved ? JSON.parse(saved) : [];
   });
-
+  const [selectedPractice, setSelectedPractice] = useState(null);
+  const [idPractice, setIdPractice] = useState(null)
+  const [durationPractice, setIDurationPractice] = useState(null)
+  
   // Mise à jour du localStorage dès que les données changent
   useEffect(() => {
     localStorage.setItem('fakePatientsData', JSON.stringify(fakePatientsData));
@@ -78,13 +81,12 @@ const Agenda = () => {
 
   // Autres états et dialogues
   const [createAppointmentDialog, setCreateAppointmentDialog] = useState(false);
-  const [selectedPractice, setSelectedPractice] = useState(null);
 
   // Chargement des patients via l’API (nouvel endpoint)
   useEffect(() => {
     const fetchFakePatients = async () => {
       try {
-        const response = await fetch(`http://localhost:8888/api/utilisateurs`);
+        const response = await fetch(`${BASE_URL}/utilisateurs`);
         let data = await response.json();
         // Conversion des dates ISO en "yyyy-MM-dd"
         data = data.map(patient => ({
@@ -194,12 +196,31 @@ const Agenda = () => {
     error: ''
   });
   const [reservedDialog, setReservedDialog] = useState({ isOpen: false, appointment: null });
-  const [practiceFilter, setPracticeFilter] = useState({
-    tous: true,
-    naturopathie: true,
-    acupuncture: true,
-    hypnose: true
+  const [practiceFilter, setPracticeFilter] = useState(() => {
+    const saved = localStorage.getItem('practiceFilter');
+    if (saved) return JSON.parse(saved);
+    
+    // Valeur par défaut si rien en localStorage
+    return { 
+      tous: true,
+      naturopathie: true,
+      acupuncture: true,
+      hypnose: true
+    };
   });
+
+  useEffect(() => {
+    if (practiceFilter.length > 0) {
+      const defaultFilter = practiceFilter.reduce((acc, practice) => {
+        const key = practice.nom_discipline.toLowerCase();
+        acc[key] = true;
+        return acc;
+      }, { tous: true });
+  
+      setPracticeFilter(prev => ({ ...defaultFilter, ...prev }));
+    }
+  }, [practiceFilter]);
+
   const [specifiqueOnly, setSpecifiqueOnly] = useState(false);
 
   // Fonctions de gestion de la navigation et des interactions
@@ -361,7 +382,7 @@ const Agenda = () => {
     }
     const appointmentsForDate = appointments.filter(app => app.date === date);
     for (const app of appointmentsForDate) {
-      const appStartMins = timeToMinutes(app.practice_start|| app.practice_start);
+      const appStartMins = timeToMinutes(app.practice_start || app.practice_start);
       const appEndMins = timeToMinutes(app.practice_start || app.practice_end);
       if (newStartMins < appEndMins && newEndMins > appStartMins) {
         setPracticeDialog(prev => ({
@@ -388,24 +409,20 @@ const Agenda = () => {
         return;
       }
       try {
-        // Utilisation du nouvel endpoint pour la création d’un patient
-        // Dans Agenda.jsx, partie création du patient :
-        // Dans handleSavePractices de Agenda.jsx :
-      if (!patient?.id_user) {
-        setPracticeDialog(prev => ({
-          ...prev,
-          error: "Patient non valide. Veuillez réessayer."
-        }));
-        return;
-      }
-        const patientRes = await fetch(`http://localhost:8888/api/utilisateurs`, {
+        if (!patient?.id_user) {
+          setPracticeDialog(prev => ({
+            ...prev,
+            error: "Patient non valide. Veuillez réessayer."
+          }));
+          return;
+        }
+        const patientRes = await fetch(`${BASE_URL}/utilisateurs`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newPractice.newPatient)
         });
         const patientData = await patientRes.json();
-        // Vérifier la structure de patientData et ajuster si nécessaire :
-        patient = { ...newPractice.newPatient, id_user: patientData.id_user || patientData.id }; // Adapté selon la réponse
+        patient = { ...newPractice.newPatient, id_user: patientData.id_user || patientData.id };
         setFakePatientsData(prev => [...prev, patient]);
       } catch (error) {
         console.error("Erreur lors de la sauvegarde du patient", error);
@@ -420,16 +437,15 @@ const Agenda = () => {
         setPracticeDialog(prev => ({ ...prev, error: 'Veuillez sélectionner un patient.' }));
         return;
       }
-      // Recherche du patient via id_user
       patient = fakePatientsData.find(p => p.id_user === parseInt(practiceDialog.selectedPatientId, 10));
     }
     const newAppointment = {
       appointment_key: appointmentKey,
-      date: format(parsedDate, 'dd-MM-yyyy'), // Formatage explicite de la date
+      date: format(parsedDate, 'dd-MM-yyyy'),
       slot_index: slotIndex,
       practice: {
         type: newPractice.type,
-        start: `${newPractice.start}:00`, // Ajout des secondes
+        start: `${newPractice.start}:00`,
         end: `${newPractice.end}:00`
       },
       motif: newPractice.motif,
@@ -438,7 +454,7 @@ const Agenda = () => {
       id_pratique: newPractice.id_pratique
     };    
     try {
-      const response = await fetch("http://localhost:8888/api/appointments", {  // URL fixe pour la sauvegarde
+      const response = await fetch("${BASE_URL}/appointments", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newAppointment)
@@ -465,7 +481,7 @@ const Agenda = () => {
       practices: [],
       newPractice: { 
         type: '', 
-        start: '', // Remplacé defaultStart par une chaîne vide
+        start: '',
         end: '', 
         error: '',
         motif: '',
@@ -552,20 +568,30 @@ const Agenda = () => {
     }
   };
 
+  useEffect(() => {
+    localStorage.setItem('practiceFilter', JSON.stringify(practiceFilter));
+  }, [practiceFilter]);
+
   const togglePracticeFilter = (type) => {
     if (type === 'tous') {
-      setPracticeFilter(prev => ({
-        tous: !prev.tous,
-        naturopathie: !prev.tous,
-        acupuncture: !prev.tous,
-        hypnose: !prev.tous,
-      }));
+      const newState = !practiceFilter.tous;
+      const newFilter = practices.reduce((acc, practice) => {
+        acc[practice.nom_discipline.toLowerCase()] = newState;
+        return acc;
+      }, { tous: newState });
+      
+      setPracticeFilter(newFilter);
     } else {
-      setPracticeFilter(prev => ({
-        ...prev,
-        [type]: !prev[type],
-        tous: false
-      }));
+      const newFilter = {
+        ...practiceFilter,
+        [type]: !practiceFilter[type]
+      };
+      
+      newFilter.tous = Object.keys(newFilter)
+        .filter(k => k !== 'tous')
+        .every(k => newFilter[k]);
+
+      setPracticeFilter(newFilter);
     }
   };
 
@@ -582,7 +608,7 @@ const Agenda = () => {
       practices: [],
       newPractice: { 
         type: '', 
-        start: '', // Utilisation d'une chaîne vide au lieu de defaultStart
+        start: '',
         end: '', 
         error: '',
         motif: '',
@@ -607,7 +633,10 @@ const Agenda = () => {
         togglePracticeFilter={togglePracticeFilter}
         specifiqueOnly={specifiqueOnly}
         setSpecifiqueOnly={setSpecifiqueOnly}
-        onSelectNextAvailabilityPractice={setSelectedPractice}
+        selectedPractice={selectedPractice}       // transmission de la pratique fixée
+        setSelectedPractice={setSelectedPractice}
+        setIdPractice={setIdPractice}
+        setIDurationPractice={setIDurationPractice}    // pour la modifier dans la Sidebar
       />
       <div className="flex-grow">
         <div className="flex-grow">
@@ -677,8 +706,8 @@ const Agenda = () => {
             setCreateAppointmentDialog(true);
             setSelectedSlotInfo({ date, startTime });
           }}
-          selectedPractice={selectedPractice}
           onDayClick={handleDayClick}
+          selectedPractice={selectedPractice}
         />
       </div>
 
@@ -709,6 +738,9 @@ const Agenda = () => {
           onSave={handleSavePractices}
           fakePatients={fakePatientsData}
           setPracticeDialog={setPracticeDialog}
+          selectedPractice={selectedPractice}
+          idPractice={idPractice}
+          durationPractice={durationPractice}
         />
       )}
       {appointmentDialog.isOpen && (

@@ -23,8 +23,8 @@ const AgendaTable = ({
   specifiqueOnly,
   onOpenCreateAppointment,
   refreshSchedule,
-  selectedPractice,
-  onDayClick, // Pour la navigation depuis le calendrier mensuel
+  onDayClick,
+  selectedPractice // Pour la navigation depuis le calendrier mensuel
 }) => {
   const scrollableRef = useRef(null);
 
@@ -51,7 +51,6 @@ const AgendaTable = ({
         const generalEntry = schedule.defaultGeneral.find(
           d => d.day_name.toLowerCase() === dayName.toLowerCase()
         );
-        
         daySchedule = { date: formattedDate, dayName, timeSlots: generalEntry ? generalEntry.times : [] };
       }
     }
@@ -77,7 +76,7 @@ const AgendaTable = ({
                 isSelected={true}
                 refreshSchedule={refreshSchedule}
                 onOpenCreateAppointment={onOpenCreateAppointment}
-                selectedPractice={selectedPractice}
+                selectedPractice={selectedPractice} 
               />
             </div>
           </div>
@@ -130,7 +129,7 @@ const AgendaTable = ({
                 isSelected={isSameDay(day.date, currentDate)}
                 refreshSchedule={refreshSchedule}
                 onOpenCreateAppointment={onOpenCreateAppointment}
-                selectedPractice={selectedPractice}
+                selectedPractice = {selectedPractice }
               />
             ))}
           </div>

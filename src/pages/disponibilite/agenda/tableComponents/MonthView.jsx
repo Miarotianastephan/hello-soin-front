@@ -12,11 +12,12 @@ import {
   isAfter,
   startOfDay,
   isSameDay,
-  parseISO,
+  parse,
 } from 'date-fns';
 import fr from 'date-fns/locale/fr';
 import { getColorByType } from '../utils/agendaUtils';
 import BASE_URL from '@/pages/config/baseurl';
+
 
 const MonthView = ({ currentDate, onDayClick }) => {
   // Initialisation des rendez‑vous à partir du localStorage
@@ -40,6 +41,17 @@ const MonthView = ({ currentDate, onDayClick }) => {
       );
   }, []);
 
+  
+useEffect(() => {
+  fetch(`${BASE_URL}/practices`)
+    .then(res => res.json())
+    .then(data => {
+      setPractices(data);
+      localStorage.setItem('practices', JSON.stringify(data));
+    })
+    .catch(err => console.error("Erreur lors du fetch des pratiques", err));
+}, []);
+
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -52,9 +64,11 @@ const MonthView = ({ currentDate, onDayClick }) => {
     return monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
   })();
 
-  // Filtrer les rendez‑vous pour un jour donné (en comparant la date ISO)
+  // Filtrer les rendez‑vous pour un jour donné en utilisant le format 'dd-MM-yyyy'
   const getAppointmentsForDay = (day) => {
-    return appointments.filter((app) => isSameDay(parseISO(app.date), day));
+    return appointments.filter((app) =>
+      isSameDay(parse(app.date, 'dd-MM-yyyy', new Date()), day)
+    );
   };
 
   const today = startOfDay(new Date());
