@@ -6,8 +6,8 @@ import { Info } from 'lucide-react';
 const AppointmentsList = ({ appointments }) => (
   <div className="p-1 text-helloBlue">
     {/* Legende por les types de pratiques */}
-    <div className="flex gap-8 mb-2 p-2">
-      <div className="flex items-center">
+    <div className="flex gap-8 mb-2 p-2 hidden">
+      {/* <div className="flex items-center">
         <span
           className="mr-1"
           style={{
@@ -19,33 +19,7 @@ const AppointmentsList = ({ appointments }) => (
           }}
         />
         <span>Naturopathie</span>
-      </div>
-      <div className="flex items-center">
-        <span
-          className="mr-1"
-          style={{
-            width: '10px',
-            height: '10px',
-            borderRadius: '50%',
-            display: 'inline-block',
-            backgroundColor: getColorByType('acupuncture'),
-          }}
-        />
-        <span>Acupuncture</span>
-      </div>
-      <div className="flex items-center">
-        <span
-          className="mr-1"
-          style={{
-            width: '10px',
-            height: '10px',
-            borderRadius: '50%',
-            display: 'inline-block',
-            backgroundColor: getColorByType('hypnose'),
-          }}
-        />
-        <span>Hypnose</span>
-      </div>
+      </div> */}
     </div>
     
     {appointments.length === 0 ? (
@@ -88,13 +62,13 @@ const AppointmentsList = ({ appointments }) => (
                         variant="small"
                         className="font-bold text-helloBlue"
                       >
-                        {app.patient.nom} {app.patient.prenom}
+                        {app.nom} {app.prenom}
                       </Typography>
                       <Typography
                         variant="small"
                         className="font-normal opacity-70 text-helloBlue"
                       >
-                        {app.patient.email}
+                        {app.email}
                       </Typography>
                     </div>
                   </div>
@@ -104,7 +78,7 @@ const AppointmentsList = ({ appointments }) => (
                     variant="small"
                     className="w-max font-normal opacity-70 text-helloBlue"
                   >
-                    {app.patient.numero}
+                    {app.numero}
                   </Typography>
                 </td>
                 <td className="px-4">
@@ -115,13 +89,13 @@ const AppointmentsList = ({ appointments }) => (
                     {app.date}
                   </Typography>
                 </td>
-                <td className="px-4 capitalize">{app.practice.type}</td>
+                <td className="px-4 capitalize">{app.practice_type}</td>
                 <td className="w-max px-2">
                   <Typography
                     variant="small"
                     className="font-normal opacity-70 text-helloBlue whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]"
                   >
-                  {app.practice.start} - {app.practice.end}
+                  {app.practice_start} - {app.practice_start}
                   </Typography>
                 </td>
                 <td className="rounded-r-full px-4">

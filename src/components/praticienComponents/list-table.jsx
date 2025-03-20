@@ -5,87 +5,16 @@ import {
   CardHeader,
   Input,
   Typography,
-  Button,
   CardBody,
-  Chip,
-  CardFooter,
-  Tabs,
-  TabsHeader,
-  Tab,
-  Avatar,
   IconButton,
   Tooltip,
   Drawer
 } from "@material-tailwind/react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { Info, MailIcon, MapPin, Phone } from "lucide-react";
-import React, { useEffect, useState } from "react";
- 
-const TABS = [
-  {
-    label: "Jour",
-    value: "all",
-  },
-  {
-    label: "Semaine",
-    value: "monitored",
-  },
-  {
-    label: "Mois",
-    value: "unmonitored",
-  },
-];
- 
-const TABLE_HEAD = ["Date", "Nom du Patient", "Duree", "Heure de debut", "Heure de fin", ""];
- 
-const TABLE_ROWS = [
-  {
-    img: "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-3.jpg",
-    name: "John Michael",
-    email: "john@creative-tim.com",
-    heure_debut: "10:00",
-    heure_fin: "10:30",
-    duree: "30",
-    date: "23/04/18",
-  },
-  {
-    img: "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-2.jpg",
-    name: "Alexa Liras",
-    email: "alexa@creative-tim.com",
-    heure_debut: "11:00",
-    heure_fin: "12:00",
-    duree: "60",
-    date: "23/04/18",
-  },
-  {
-    img: "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-1.jpg",
-    name: "Laurent Perrier",
-    email: "laurent@creative-tim.com",
-    heure_debut: "14:15",
-    heure_fin: "14:30",
-    duree: "15",
-    date: "19/09/17",
-  },
-  {
-    img: "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-4.jpg",
-    name: "Michael Levi",
-    email: "michael@creative-tim.com",
-    heure_debut: "16:15",
-    heure_fin: "16:30",
-    duree: "15",
-    date: "24/12/08",
-  },
-  {
-    img: "https://demos.creative-tim.com/test/corporate-ui-dashboard/assets/img/team-5.jpg",
-    name: "Richard Gran",
-    email: "richard@creative-tim.com",
-    heure_debut: "17:00",
-    heure_fin: "17:35",
-    duree: "35",
-    date: "04/10/21",
-  },
-];
+import { Info, MailIcon, Phone } from "lucide-react";
+import { useEffect, useState } from "react";
+
+// { date, key, nom, prenom, email, practice_start, practice_end, practice_type }
+const TABLE_HEAD = ["Date", "Nom et email", "Duree", "Heure de debut", "Type de pratique", ""];
 
 const DetailsPanel = ({isOpened, closePanel, selectedAppoint}) => {
 
@@ -124,29 +53,22 @@ const DetailsPanel = ({isOpened, closePanel, selectedAppoint}) => {
                 />
                 <div>
                   <Typography variant="h5" className="mt-1 font-bold text-helloBlue">
-                  {selectedAppoint ? `${selectedAppoint.patient.nom} ${selectedAppoint.patient.prenom}` : ""}
+                  {selectedAppoint ? `${selectedAppoint.nom} ${selectedAppoint.prenom}` : ""}
                   </Typography>
                   <Typography
                     variant="small"
                     className="flex gap-1 mt-1 text-helloBlue break-all"
                   >
                     <MailIcon className="h-4 w-4" />
-                    {selectedAppoint ? selectedAppoint.patient.email : ""}
+                    {selectedAppoint ? selectedAppoint.email : ""}
                   </Typography>
                   <Typography
                     variant="small"
                     className="flex gap-1 mt-1 text-helloBlue"
                   >
                     <Phone className="h-4 w-4" />
-                    {selectedAppoint ? selectedAppoint.patient.numero : ""}
+                    {selectedAppoint ? selectedAppoint.numero : ""}
                   </Typography>
-                  {/* <Typography
-                    variant="small"
-                    className="flex gap-4 mt-1 text-helloBlue"
-                  >
-                    <MapPin className="h-4 w-4" />
-                    {selectedAppoint ? selectedAppoint.patient.lieu : ""}
-                  </Typography> */}
                 </div>
               </div>
             </>)}
@@ -218,8 +140,8 @@ export function ListTable({todayAppointments}) {
     
     if (!term) return appointments;
     
-    return appointments.filter(appointment => {
-      const { nom, prenom } = appointment.patient;
+    return appointments.filter(appointDetail => {
+      const { nom, prenom } = appointDetail;
       return (
         (nom && nom.toLowerCase().includes(term)) ||
         (prenom && prenom.toLowerCase().includes(term))
@@ -290,7 +212,7 @@ export function ListTable({todayAppointments}) {
             ) :
             (
               dataRDV.map(
-              ({ date, key, patient, practice }, index) => {
+              ({ date, key, nom, prenom, email, practice_start, practice_end, practice_type }, index) => {
                 const isLast = index === dataRDV.length - 1;
                 const classes = isLast
                   ? "p-4"
@@ -319,13 +241,13 @@ export function ListTable({todayAppointments}) {
                             variant="small"
                             className="font-bold text-helloBlue"
                           >
-                            {patient.nom}
+                            {nom} {prenom}
                           </Typography>
                           <Typography
                             variant="small"
                             className="font-normal opacity-70 text-helloBlue"
                           >
-                            {patient.email}
+                            {email}
                           </Typography>
                         </div>
                       </div>
@@ -336,7 +258,7 @@ export function ListTable({todayAppointments}) {
                           variant="small"
                           className="font-normal opacity-70 text-helloBlue"
                         >
-                          {getDurationInMinutes(practice.start, practice.end)} minutes
+                          {getDurationInMinutes(practice_start, practice_end)} minutes
                         </Typography>
                     </td>
                     {/* Adresse => Heure debut et fin */}
@@ -346,7 +268,7 @@ export function ListTable({todayAppointments}) {
                           variant="small"
                           className="font-normal text-helloBlue"
                         >
-                          De {practice.start}
+                          {practice_start} à {practice_end}
                         </Typography>
                       </div>
                     </td>
@@ -356,7 +278,7 @@ export function ListTable({todayAppointments}) {
                           variant="small"
                           className="font-normal text-helloBlue"
                         >
-                          à {practice.end}
+                          {practice_type}
                         </Typography>
                       </div>
                     </td>
@@ -375,19 +297,6 @@ export function ListTable({todayAppointments}) {
           </tbody>
         </table>
       </CardBody>
-      {/* <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">
-        <Typography variant="small" color="blue-gray" className="font-normal">
-          Page 1 of 10
-        </Typography>
-        <div className="flex gap-2">
-          <Button variant="outlined" size="sm">
-            Previous
-          </Button>
-          <Button variant="outlined" size="sm">
-            Next
-          </Button>
-        </div>
-      </CardFooter> */}
     </Card>
   );
 }

@@ -454,7 +454,7 @@ const Agenda = () => {
       id_pratique: newPractice.id_pratique
     };    
     try {
-      const response = await fetch("${BASE_URL}/appointments", {
+      const response = await fetch(`${BASE_URL}/appointments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newAppointment)

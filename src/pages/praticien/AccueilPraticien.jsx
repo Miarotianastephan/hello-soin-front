@@ -1,31 +1,19 @@
 import { ListTable } from "@/components/praticienComponents/list-table";
 import { format } from "date-fns";
 import React, { useEffect, useState } from "react";
+import {findAppointements} from "@/services/appointement-services";
 
 const AccueilPraticien = () => {
   const [appointments, setAppointments] = useState([]);
-  const [pratiques, setPratiques] = useState([]);
+  // const [pratiques, setPratiques] = useState([]);
   const [searchText, setSearchText] = useState([]);
 
   useEffect(() => {
-    const storedAppointments = localStorage.getItem("appointments");
-    if (storedAppointments) {
-        try {
-            setAppointments(JSON.parse(storedAppointments));
-        } catch (err) {
-            console.error("Erreur lors du parsing des appointments", err);
-        }
+    async function fetchPratiques(){
+      const appointJson = await findAppointements();
+      setAppointments(appointJson);
     }
-    const storedPratiques = localStorage.getItem("pratiques");
-    if(storedPratiques) {
-        try {
-            setPratiques(JSON.parse(storedPratiques));
-        } catch (err) {
-            console.error("Erreur lors du parsing des pratiques", err);
-        }
-    
-    }
-    
+    fetchPratiques();
   }, []);
 
   const todayStr = format(new Date(), 'dd-MM-yyyy');
@@ -126,76 +114,6 @@ const AccueilPraticien = () => {
               </svg>
             </div>
           </div>
-          {/* third cart */}
-          {/* <div className="flex items-start justify-between p-5 bg-helloPurple rounded-xl shadow-sm">
-            <div className="flex flex-col justify-between h-full">
-              <div className="text-sm text-white ">
-                Nombres de <br />
-                Pratiques
-              </div>
-              <div className="flex items-center pt-1">
-                <div className="text-xl font-medium text-white">{pratiques.length}</div>
-              </div>
-            </div>
-            <div className="text-white">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-8 h-8"
-                fill="none"
-                viewBox="0 0 47 46"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M39.167 40.25v-3.833a7.585 7.585 0 00-2.295-5.422 7.92 7.92 0 00-5.539-2.245H15.667a7.92 7.92 0 00-5.54 2.245 7.585 7.585 0 00-2.294 5.422v3.833M23.5 21.083c4.326 0 7.833-3.432 7.833-7.666 0-4.235-3.507-7.667-7.833-7.667-4.326 0-7.833 3.432-7.833 7.667 0 4.234 3.507 7.666 7.833 7.666z"
-                ></path>
-              </svg>
-            </div>
-          </div> */}
-          {/* fourth cart */}
-          {/* <div className="flex items-start justify-between p-5 bg-helloBlue rounded-xl shadow-sm">
-            <div className="flex flex-col justify-between h-full">
-              <div className="text-sm text-white ">
-                Revenu <br />
-                du jour (en $)
-              </div>
-              <div className="flex items-center pt-1">
-                <div className="text-xl font-medium text-white ">600</div>
-              </div>
-            </div>
-            <div className="text-white">
-              <svg
-                className="w-8 h-8"
-                viewBox="0 0 47 46"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M23.5 38.3334V19.1667"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                ></path>
-                <path
-                  d="M35.25 38.3334V7.66675"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                ></path>
-                <path
-                  d="M11.75 38.3334V30.6667"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                ></path>
-              </svg>
-            </div>
-          </div> */}
         </div>
         <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min">
           <ListTable todayAppointments={todayAppointments}/>
