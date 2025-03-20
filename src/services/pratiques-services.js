@@ -89,7 +89,7 @@ export const deletePratique = async (pratique) => {
     });
     
     try {
-        const response = await api.delete('/pratiques', pratique);
+        const response = await api.post('/pratiques/delete',pratique);
         console.log('Pratique supprimer:', response.data);
         return response.data;
     } catch (error) {
