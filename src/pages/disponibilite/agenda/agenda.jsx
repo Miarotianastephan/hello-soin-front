@@ -175,7 +175,7 @@ const Agenda = () => {
       error: '',
       motif: '',
       duration: DEFAULT_DURATION,
-      id_pratique: null,
+      id_pratique: null, 
       createAppointment: false,
       isNewPatient: false,
       newPatient: {}
@@ -399,46 +399,47 @@ const Agenda = () => {
 
     // Construction de l'objet appointment avec le formatage des heures et de la date
     let patient;
-    if (newPractice.isNewPatient) {
-      const { prenom, nom, email, numero, mobile, dateNaissance } = newPractice.newPatient;
-      if (!prenom || !nom || !email || !numero || !mobile || !dateNaissance) {
-        setPracticeDialog(prev => ({
-          ...prev,
-          newPractice: { ...prev.newPractice, error: "Veuillez remplir tous les champs." }
-        }));
-        return;
-      }
-      try {
-        if (!patient?.id_user) {
-          setPracticeDialog(prev => ({
-            ...prev,
-            error: "Patient non valide. Veuillez réessayer."
-          }));
-          return;
-        }
-        const patientRes = await fetch(`${BASE_URL}/utilisateurs`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newPractice.newPatient)
-        });
-        const patientData = await patientRes.json();
-        patient = { ...newPractice.newPatient, id_user: patientData.id_user || patientData.id };
-        setFakePatientsData(prev => [...prev, patient]);
-      } catch (error) {
-        console.error("Erreur lors de la sauvegarde du patient", error);
-        setPracticeDialog(prev => ({
-          ...prev,
-          newPractice: { ...prev.newPractice, error: "Erreur lors de la sauvegarde du patient." }
-        }));
-        return;
-      }
-    } else {
-      if (!practiceDialog.selectedPatientId) {
-        setPracticeDialog(prev => ({ ...prev, error: 'Veuillez sélectionner un patient.' }));
-        return;
-      }
-      patient = fakePatientsData.find(p => p.id_user === parseInt(practiceDialog.selectedPatientId, 10));
+if (newPractice.isNewPatient) {
+  const { prenom, nom, email, numero, mobile, dateNaissance } = newPractice.newPatient;
+  if (!prenom || !nom || !email || !numero || !mobile || !dateNaissance) {
+    setPracticeDialog(prev => ({
+      ...prev,
+      newPractice: { ...prev.newPractice, error: "Veuillez remplir tous les champs." }
+    }));
+    return;
+  }
+  try {
+    const patientRes = await fetch(`${BASE_URL}/utilisateurs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newPractice.newPatient)
+    });
+    const patientData = await patientRes.json();
+    if (!patientData.id_user && !patientData.id_user) {
+      setPracticeDialog(prev => ({
+        ...prev,
+        error: "Patient non valide. Veuillez réessayer."
+      }));
+      return;
     }
+    patient = { ...newPractice.newPatient, id_user: patientData.id_user || patientData.id_user };
+    setFakePatientsData(prev => [...prev, patient]);
+  } catch (error) {
+    console.error("Erreur lors de la sauvegarde du patient", error);
+    setPracticeDialog(prev => ({
+      ...prev,
+      newPractice: { ...prev.newPractice, error: "Erreur lors de la sauvegarde du patient." }
+    }));
+    return;
+  }
+} else {
+  if (!practiceDialog.selectedPatientId) {
+    setPracticeDialog(prev => ({ ...prev, error: 'Veuillez sélectionner un patient.' }));
+    return;
+  }
+  patient = fakePatientsData.find(p => p.id_user === parseInt(practiceDialog.selectedPatientId, 10));
+}
+
     const newAppointment = {
       appointment_key: appointmentKey,
       date: format(parsedDate, 'dd-MM-yyyy'),
@@ -451,7 +452,7 @@ const Agenda = () => {
       motif: newPractice.motif,
       patient_id: patient.id_user,
       praticien_id: 3,
-      id_pratique: newPractice.id_pratique
+      id_pratique: practiceDialog.newPractice.id_pratique || selectedPractice.id_pratique 
     };    
     try {
       const response = await fetch(`${BASE_URL}/appointments`, {
@@ -486,7 +487,7 @@ const Agenda = () => {
         error: '',
         motif: '',
         duration: DEFAULT_DURATION,
-        id_pratique: null,
+        id_pratique: practiceDialog.newPractice.id_pratique || selectedPractice.id_pratique,
         createAppointment: false,
         isNewPatient: false,
         newPatient: {}
@@ -520,7 +521,7 @@ const Agenda = () => {
       motif: appointmentDialog.motif,
       patient_id: patient.id_user,
       praticien_id: 3,
-      id_pratique: 1
+      id_pratique: practiceDialog.newPractice.id_pratique || selectedPractice.id_pratique 
     };
     try {
       const response = await fetch(`${BASE_URL}/appointments`, {
@@ -613,7 +614,7 @@ const Agenda = () => {
         error: '',
         motif: '',
         duration: DEFAULT_DURATION,
-        id_pratique: null,
+        id_pratique: practiceDialog.newPractice.id_pratique || selectedPractice.id_pratique,
         createAppointment: false,
         isNewPatient: false,
         newPatient: {}
