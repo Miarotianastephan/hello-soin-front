@@ -20,9 +20,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useLocation, Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import { getLocalData } from "@/services/api";
+import {  ChevronRight } from "lucide-react";
 
 import { menu_principale, menu_secondaire } from "./constant";
 import AppSidebarHeader from "./app-sidebar-header";
@@ -30,12 +28,6 @@ import { DropdownMenuSeparator } from "../ui/dropdown-menu";
 
 const AppSidebar = () => {
   const location = useLocation();
-  // const [user_info, setUserInfo] = useState({});
-
-  // useEffect(() => {
-  //   const data = getLocalData('user_data');
-  //   setUserInfo(data);
-  // },[])
 
   return (
     <Sidebar collapsible="icon" className="z-20">

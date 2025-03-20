@@ -1,8 +1,6 @@
 import {
-  BadgeCheck,
   Bell,
   ChevronsUpDown,
-  Inbox,
   LogOut,
   Settings,
   User,
@@ -30,7 +28,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
-import { decodedToken } from "@/services/api"
+import { decodedToken } from "@/services/common-services"
 
 export function NavUser() {
   const { isMobile } = useSidebar();

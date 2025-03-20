@@ -21,6 +21,7 @@ import MapPicker from "./map-picker";
 import { useEffect, useState } from "react";
 import { Euro, X } from "lucide-react";
 import { Label } from "../ui/label";
+import { deletePratique } from "@/services/pratiques-services";
 
 const FileUploader = ({ register }) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -136,7 +137,8 @@ const FileUploader = ({ register }) => {
 
 
 export function FormAjoutPratique({
-  handleAddPratique,
+  listDiscipline,
+  handlePratiqueState,
   switchTabFunction,
   editedPratique,
 }) {
@@ -155,66 +157,59 @@ export function FormAjoutPratique({
       longitude: "",
     },
   });
-  const [pratiques, setPratiques] = useState([]);  
+  const disciplines = Array.isArray(listDiscipline) ? listDiscipline : [];  
+  // const [pratiques, setPratiques] = useState([]);
   const [open, setOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
-  useEffect(() => {
-    const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
-    setPratiques(storedPratiques);
-  }, []);
+  // useEffect(() => {
+  //   const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
+  //   setPratiques(storedPratiques);
+  // }, []);
 
   useEffect(() => {
-    console.log(editedPratique?.files)
+    // console.log(editedPratique?.files)
     if (editedPratique) {
       reset(editedPratique);
     }
   }, [editedPratique, reset]);
 
   useEffect(() => {
-    register("description", {
-      required: "La description est requise",
+    register("desc_pratique", {
+      required: "La desc_pratique est requise",
       minLength: {
         value: 10,
-        message: "La description doit contenir au moins 10 caractères",
+        message: "La desc_pratique doit contenir au moins 10 caractères",
       },
     });
   }, [register]);
 
   useEffect(() => {
-    register("discipline", {
-      required: "Le type de discipline est requis",
+    register("id_discipline", {
+      required: "Le type de id_discipline est requis",
     });
   }, [register]);
 
   function onSubmittingForm(data) {
     console.log(data);
-    const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
-    // Pour UPDATE
+    // update
     if (editedPratique) {
-      // Comparer avec l'ID du pratiques rehefa manmao integration avec backend
-      const updatedPratiques = storedPratiques.map((p) =>
-        p.nom === editedPratique.nom ? data : p
-      );
-      localStorage.setItem("pratiques", JSON.stringify(updatedPratiques));
-      setPratiques(updatedPratiques);
+      handlePratiqueState(JSON.stringify(data), true);
     }
-    // Pour INSERT
+    // save
     else {
-      const newPratiques = [...storedPratiques, data];
-      localStorage.setItem("pratiques", JSON.stringify(newPratiques));
-      setPratiques(newPratiques);
+      handlePratiqueState(JSON.stringify(data), false);
     }
-    // Submit action
-    handleAddPratique(JSON.stringify(data));
   }
 
   function handleRemovedPratique(editedPratique){
-    const toRemove = editedPratique.nom
-    const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
-    const updatedPratiques = storedPratiques.filter((prat) => prat.nom !== toRemove );
-    localStorage.setItem("pratiques", JSON.stringify(updatedPratiques));
-    switchTabFunction("list")
+    // const id_pratique = editedPratique.id_pratique
+    async function fetchDeletePratique(){
+      const response = await deletePratique(editedPratique);
+      console.log(response);
+      switchTabFunction("list")
+    }
+    fetchDeletePratique();
   }
   
   const handleImageChange = (e) => {
@@ -253,7 +248,7 @@ export function FormAjoutPratique({
                     <AlertDialogHeader>
                     <AlertDialogTitle>Supprimer la pratique ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Êtes-vous sûr de vouloir supprimer <strong>{editedPratique.nom}</strong> ? Cette action est irréversible.
+                        Êtes-vous sûr de vouloir supprimer <strong>{editedPratique.nom_discipline}</strong> ? Cette action est irréversible.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -286,31 +281,31 @@ export function FormAjoutPratique({
               <div className="w-full flex flex-col gap-4">
                 {/* Type et nom */}
                 <div className="w-full h-auto flex flex-col gap-3">
-                  {/* type de dscipline */}
+                  {/* type de discipline */}
                   <div className="flex flex-col gap-1">
                     <Select
                       variant="outlined"
                       label="Type de Discipline"
                       onChange={(value) =>
-                        setValue("discipline", value, { shouldValidate: true })
+                        setValue("id_discipline", value, { shouldValidate: true })
                       }
-                      value={watch("discipline")}
+                      value={watch("id_discipline")}
                     >
-                      <Option value="disp_1">Acuponcteur</Option>
-                      <Option value="disp_2">Orthopediste</Option>
-                      <Option value="disp_3">Naturopathe</Option>
+                      {disciplines.map((discip, index) => (
+                        <Option key={index} value={discip.id_discipline}>{discip.nom_discipline}</Option>
+                      ))}
                     </Select>
                     <p className="text-balance text-left text-xs text-destructive">
-                      {errors.discipline?.message}
+                      {errors.id_discipline?.message}
                     </p>
                   </div>
                   {/* nom du pratique */}
-                  <div className="flex flex-col gap-1">
+                  {/* <div className="flex flex-col gap-1">
                     <Input
                       variant="outlined"
                       label="*Désignation de la pratique"
                       placeholder="Entrer un nom a votre pratique"
-                      {...register("nom", {
+                      {...register("nom_discipline", {
                         required: "Le nom de la pratique est requis",
                         maxLength: {
                           value: 100,
@@ -319,9 +314,9 @@ export function FormAjoutPratique({
                       })}
                     />
                     <p className="text-balance text-left text-xs text-destructive">
-                      {errors.nom?.message}
+                      {errors.nom_discipline?.message}
                     </p>
-                  </div>
+                  </div> */}
                 </div>
                 {/* Date debut du pratique */}
                 <div className="w-full flex flex-col gap-3">
@@ -346,7 +341,7 @@ export function FormAjoutPratique({
                 <div className="w-full flex flex-rows xs:flex-col gap-3">
                   <div className="flex-1 flex flex-col gap-1">
                     <Input
-                    type="number"
+                      type="number"
                       variant="outlined"
                       label="Tarifs (en euro)"
                       placeholder="Entrer le tarif"
@@ -407,14 +402,14 @@ export function FormAjoutPratique({
                   <Textarea
                     label="Informations sur la pratique"
                     onChange={(e) =>
-                      setValue("description", e.target.value, {
+                      setValue("desc_pratique", e.target.value, {
                         shouldValidate: true,
                       })
                     }
-                    value={watch("description")}
+                    value={watch("desc_pratique")}
                   />
                   <p className="text-balance text-left text-xs text-destructive">
-                    {errors.description?.message}
+                    {errors.desc_pratique?.message}
                   </p>
                 </div>
                 {/* Images de preuves */}

@@ -2,9 +2,11 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ListPratique } from "@/components/praticienComponents/list-pratique";
 import { FormAjoutPratique } from "@/components/praticienComponents/form-ajout-pratique";
 import { useEffect, useState } from "react";
+import { findDisciplines,findPratiques,savePratique,updatePratique } from "@/services/pratiques-services";
 
 const Pratiques = () => {
     const [actualTab, setActualTab] = useState("list");
+    const [listDiscipline, setListeDiscipline] = useState([]);
     const [listPratique, setListePratique] = useState([]);
     const [editedPratique, setEditedPratique] = useState(null);
 
@@ -21,18 +23,42 @@ const Pratiques = () => {
         },
     ];
 
-    useEffect(()=>{
-        if (actualTab === "list") {
-            const storedPratiques = JSON.parse(localStorage.getItem("pratiques")) || [];
-            setListePratique(storedPratiques);
-            // Pour reinitialiser la valeur de editedPratique
-            setEditedPratique(null);
+    useEffect( () => {
+        async function fetchDisciplines(){
+            const disciplines = await findDisciplines();
+            setListeDiscipline(disciplines);
         }
+        fetchDisciplines();
+    },[])
+
+    useEffect( () => {
+        async function fetchPratiques(){
+            if (actualTab === "list") {
+                const pratiques = await findPratiques();
+                setListePratique(pratiques);
+                setEditedPratique(null);// reset du formulaire
+            }
+        }
+        fetchPratiques();
     },[actualTab])
 
-    function handleAddPratique(newPratique){
-        // Ajout d 'une appelle API pour l'insertion de nouveau pratiqu
-        setActualTab("list")
+    function handlePratiqueState(pratiques, isUpdate){
+        if(isUpdate === false){
+            async function fetchNewPratique(){
+                const response = await savePratique(pratiques);
+                console.log(response);
+                setActualTab("list")
+            }
+            fetchNewPratique();
+        }else{
+            async function fetchUpdatePratique(){
+                console.log(pratiques)
+                const response = await updatePratique(pratiques);
+                console.log(response);
+                setActualTab("list")
+            }
+            fetchUpdatePratique();
+        }
     }
     
     return(
@@ -47,7 +73,7 @@ const Pratiques = () => {
             {tabs_sections.map((d) => (
                 <TabsContent key={d.value} value={d.value} >
                 {d.value === "list" && < d.desc  listpratiques={listPratique} switchTabFunction={setActualTab} setEditedPratique={setEditedPratique}/>}
-                {d.value === "add" &&  < d.desc  handleAddPratique={handleAddPratique} switchTabFunction={setActualTab} editedPratique={editedPratique}/>}
+                {d.value === "add" &&  < d.desc listDiscipline={listDiscipline} handlePratiqueState={handlePratiqueState} switchTabFunction={setActualTab} editedPratique={editedPratique}/>}
                 </TabsContent>
             ))}
         </Tabs>

@@ -13,7 +13,7 @@ const DetailPratiqueCard = ({ details }) => {
         ) : (
             <>
             {/* Designation du pratique */}
-                <div key="nom" className="flex items-start justify-between gap-5">
+                <div key="nom_discipline" className="flex items-start justify-between gap-5">
                     <Typography
                     variant="small"
                     className="mb-5 font-bold"
@@ -22,7 +22,7 @@ const DetailPratiqueCard = ({ details }) => {
                     Type de pratique
                     </Typography>
                     <Typography variant="small" color="gray" className="text-end">
-                    {details.nom || "N/A"}
+                    {details.nom_discipline || "N/A"}
                     </Typography>
                 </div>
             {/* Tarif du pratique */}
@@ -51,19 +51,6 @@ const DetailPratiqueCard = ({ details }) => {
                     {details.duree ? `${details.duree} ${UNITE_MINUTE}` : "N/A"}
                     </Typography>
                 </div>
-            {/* Date de debut du pratique */}
-                <div key="date_debut" className="flex items-start justify-between gap-5">
-                    <Typography
-                    variant="small"
-                    className="mb-5 font-bold"
-                    color="blue-gray"
-                    >
-                    Depuis
-                    </Typography>
-                    <Typography variant="small" color="gray" className="text-end">
-                    {details.date_debut || "N/A"}
-                    </Typography>
-                </div>
             {/* Description du pratique */}
                 <div key="description" className="flex items-start justify-between gap-5">
                     <Typography
@@ -74,7 +61,7 @@ const DetailPratiqueCard = ({ details }) => {
                     Description
                     </Typography>
                     <Typography variant="small" color="gray" className="text-end">
-                    {details.description || "N/A"}
+                    {details.desc_pratique || "N/A"}
                     </Typography>
                 </div>
             </>

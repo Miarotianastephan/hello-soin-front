@@ -80,7 +80,7 @@ export function ListPratique({
               {pratiques.length > 0 ? (
                 pratiques.map(
                   (
-                    { code_couleur, nom, tarif, duree, date },
+                    { code_couleur, nom_discipline, tarif, duree, date },
                     index,
                     allData
                   ) => {
@@ -90,7 +90,7 @@ export function ListPratique({
                       : "p-4 border-b border-blue-gray-50";
 
                     return (
-                      <tr key={nom} className="cursor-normal hover:bg-gray-100">
+                      <tr key={nom_discipline} className="cursor-normal hover:bg-gray-100">
                         {/* Type de pratique */}
                         <td className={classes}>
                           <div className="flex items-center gap-3">
@@ -104,7 +104,7 @@ export function ListPratique({
                                 color="blue-gray"
                                 className="font-normal"
                               >
-                                {nom}
+                                {nom_discipline}
                               </Typography>
                             </div>
                           </div>

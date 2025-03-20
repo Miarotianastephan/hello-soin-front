@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { user_test } from '@/components/common/constant';
-import { jwtDecode } from 'jwt-decode';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 export {
@@ -48,18 +47,6 @@ export const api_login_test = async (user_mail, mot_de_passe) => {
     throw error;
   }
 };
-// localStorage
-export const setLocalData = (name,value) => {
-    localStorage.setItem(name, JSON.stringify(value));
-};
-  
-export const getLocalData = (name) => {
-    return JSON.parse(localStorage.getItem(name));
-};
-  
-export const removeLocalData = (name) => {
-localStorage.removeItem(name);
-};
 
 export const getProfilPraticien = () =>{
 
@@ -81,8 +68,3 @@ export const getProfilPraticien = () =>{
   return data_user;
 }
 
-export const decodedToken = () => {
-  const token = getLocalData('token');
-  const payloadData = jwtDecode(token);
-  return payloadData;
-}

@@ -1,6 +1,7 @@
 import logo_login from '@/assets/login_illu.jpg'
 import LoginOptions from "./login-options"
-import { login_user, setLocalData, api_login_test } from "@/services/api"
+import { setLocalData } from '@/services/common-services'
+import { login_user } from "@/services/api"
 import { AlertCircle, X } from "lucide-react"
  
 import {
