@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import DateFnsCalendar from './sidebarComponent/DateFnsCalendar';
-import { getColorByType } from './utils/agendaUtils';
 import "../../../App.css";
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import BASE_URL from '@/pages/config/baseurl';
 const AgendaSidebar = ({
   todayAppointments,
   currentDate,
@@ -15,57 +14,71 @@ const AgendaSidebar = ({
   togglePracticeFilter,
   specifiqueOnly,
   setSpecifiqueOnly,
-  // On suppose que la sélection sera remontée vers le parent via ce callback
-  onSelectNextAvailabilityPractice,
+  selectedPractice,       // prop pour la pratique fixée
+  setSelectedPractice,
+  setIdPractice,
+  setIDurationPractice    // fonction pour modifier la pratique fixée
 }) => {
-  // Etat pour afficher/masquer le dropdown et pour la pratique sélectionnée
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedPracticeForAvailability, setSelectedPracticeForAvailability] = useState(null);
+  // Récupération des pratiques via l'API
+  const [practices, setPractices] = useState([]);
+  useEffect(() => {
+    fetch(`${BASE_URL}/practices`)
+      .then(res => res.json())
+      .then(data => setPractices(data))
+      .catch(err => console.error("Erreur lors du fetch des pratiques", err));
+  }, []);
 
-  const practices = ['naturopathie', 'acupuncture', 'hypnose'];
-
-  const handlePracticeChange = (practice) => {
-    // Si la pratique est déjà sélectionnée, la désélectionner (aucune sélection)
-    const newValue = selectedPracticeForAvailability === practice ? null : practice;
-    setSelectedPracticeForAvailability(newValue);
-    // Remonter la sélection (null ou la pratique)
-    onSelectNextAvailabilityPractice(newValue);
+  // Retourne la couleur associée à une pratique
+  const getColorByPractice = (practiceType) => {
+    const practice = practices.find(p => p.nom_discipline.toLowerCase() === practiceType.toLowerCase());
+    return practice ? practice.code_couleur : '#000000';
   };
+
+  // Nouvel état pour contrôler l'affichage du dropdown pour fixer la pratique
+  const [showFixerDropdown, setShowFixerDropdown] = useState(false);
 
   return (
     <div className="w-42 flex flex-col gap-4 bg-[#BCE2D326] text-[#405969] text-xs relative">
-      {/* Bouton d'accès aux prochaines disponibilités */}
-      <Button
-        className="mt-4 mx-4 bg-[#405969] shadow-none text-xs text-white"
-        onClick={() => setShowDropdown(!showDropdown)}
-      >
-        Prochaine disponibilité <ChevronRight />
-      </Button>
-      {showDropdown && (
-        <div className="absolute top-12 left-4 bg-white shadow-md border p-2 z-20">
-          <p className="mb-2 font-bold">Sélectionnez une pratique</p>
-          {practices.map((practice) => (
-            <label key={practice} className="flex items-center mb-1 text-xs cursor-pointer">
-              <input
-                type="checkbox"
-                checked={selectedPracticeForAvailability === practice}
-                onChange={() => handlePracticeChange(practice)}
-              />
-              <span
-                className="ml-2 inline-block w-3 h-3 rounded-full"
-                style={{ backgroundColor: getColorByType(practice) }}
-              ></span>
-              <span className="ml-1 capitalize">{practice}</span>
-            </label>
-          ))}
-          <button
-            className="mt-2 text-xs text-blue-500 underline"
-            onClick={() => setShowDropdown(false)}
-          >
-            Fermer
-          </button>
-        </div>
-      )}
+
+        {/* Dropdown pour fixer la pratique à utiliser pour un rendez‑vous */}
+        <div className="mx-4 mt-4 text-xs text-[#405969]">
+        <Button
+          variant="outline"
+          className="flex items-center gap-1 text-xs w-full justify-between text-[#ffff] bg-[#0f2b3d]"
+          onClick={() => setShowFixerDropdown(prev => !prev)}
+        >
+          {selectedPractice ? `${selectedPractice}` : 'Prochaine disponibilite'}
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+        {showFixerDropdown && (
+          <div className="border p-2 mt-1 shadow-lg rounded bg-white absolute z-50 w-[calc(100%-1rem)]">
+            {practices.map(practice => (
+              <div
+                key={practice.id_pratique}
+                className={`flex items-center mb-2 cursor-pointer text-xs ${selectedPractice === practice.nom_discipline ? 'font-bold' : ''}`}
+                onClick={() => {
+                  setSelectedPractice(selectedPractice === practice.nom_discipline ? null : practice.nom_discipline);
+                  setIdPractice(selectedPractice === practice.id_pratique ? null : practice.id_pratique);
+                  setIDurationPractice(selectedPractice === practice.duree ? null : practice.duree);
+                  setShowFixerDropdown(false);
+                }}
+              >
+                <input
+                  type="radio"
+                  readOnly
+                  checked={selectedPractice === practice.nom_discipline}
+                  className="mr-2"
+                />
+                <span
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: getColorByPractice(practice.nom_discipline) }}
+                ></span>
+                <span className="ml-2">{practice.nom_discipline}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Calendrier avec réduction de taille */}
       <div className="mx-4 overflow-hidden">
@@ -91,55 +104,27 @@ const AgendaSidebar = ({
         </div>
       </div>
 
-      {/* Filtres sur les pratiques */}
+    
+
+      {/* Filtres sur les types de rendez‑vous (déjà existants) */}
       <div className="mx-4 border-b-2 pb-2 text-xs text-[#405969]">
         <div>
           <h4 className="font-bold mt-2 mb-4 text-xs">Types de rendez‑vous</h4>
         </div>
-        <label className="flex items-center mb-4 text-xs">
-          <input
-            type="checkbox"
-            checked={practiceFilter.tous}
-            onChange={() => togglePracticeFilter('tous')}
-          />
-          <span className="ml-1 text-xs">Tous</span>
-        </label>
-        <label className="flex items-center mb-4 text-xs">
-          <input
-            type="checkbox"
-            checked={practiceFilter.naturopathie}
-            onChange={() => togglePracticeFilter('naturopathie')}
-          />
-          <span
-            className="ml-2 w-3 h-3 rounded-full"
-            style={{ backgroundColor: getColorByType('naturopathie') }}
-          ></span>
-          <span className="ml-1 text-xs">Naturopathie</span>
-        </label>
-        <label className="flex items-center mb-4 text-xs">
-          <input
-            type="checkbox"
-            checked={practiceFilter.acupuncture}
-            onChange={() => togglePracticeFilter('acupuncture')}
-          />
-          <span
-            className="ml-2 w-3 h-3 rounded-full"
-            style={{ backgroundColor: getColorByType('acupuncture') }}
-          ></span>
-          <span className="ml-1 text-xs">Acupuncture</span>
-        </label>
-        <label className="flex items-center text-xs">
-          <input
-            type="checkbox"
-            checked={practiceFilter.hypnose}
-            onChange={() => togglePracticeFilter('hypnose')}
-          />
-          <span
-            className="ml-2 w-3 h-3 rounded-full"
-            style={{ backgroundColor: getColorByType('hypnose') }}
-          ></span>
-          <span className="ml-1 text-xs">Hypnose</span>
-        </label>
+        {practices.map((practice) => (
+          <label key={practice.id_pratique} className="flex items-center mb-4 text-xs">
+            <input
+              type="checkbox"
+              checked={practiceFilter[practice.nom_discipline.toLowerCase()]}
+              onChange={() => togglePracticeFilter(practice.nom_discipline.toLowerCase())}
+            />
+            <span
+              className="ml-2 w-3 h-3 rounded-full"
+              style={{ backgroundColor: getColorByPractice(practice.nom_discipline) }}
+            ></span>
+            <span className="ml-1">{practice.nom_discipline}</span>
+          </label>
+        ))}
       </div>
 
       {/* Légende */}

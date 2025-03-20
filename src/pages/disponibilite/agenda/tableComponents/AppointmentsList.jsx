@@ -76,7 +76,7 @@ const AppointmentsList = ({ appointments }) => (
                       height: '10px',
                       borderRadius: '50%',
                       display: 'inline-block',
-                      backgroundColor: getColorByType(app.practice.type),
+                      backgroundColor: getColorByType(app.practice_type),
                     }}
                   />
                 </td>

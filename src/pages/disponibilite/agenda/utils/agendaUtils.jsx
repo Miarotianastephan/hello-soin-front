@@ -31,8 +31,8 @@ export const addMinutes = (time, minutes) => {
 export const totalDuration =
   differenceInMinutes(parseTime(AGENDA_END), parseTime(AGENDA_START)) + 1;
 
-export const DAY_COLUMN_HEIGHT = ((1440 / 60) * 128) * 1.50; // 3840px
-
+export const DAY_COLUMN_HEIGHT = ((1440 / 60) * 128) * 1.25; // 3840px
+export const DAY_COLUMN_HEIGHTW = ((1440 / 60) * 128) * 1.50;
 export const VISIBLE_HEIGHT = 10 * 68; // 640px
 
 export const dayNames = {
@@ -45,18 +45,14 @@ export const dayNames = {
   6: 'Samedi'
 };
 
-export const getColorByType = (type) => {
-  switch (type) {
-    case 'naturopathie':
-      return '#FF6B6B';
-    case 'acupuncture':
-      return '#3A96B0FF';
-    case 'hypnose':
-      return '#45B7D1';
-    default:
-      return '#CCCCCC';
-  }
+// utils/agendaUtils.js
+export const getColorByType = (practiceType) => {
+  // On suppose que la liste des pratiques a été stockée dans localStorage
+  const practices = JSON.parse(localStorage.getItem('practices')) || [];
+  const practice = practices.find(p => p.nom_discipline.toLowerCase() === practiceType.toLowerCase());
+  return practice ? practice.code_couleur : '#000000';
 };
+
 
 export const mergeTimeSlots = (timeSlots) => {
   if (timeSlots.length === 0) return [];

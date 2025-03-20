@@ -1,9 +1,44 @@
-// tableComponents/DayMode.js
 import React, { useState, useEffect, useRef } from 'react';
-import { format, addMinutes, differenceInMinutes, isSameDay, startOfDay, isPast } from 'date-fns';
-import { dayNames, parseTime, totalDuration, DAY_COLUMN_HEIGHT, AGENDA_START, getColorByType } from '../utils/agendaUtils';
+import { 
+  format, 
+  addMinutes, 
+  differenceInMinutes, 
+  isSameDay, 
+  startOfDay, 
+  parse 
+} from 'date-fns';
+import { 
+  dayNames, 
+  parseTime, 
+  totalDuration, 
+  DAY_COLUMN_HEIGHT, 
+  AGENDA_START 
+} from '../utils/agendaUtils';
 import { createPlageHoraire } from '../utils/scheduleUtils';
-import { Phone, Mail, CalendarCheck, Notebook, User } from 'lucide-react';
+import { Phone } from 'lucide-react';
+import BASE_URL from '@/pages/config/baseurl';
+
+// Fonction utilitaire pour formater une date en toute sécurité
+const safeFormat = (dateValue, dateFormat) => {
+  const d = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  return !isNaN(d.getTime()) ? format(d, dateFormat) : '';
+};
+
+// Fonction qui découpe un intervalle [start, end] en segments de durée donnée (en minutes)
+// Si le dernier segment est plus court, il est quand même retourné.
+const splitSegmentByDuration = (start, end, durationMinutes) => {
+  const segments = [];
+  let current = start;
+  while (current < end) {
+    let next = addMinutes(current, durationMinutes);
+    if (next > end) {
+      next = end;
+    }
+    segments.push({ start: current, end: next });
+    current = next;
+  }
+  return segments;
+};
 
 const HEADER_HEIGHT = 60;
 
@@ -18,14 +53,33 @@ const DayMode = ({
   isSelected,
   onOpenCreateAppointment,
   refreshSchedule,
-  selectedPractice
+  selectedPractice // optionnellement passé en prop
 }) => {
-  // Gestion de la sélection multiple
+  // Récupération des pratiques via l'API
+  const [practices, setPractices] = useState([]);
+  useEffect(() => {
+    fetch(`${BASE_URL}/practices`)
+      .then(res => res.json())
+      .then(data => setPractices(data))
+      .catch(err => console.error("Erreur lors du fetch des pratiques", err));
+  }, []);
+
+  // Gestion de la sélection de la pratique (si non passée en prop)
+  const [selectedPracticeLocal, setSelectedPracticeLocal] = useState(null);
+  const activePractice = selectedPractice || selectedPracticeLocal;
+
+  // Fonction pour obtenir la couleur associée à une pratique (comparaison insensible à la casse)
+  const getColorByPractice = (practiceType) => {
+    const practice = practices.find(p => p.nom_discipline.toLowerCase() === practiceType.toLowerCase());
+    return practice ? practice.code_couleur : '#000000';
+  };
+
+  // Gestion de la sélection multiple (pour création d'une plage horaire)
   const [multiSelectStart, setMultiSelectStart] = useState(null);
   const [multiSelectCurrent, setMultiSelectCurrent] = useState(null);
   const [finalMultiSelectRange, setFinalMultiSelectRange] = useState(null);
 
-  // Références pour tooltip et bloc de survol (hover) sans passer par le state
+  // Références pour tooltip et bloc de survol
   const tooltipRef = useRef(null);
   const hoverBlockRef = useRef(null);
   const animationFrameId = useRef(null);
@@ -34,6 +88,7 @@ const DayMode = ({
   const contentHeight = DAY_COLUMN_HEIGHT - HEADER_HEIGHT;
   const now = new Date();
   const isToday = isSameDay(date, now);
+  // Pour les dates antérieures à aujourd'hui, on considère le jour non sélectionnable
   const isSelectable = startOfDay(date) >= startOfDay(now);
 
   let currentTimeTop = null;
@@ -53,7 +108,7 @@ const DayMode = ({
     }
   }
 
-  // Gestion du clic en arrière-plan
+  // Gestion du clic sur le fond (création d'une plage horaire)
   const handleBackgroundClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
@@ -73,7 +128,7 @@ const DayMode = ({
     if (
       clickedTime < agendaStartDate ||
       clickedTime >= agendaEndDate ||
-      (isToday && clickedTime < new Date())
+      (isToday && clickedTime < now)
     ) {
       return;
     }
@@ -83,14 +138,11 @@ const DayMode = ({
         setMultiSelectStart(clickedTime);
         setMultiSelectCurrent(clickedTime);
       } else {
-        // Sélection bidirectionnelle
-        const startTime = multiSelectStart;
-        const endTime = clickedTime;
-        const selectionStartTime = startTime < endTime ? startTime : endTime;
-        const selectionEndTime = startTime < endTime ? endTime : startTime;
-        const formattedDate = format(date, 'dd-MM-yyyy');
-        const formattedStart = format(selectionStartTime, 'HH:mm');
-        const formattedEnd = format(selectionEndTime, 'HH:mm');
+        const startTime = multiSelectStart < multiSelectCurrent ? multiSelectStart : multiSelectCurrent;
+        const endTime = multiSelectStart < multiSelectCurrent ? multiSelectCurrent : multiSelectStart;
+        const formattedDate = safeFormat(date, 'dd-MM-yyyy');
+        const formattedStart = safeFormat(startTime, 'HH:mm');
+        const formattedEnd = safeFormat(endTime, 'HH:mm');
         try {
           createPlageHoraire(formattedDate, formattedStart, formattedEnd);
           if (typeof refreshSchedule === 'function') {
@@ -99,7 +151,7 @@ const DayMode = ({
         } catch (error) {
           alert(error.message);
         }
-        setFinalMultiSelectRange({ start: selectionStartTime, end: selectionEndTime });
+        setFinalMultiSelectRange({ start: startTime, end: endTime });
         setMultiSelectStart(null);
         setMultiSelectCurrent(null);
         setTimeout(() => setFinalMultiSelectRange(null), 3000);
@@ -115,8 +167,8 @@ const DayMode = ({
     });
     
     if (!isWithinSlot) {
-      const formattedDate = format(date, 'dd-MM-yyyy');
-      const formattedTime = format(clickedTime, 'HH:mm');
+      const formattedDate = safeFormat(date, 'dd-MM-yyyy');
+      const formattedTime = safeFormat(clickedTime, 'HH:mm');
       onOpenCreateAppointment(formattedDate, formattedTime);
       console.log('a verifier');
     }
@@ -133,7 +185,7 @@ const DayMode = ({
     const offsetMinutes = Math.round(rawMinutes / 15) * 15;
     const clampedMinutes = Math.max(0, Math.min(offsetMinutes, slotDuration));
     const newTime = new Date(slotStart.getTime() + clampedMinutes * 60000);
-    const formattedTime = format(newTime, 'HH:mm');
+    const formattedTime = safeFormat(newTime, 'HH:mm');
     onSlotClick(daySchedule, slotIndex, sourceType, {
       ...clickedSlot,
       start: formattedTime
@@ -142,7 +194,7 @@ const DayMode = ({
 
   const totalIntervals = 24 * 4; // 96 intervalles de 15 min
 
-  // Gestion du mouvement de la souris avec requestAnimationFrame
+  // Gestion du mouvement de la souris
   const throttledHandleMouseMove = (e) => {
     if (animationFrameId.current) return;
     const target = e.currentTarget;
@@ -164,15 +216,13 @@ const DayMode = ({
       );
       const newTime = addMinutes(agendaStartDate, newTimeMinutes);
       
-      // Mise à jour directe de l'info-bulle (tooltip)
       if (tooltipRef.current) {
         tooltipRef.current.style.left = `${offsetX + 5}px`;
         tooltipRef.current.style.top = `${offsetY + HEADER_HEIGHT + 10}px`;
-        tooltipRef.current.innerText = format(newTime, 'HH:mm');
+        tooltipRef.current.innerText = safeFormat(newTime, 'HH:mm');
         tooltipRef.current.style.display = 'block';
       }
       
-      // Mise à jour directe du bloc de surbrillance (hoverBlock)
       if (hoverBlockRef.current) {
         const blockTop = blockIndex * blockHeight;
         hoverBlockRef.current.style.top = `${blockTop + HEADER_HEIGHT}px`;
@@ -180,7 +230,6 @@ const DayMode = ({
         hoverBlockRef.current.style.display = 'block';
       }
       
-      // Mise à jour de la sélection multiple si active
       if (multiSelectStart) {
         setMultiSelectCurrent(newTime);
       }
@@ -206,35 +255,10 @@ const DayMode = ({
     };
   }, []);
 
-  const computeFreeIntervals = (slot) => {
-    const sStart = parseTime(slot.start);
-    const sEnd = parseTime(slot.end);
-    let freeIntervals = [];
-    if (slot.practices && slot.practices.length > 0) {
-      const sortedAppointments = slot.practices.slice().sort((a, b) => parseTime(a.start) - parseTime(b.start));
-      let current = sStart;
-      sortedAppointments.forEach(practice => {
-        const pStart = parseTime(practice.start || slot.start);
-        const pEnd = parseTime(practice.end || slot.end);
-        if (pStart > current) {
-          freeIntervals.push({ start: current, end: pStart });
-        }
-        if (pEnd > current) {
-          current = pEnd;
-        }
-      });
-      if (current < sEnd) {
-        freeIntervals.push({ start: current, end: sEnd });
-      }
-    } else {
-      freeIntervals.push({ start: sStart, end: sEnd });
-    }
-    return freeIntervals;
-  };
-
   return (
     <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
-      {/* Info-bulle pour le survol */}
+    
+      {/* Tooltip */}
       <div
         ref={tooltipRef}
         style={{
@@ -250,7 +274,7 @@ const DayMode = ({
         }}
         className="ml-10"
       />
-      {/* Bloc de surbrillance pour le survol */}
+      {/* Bloc de survol */}
       <div
         ref={hoverBlockRef}
         style={{
@@ -264,7 +288,7 @@ const DayMode = ({
         }}
         className="rounded-lg"
       />
-      {/* Header affiché en 5 colonnes */}
+      {/* Header en 5 colonnes */}
       <div
         className="sticky top-0 z-10 p-1 border-l bg-white"
         style={{ 
@@ -276,9 +300,9 @@ const DayMode = ({
         }}
       >
         <div className="text-gray-500 text-xs font-bold">Nom</div>
-        <div className="text-gray-500 text-xs font-bold">Telephone</div>
+        <div className="text-gray-500 text-xs font-bold">Téléphone</div>
         <div className="text-gray-500 text-xs font-bold">Email</div>
-        <div className="text-gray-500 text-xs font-bold">Type de rendez-vous</div>
+        <div className="text-gray-500 text-xs font-bold">Type</div>
         <div className="text-gray-500 text-xs font-bold">Motif</div>
       </div>
       {/* Zone principale de l'agenda */}
@@ -333,24 +357,19 @@ const DayMode = ({
           if (isToday) {
             const [endHour, endMinute] = slot.end.split(':').map(Number);
             const slotEndDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), endHour, endMinute);
-            isSlotPast = slotEndDate < new Date();
+            isSlotPast = slotEndDate < now;
           }
           const pastStyle = !isSelectable ? { backgroundColor: '#f0f0f0', opacity: 0.6 } : {};
-          let freeIntervals = [];
-          if (selectedPractice) {
-            freeIntervals = computeFreeIntervals(slot);
-          }
+          
           return (
             <div
               key={idx}
-              className={`absolute border ${isSelectable && !isSlotPast ? 'cursor-pointer bg-white' : ''} ${!isSelectable ? 'bg-gray-300' : ''}`}
+              className={`absolute ${isSelectable && !isSlotPast ? 'cursor-pointer bg-white' : ''} ${!isSelectable ? 'bg-gray-300' : ''}`}
               style={{ 
-                ...{
-                  top: `${offset}px`,
-                  height: `${slotHeight}px`,
-                  left: 0,
-                  right: 0,
-                },
+                top: `${offset}px`,
+                height: `${slotHeight}px`,
+                left: 0,
+                right: 0,
                 ...pastStyle
               }}
               onClick={isSelectable && !isSlotPast ? (e => {
@@ -358,44 +377,155 @@ const DayMode = ({
                 handleClick(e, daySchedule, idx, daySchedule.sourceType, slot, slotHeight);
               }) : null}
             >
-              {selectedPractice && isPast && freeIntervals.map((interval, i) => {
-                const relTop = (differenceInMinutes(interval.start, slotStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
-                const relHeight = (differenceInMinutes(interval.end, interval.start) / differenceInMinutes(slotEnd, slotStart)) * 100;
-                
-                let newDuration = 0;
-                const type = selectedPractice.type;
-                if (type === 'naturopathie') {
-                  newDuration = 120;
-                } else if (type === 'acupuncture') {
-                  newDuration = 30;
-                } else if (type === 'hypnose') {
-                  newDuration = 90;
+              {appointments
+                .filter(app => {
+                  // Vérifier que la date de l'appointment correspond à celle de la colonne
+                  const appDate = parse(app.date, 'dd-MM-yyyy', new Date());
+                  if (safeFormat(appDate, 'dd-MM-yyyy') !== safeFormat(date, 'dd-MM-yyyy')) {
+                    return false;
+                  }
+                  // Vérifier que l'heure de début se situe dans le slot courant
+                  const appStart = parseTime(app.practice_start);
+                  const sStart = parseTime(slot.start);
+                  const sEnd = parseTime(slot.end);
+                  return appStart >= sStart && appStart < sEnd && (practiceFilter.tous || practiceFilter[app.practice_type.toLowerCase()]);
+                })
+                .map((appointment, pIdx) => {
+                  const appointmentStart = parseTime(appointment.practice_start);
+                  const appointmentEnd = parseTime(appointment.practice_end);
+                  const practiceStartFormatted = safeFormat(appointmentStart, 'HH:mm');
+                  const practiceEndFormatted = safeFormat(appointmentEnd, 'HH:mm');
+                  const pOffset = (differenceInMinutes(appointmentStart, slotStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
+                  const pHeight = (differenceInMinutes(appointmentEnd, appointmentStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
+                  return (
+                    <div
+                      key={pIdx}
+                      className="absolute cursor-pointer border-2 rounded-2xl text-center hover:bg-gray-200 transition-colors duration-200"
+                      style={{
+                        top: `${pOffset}%`,
+                        height: `${pHeight}%`,
+                        left: 0,
+                        right: 0,
+                        borderColor: getColorByPractice(appointment.practice_type),
+                        color: getColorByPractice(appointment.practice_type),
+                        backgroundColor: `${getColorByPractice(appointment.practice_type)}10`,
+                        borderRadius: "4px"
+                      }}
+                      title={`${appointment.practice_type} (${practiceStartFormatted} - ${practiceEndFormatted}) Réservé`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onReservedClick && onReservedClick(appointment);
+                      }}
+                    >
+                      <div
+                        className="absolute flex inset-0 bg-gray-150 bg-opacity-50 overflow-hidden py-2 px-1"
+                        style={{ 
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr',
+                          gap: '2px',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <div className="text-xs font-bold text-start">
+                          {appointment.genre} {appointment.nom} {appointment.prenom}
+                        </div>
+                        <div className="text-xs font-bold text-start flex items-center gap-2">
+                          <Phone size={12}/> {appointment.numero}
+                        </div>
+                        <div className="text-xs font-bold text-start">{appointment.email}</div>
+                        <div className="text-xs font-bold text-start">{appointment.practice_type}</div>
+                        <div className="text-xs font-bold text-start">{appointment.motif}</div>
+                      </div>
+                    </div>
+                  );
+                })
+              }
+              {/* Affichage des intervalles libres découpés selon la durée de la pratique sélectionnée */}
+              {activePractice && (() => {
+                const sStart = parseTime(slot.start);
+                const sEnd = parseTime(slot.end);
+                // Pour n'afficher que les heures futures (si la date est aujourd'hui, le slot doit se terminer après now)
+                if (isToday && sEnd <= now) return null;
+                // Récupérer les appointments du slot (filtrage par date et horaire)
+                const appointmentsInSlot = appointments.filter(app => {
+                  const appDate = parse(app.date, 'dd-MM-yyyy', new Date());
+                  if (safeFormat(appDate, 'dd-MM-yyyy') !== safeFormat(date, 'dd-MM-yyyy')) return false;
+                  const appStart = parseTime(app.practice_start);
+                  return appStart >= sStart && appStart < sEnd;
+                }).sort((a, b) => parseTime(a.practice_start) - parseTime(b.practice_start));
+
+                let freeSegments = [];
+                let current = sStart;
+                appointmentsInSlot.forEach(app => {
+                  const appStart = parseTime(app.practice_start);
+                  const appEnd = parseTime(app.practice_end);
+                  if (appStart > current) {
+                    freeSegments.push({ start: current, end: appStart });
+                  }
+                  current = appEnd > current ? appEnd : current;
+                });
+                if (current < sEnd) {
+                  freeSegments.push({ start: current, end: sEnd });
                 }
                 
-                const intervalDuration = differenceInMinutes(interval.end, interval.start);
-                // Ajout d'une bordure vive si l'intervalle dure au moins newDuration minutes
-                const borderStyle = (intervalDuration >= newDuration)
-                  ? { border: `2px solid ${getColorByType(selectedPractice)}` }
-                  : {};
+                // Pour la journée en cours, ajuster ou exclure les segments déjà passés
+                if (isToday) {
+                  freeSegments = freeSegments
+                    .map(seg => {
+                      if (seg.end <= now) return null;
+                      if (seg.start < now) return { start: now, end: seg.end };
+                      return seg;
+                    })
+                    .filter(seg => seg !== null);
+                }
                 
-                return (
-                  <div
-                    key={`free-${i}`}
-                    style={{
-                      position: 'absolute',
-                      top: `${relTop}%`,
-                      left: 0,
-                      right: 0,
-                      height: `${relHeight}%`,
-                      backgroundColor: getColorByType(selectedPractice) + "20",
-                      zIndex: 0,
-                      ...borderStyle,
-                    }}
-                  />
-                );
-              })}
-              
-              
+                // Récupérer la durée en minutes de la pratique sélectionnée
+                const practiceObj = practices.find(p => p.nom_discipline.toLowerCase() === activePractice.toLowerCase());
+                const durationMinutes = practiceObj ? Math.round(practiceObj.duree * 60) : 60; // valeur par défaut
+
+                // Découper chaque segment libre en sous-segments de durée "durationMinutes"
+                let splittedSegments = [];
+                freeSegments.forEach(seg => {
+                  splittedSegments = splittedSegments.concat(splitSegmentByDuration(seg.start, seg.end, durationMinutes));
+                });
+
+                return splittedSegments.map((seg, index) => {
+                  // Pour la journée en cours, ne pas afficher un segment entièrement passé
+                  if (isToday && seg.end <= now) return null;
+                  const segStartOffset = (differenceInMinutes(seg.start, sStart) / differenceInMinutes(sEnd, sStart)) * 100;
+                  const segHeight = (differenceInMinutes(seg.end, seg.start) / differenceInMinutes(sEnd, sStart)) * 100;
+                  return (
+                    <div key={index}
+                      style={{
+                        position: 'absolute',
+                        top: `${segStartOffset}%`,
+                        height: `${segHeight}%`,
+                        left: 0,
+                        right: 0,
+                        border: `2px solid ${getColorByPractice(activePractice)}`,
+                        boxSizing: 'border-box',
+                        pointerEvents: 'none',
+                        borderRadius: '2px'
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        fontSize: '0.75rem',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        padding: '1px',
+                        lineHeight: 1,
+                        color: 'gray',
+                        marginTop:'5px'
+                      }}>
+                        {safeFormat(seg.start, 'HH:mm')} - {safeFormat(seg.end, 'HH:mm')}
+                      </span>
+                    </div>
+                  );
+                });
+              })()}
+
               {isToday && !isSlotPast && (() => {
                 const currentTime = new Date();
                 if (currentTime >= slotStart && currentTime < slotEnd) {
@@ -418,65 +548,6 @@ const DayMode = ({
                 }
                 return null;
               })()}
-              {slot.practices && slot.practices.length > 0 && slot.practices.map((practice, pIdx) => {
-                if (!practiceFilter.tous && !practiceFilter[practice.type]) return null;
-                const practiceStart = practice.start || slot.start;
-                const practiceEnd = practice.end || slot.end;
-                const pStart = parseTime(practiceStart);
-                const pEnd = parseTime(practiceEnd);
-                const pOffset = (differenceInMinutes(pStart, slotStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
-                const pHeight = (differenceInMinutes(pEnd, pStart) / differenceInMinutes(slotEnd, slotStart)) * 100;
-                const appointmentKey = `${daySchedule.date}_${slot.start}_${slot.end}_${practiceStart}_${practice.type}`;
-                const appointment = appointments.find(app => app.key === appointmentKey);
-                return (
-                  <div
-                    key={pIdx}
-                    className="absolute cursor-pointer border-2 rounded-2xl text-center hover:bg-gray-200 transition-colors duration-200"
-                    style={{
-                      top: `${pOffset}%`,
-                      height: `${pHeight}%`,
-                      left: 0,
-                      right: 0,
-                      borderColor: getColorByType(practice.type),
-                      color: getColorByType(practice.type),
-                      backgroundColor: `${getColorByType(practice.type)}30`,
-                      borderRadius: "4px"
-                    }}
-                    title={`${practice.type} (${practiceStart} - ${practiceEnd}) ${appointment ? 'Réservé' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (appointment) {
-                        onReservedClick && onReservedClick(appointment);
-                      } else {
-                        const defaultPractice = { ...practice, start: practice.start || slot.start, end: practice.end || slot.end };
-                        onPracticeClick && onPracticeClick(daySchedule, idx, defaultPractice, appointmentKey);
-                      }
-                    }}
-                  >
-                    {appointment && (
-                      <div
-                        className="absolute flex inset-0 bg-gray-150 bg-opacity-50 overflow-hidden py-2 px-1"
-                        style={{ 
-                          display: 'grid',
-                          gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr',
-                          gap: '2px',
-                          alignItems: 'center'  // Ajout pour centrer verticalement
-                        }}
-                      >
-                        <div className="text-xs font-bold text-start">
-                          {appointment.patient.genre} {appointment.patient.nom} {appointment.patient.prenom}
-                        </div>
-                        <div className="text-xs font-bold text-start flex items-center gap-2">
-                          <Phone size={12}/> {appointment.patient.numero}
-                        </div>
-                        <div className="text-xs font-bold text-start">{appointment.patient.email}</div>
-                        <div className="text-xs font-bold text-start">{practice.type}</div>
-                        <div className="text-xs font-bold text-start">{practice.motif}</div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
             </div>
           );
         })}

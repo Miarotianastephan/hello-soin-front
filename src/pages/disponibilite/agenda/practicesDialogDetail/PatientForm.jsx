@@ -7,6 +7,12 @@ import ExistingPatientDisplay from './ExistingPatientDisplay';
 const PatientForm = ({ practiceDialog, setPracticeDialog, fakePatients }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Fonction de génération d'un patient_id commençant par 50
+  const generatePatientId = () => {
+    // Génère un nombre entre 50000 et 59999
+    return Math.floor(Math.random() * 10000) + 50000;
+  };
+
   // Fonction de normalisation pour la recherche
   const normalize = (str) => str.toLowerCase().replace(/\s/g, '');
 
@@ -24,9 +30,8 @@ const PatientForm = ({ practiceDialog, setPracticeDialog, fakePatients }) => {
 
   const suggestions = filteredPatients.slice(0, 5);
   const selectedPatient = fakePatients.find(
-    (p) => p.id === practiceDialog.selectedPatientId
+    (p) => p.id_user === parseInt(practiceDialog.selectedPatientId, 10)
   );
-
   return (
     <div className="">
       <DialogDescription className="mt-2 text-xs">Information patient</DialogDescription>
@@ -40,10 +45,10 @@ const PatientForm = ({ practiceDialog, setPracticeDialog, fakePatients }) => {
               newPractice: {
                 ...prev.newPractice,
                 isNewPatient: e.target.checked,
-                // Si on passe en mode nouveau patient, on réinitialise le formulaire
-                newPatient: e.target.checked ? {} : prev.newPractice.newPatient,
+                // En mode nouveau patient, on initialise le formulaire avec un patient_id généré
+                newPatient: e.target.checked ? { patient_id: generatePatientId() } : prev.newPractice.newPatient,
               },
-              // Réinitialiser la sélection en cas de bascule
+              // Réinitialiser la sélection de patient si on passe en mode nouveau patient
               selectedPatientId: e.target.checked ? '' : prev.selectedPatientId,
               error: '' // On nettoie l'erreur si présente
             }))

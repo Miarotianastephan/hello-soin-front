@@ -13,7 +13,21 @@ const PracticeDialog = ({
   onSave,
   fakePatients,
   setPracticeDialog,
+  selectedPractice,
+  idPractice,
+  durationPractice // nouvelle prop pour la pratique fixée
 }) => {
+  // Fonction pour formater une date/heure au format "hh:mm"
+  const formatTime = (time) => {
+    if (!time) return "Non définie";
+    const date = new Date(time);
+    // Si la date n'est pas valide, on retourne la valeur d'origine
+    if (isNaN(date.getTime())) {
+      return time;
+    }
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <Dialog
       open={practiceDialog.isOpen}
@@ -22,13 +36,13 @@ const PracticeDialog = ({
       }}
     >
       <DialogContent className="max-w-xl max-h-8xl">
-        <div className="flex flex-row gap-4 ">
+        <div className="flex flex-row gap-4">
           <div className="w-full">
-            <p className="text-4xs text-gray-600 font-bold">Ajouter un rendez-vous</p>
+            <p className="text-4xs text-gray-600 font-bold">Ajouter un rendez‑vous</p>
             <DialogDescription className="py-2 text-xs">
               Plage horaire :{" "}
               {practiceDialog.parentSlot
-                ? `${practiceDialog.parentSlot.start} à ${practiceDialog.parentSlot.end}`
+                ? `${formatTime(practiceDialog.parentSlot.start)} à ${formatTime(practiceDialog.parentSlot.end)}`
                 : "Non définie"}
             </DialogDescription>
             <div className="w-full mb-4 border-2 p-2">
@@ -37,6 +51,9 @@ const PracticeDialog = ({
                 onTypeChange={onTypeChange}
                 onStartChange={onStartChange}
                 setPracticeDialog={setPracticeDialog}
+                selectedPractice={selectedPractice}
+                durationPractice={durationPractice}
+                idPractice={idPractice}  // transmission ici
               />
               <PatientForm
                 practiceDialog={practiceDialog}

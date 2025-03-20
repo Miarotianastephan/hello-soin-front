@@ -8,7 +8,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
 <div className="flex gap-4">
   <div className="flex-1">
     <label className="block text-xs font-medium text-gray-700">
-      <i className="fas fa-user mr-1"></i>Civilité  <span className="text-red-500">*</span>
+      <i className="fas fa-user mr-1"></i>Civilité
     </label>
     <select
       value={practiceDialog.newPractice.newPatient?.genre || ''}
@@ -27,6 +27,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
       className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
       required
     >
+      <option value="">Ne pas définir</option>
       <option value="Mr">Monsieur</option>
       <option value="Mme">Madame</option>
       <option value="Mlle">Mademoiselle</option>
@@ -65,7 +66,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
       <div className="flex gap-4">
         <div className="flex-1">
           <label className="block text-xs font-medium text-gray-700">
-            <i className="fas fa-user mr-1"></i>Prénom <span className="text-red-500">*</span>
+            <i className="fas fa-user mr-1"></i>Prénom
           </label>
           <input
             type="text"
@@ -116,7 +117,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
       <div className="flex gap-4">
         <div className="flex-1">
           <label className="block text-xs font-medium text-gray-700">
-            <i className="fas fa-phone mr-1"></i>Téléphone <span className="text-red-500">*</span>
+            <i className="fas fa-phone mr-1"></i>Téléphone
           </label>
           <input
             type="text"
