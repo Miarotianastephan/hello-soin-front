@@ -415,14 +415,14 @@ if (newPractice.isNewPatient) {
       body: JSON.stringify(newPractice.newPatient)
     });
     const patientData = await patientRes.json();
-    if (!patientData.id_user && !patientData.id_user) {
+    if (!patientData.id && !patientData.id_user) {
       setPracticeDialog(prev => ({
         ...prev,
         error: "Patient non valide. Veuillez réessayer."
       }));
       return;
     }
-    patient = { ...newPractice.newPatient, id_user: patientData.id_user || patientData.id_user };
+    patient = { ...newPractice.newPatient, id_user: patientData.id || patientData.id_user };
     setFakePatientsData(prev => [...prev, patient]);
   } catch (error) {
     console.error("Erreur lors de la sauvegarde du patient", error);
