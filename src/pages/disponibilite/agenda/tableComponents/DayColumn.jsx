@@ -17,6 +17,7 @@ import {
 import { createPlageHoraire } from '../utils/scheduleUtils';
 import { Phone } from 'lucide-react';
 import BASE_URL from '@/pages/config/baseurl';
+import AppointmentCountBadge from './badgs/AppointmentCountBadge';
 
 // Fonction utilitaire pour formater une date en toute sécurité
 const safeFormat = (dateValue, dateFormat) => {
@@ -422,6 +423,7 @@ const DayColumn = ({
                         onReservedClick && onReservedClick(appointment);
                       }}
                     >
+                      <AppointmentCountBadge patientId={appointment.patient_id}/>
                       <div className="ml-2 absolute inset-0 flex flex-col items-start justify-start mb-2 text-xs bg-gray-150 bg-opacity-50 overflow-hidden">
                         <div className="flex items-center justify-between pr-2 mt-1 gap-1 w-full">
                           <div className="font-tsy-bold text-[10px]">{practiceStartFormatted} - {practiceEndFormatted}</div>

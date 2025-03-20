@@ -142,7 +142,7 @@ const CreateAppointmentDialog = ({
       slot_index: 0,
       motif: formData.newPractice.motif,
       fake_user_id: parseInt(fakeUserId, 10),
-      praticien_id: formData.newPractice.praticien_id,
+      praticien_id: 3,
       id_pratique: formData.newPractice.id_pratique,
       practice: {
         type: formData.newPractice.type,

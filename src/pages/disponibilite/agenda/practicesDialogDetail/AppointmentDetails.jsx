@@ -55,22 +55,26 @@ const AppointmentDetails = ({ practiceDialog, onStartChange, setPracticeDialog, 
 
   // Si aucune pratique fixe n'est définie (idPractice vide) et aucun type n'est sélectionné,
   // on sélectionne par défaut la première pratique de la liste.
-  useEffect(() => {
-    if (!idPractice && practices.length > 0 && !practiceDialog.newPractice.type) {
-      const defaultPractice = practices[0];
-      const defaultDuration = Math.round(parseFloat(defaultPractice.duree) * 60) || 20;
-      setPracticeDialog(prev => ({
-        ...prev,
-        newPractice: {
-          ...prev.newPractice,
-          type: defaultPractice.nom_discipline,
-          duration: defaultDuration,
-          end: updateEndTime(prev.newPractice.start, defaultDuration),
-          id_pratique: defaultPractice.id_practice
-        }
-      }));
-    }
-  }, [idPractice, practices, practiceDialog.newPractice.type, setPracticeDialog]);
+ // Mettre à jour l'effet pour les pratiques fixes
+useEffect(() => {
+  if (idPractice && !practiceDialog.newPractice.type) {
+    const fixedPractice = practices.find(practice => practice.id_pratique === idPractice);
+    
+    // Ajouter cette vérification cruciale
+    if (!fixedPractice) return; // ⚠️ Bloque si la pratique n'existe pas
+
+    setPracticeDialog(prev => ({
+      ...prev,
+      newPractice: {
+        ...prev.newPractice,
+        id_pratique: idPractice, // ✅ Garantit l'ID même si fixedPractice est undefined
+        type: fixedPractice?.nom_discipline || '',
+        duration: durationPractice ? Math.round(durationPractice * 60) : 20,
+        end: updateEndTime(prev.newPractice.start, durationPractice)
+      }
+    }));
+  }
+}, [idPractice, durationPractice, practices]);
 
   // Si une pratique fixe est fournie (idPractice et durationPractice), on fixe automatiquement le formulaire.
   useEffect(() => {
