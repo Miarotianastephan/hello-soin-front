@@ -39,7 +39,7 @@ const AppointmentDetails = ({ practiceDialog, onStartChange, setPracticeDialog, 
   const handleTypeChange = (e) => {
     const selectedType = e.target.value;
     const selectedPracticeObj = practices.find(practice => practice.nom_discipline === selectedType);
-    const defaultDuration = selectedPracticeObj ? Math.round(parseFloat(selectedPracticeObj.duree) * 60) : 20;
+    const defaultDuration = selectedPracticeObj ? Math.round(parseFloat(selectedPracticeObj.duree) * 1) : 20;
     
     setPracticeDialog(prev => ({
       ...prev,
@@ -69,7 +69,7 @@ useEffect(() => {
         ...prev.newPractice,
         id_pratique: idPractice, // ✅ Garantit l'ID même si fixedPractice est undefined
         type: fixedPractice?.nom_discipline || '',
-        duration: durationPractice ? Math.round(durationPractice * 60) : 20,
+        duration: durationPractice ? Math.round(durationPractice * 1) : 20,
         end: updateEndTime(prev.newPractice.start, durationPractice)
       }
     }));
@@ -82,8 +82,8 @@ useEffect(() => {
       // On recherche l'objet pratique correspondant à idPractice
       const fixedPractice = practices.find(practice => practice.id_pratique === idPractice);
       // Si durationPractice est fournie en heures, on la convertit en minutes
-      const defaultDuration = durationPractice ? Math.round(durationPractice * 60)
-        : (fixedPractice ? Math.round(parseFloat(fixedPractice.duree) * 60) : 20);
+      const defaultDuration = durationPractice ? Math.round(durationPractice * 1)
+        : (fixedPractice ? Math.round(parseFloat(fixedPractice.duree) * 1) : 20);
       setPracticeDialog(prev => ({
         ...prev,
         newPractice: {

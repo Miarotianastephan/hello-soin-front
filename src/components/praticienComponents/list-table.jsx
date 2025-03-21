@@ -85,19 +85,15 @@ const DetailsPanel = ({isOpened, closePanel, selectedAppoint}) => {
             </li>
             <li className="flex">
               <span className="flex-1">Type de pratique</span>
-              <span className="flex-1 text-start">{selectedAppoint ? selectedAppoint.practice.type : ""}</span>
+              <span className="flex-1 text-start">{selectedAppoint ? selectedAppoint.practice_type : ""}</span>
             </li>
             <li className="flex">
               <span className="flex-1">Heure de début</span>
-              <span className="flex-1 text-start">{selectedAppoint ? selectedAppoint.practice.start : ""}</span>
+              <span className="flex-1 text-start">{selectedAppoint ? selectedAppoint.practice_start : ""}</span>
             </li>
             <li className="flex">
               <span className="flex-1">Heure de fin</span>
-              <span className="flex-1 text-start">{selectedAppoint ? selectedAppoint.practice.end : ""}</span>
-            </li>
-            <li className="flex">
-              <span className="flex-1">Tarif (en euro)</span>
-              <span className="flex-1 text-start">---</span>
+              <span className="flex-1 text-start">{selectedAppoint ? selectedAppoint.practice_end : ""}</span>
             </li>
             <li className="flex flex-col">
               <span className="flex-1">Déscription :</span>

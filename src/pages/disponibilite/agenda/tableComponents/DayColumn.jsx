@@ -11,7 +11,7 @@ import {
   dayNames, 
   parseTime, 
   totalDuration, 
-  DAY_COLUMN_HEIGHTW, 
+  DAY_COLUMN_HEIGHT, 
   AGENDA_START 
 } from '../utils/agendaUtils';
 import { createPlageHoraire } from '../utils/scheduleUtils';
@@ -89,7 +89,7 @@ const DayColumn = ({
   const animationFrameId = useRef(null);
 
   const slots = daySchedule ? daySchedule.timeSlots || [] : [];
-  const contentHeight = DAY_COLUMN_HEIGHTW - HEADER_HEIGHT;
+  const contentHeight = DAY_COLUMN_HEIGHT - HEADER_HEIGHT;
   const now = new Date();
   const isToday = isSameDay(date, now);
   // Pour les dates passées, on rend le jour non-sélectionnable (et n'affiche pas les dispos)
@@ -272,7 +272,7 @@ const DayColumn = ({
   }, []);
 
   return (
-    <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHTW}px` }}>
+    <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
       {/* Tooltip */}
       <div
         ref={tooltipRef}
@@ -488,7 +488,7 @@ const DayColumn = ({
                 
                 // Récupérer la durée en minutes de la pratique sélectionnée
                 const practiceObj = practices.find(p => p.nom_discipline.toLowerCase() === activePractice.toLowerCase());
-                const durationMinutes = practiceObj ? Math.round(practiceObj.duree * 60) : 60;
+                const durationMinutes = practiceObj ? Math.round(practiceObj.duree * 1) : 60;
                 
                 let splittedSegments = [];
                 freeSegments.forEach(seg => {

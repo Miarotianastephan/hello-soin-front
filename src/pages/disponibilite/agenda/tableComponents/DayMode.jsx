@@ -483,7 +483,7 @@ const DayMode = ({
                 
                 // Récupérer la durée en minutes de la pratique sélectionnée
                 const practiceObj = practices.find(p => p.nom_discipline.toLowerCase() === activePractice.toLowerCase());
-                const durationMinutes = practiceObj ? Math.round(practiceObj.duree * 60) : 60; // valeur par défaut
+                const durationMinutes = practiceObj ? Math.round(practiceObj.duree * 1) : 60; // valeur par défaut
 
                 // Découper chaque segment libre en sous-segments de durée "durationMinutes"
                 let splittedSegments = [];
