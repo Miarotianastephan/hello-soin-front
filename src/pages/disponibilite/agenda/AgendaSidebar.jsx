@@ -44,7 +44,7 @@ const AgendaSidebar = ({
         <div className="mx-4 mt-4 text-xs text-[#405969]">
         <Button
           variant="outline"
-          className="flex items-center gap-1 text-xs w-full justify-between text-[#ffff] bg-[#0f2b3d]"
+          className="flex items-center gap-1 text-xs w-full justify-between text-[#ffff] bg-[#123B55FF]"
           onClick={() => setShowFixerDropdown(prev => !prev)}
         >
           {selectedPractice ? `${selectedPractice}` : 'Prochaine disponibilite'}

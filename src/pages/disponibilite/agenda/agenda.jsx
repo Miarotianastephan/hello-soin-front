@@ -252,7 +252,7 @@ const Agenda = () => {
         error: '',
         motif: '',
         duration: DEFAULT_DURATION,
-        id_pratique: null,
+        id_pratique: '',
         createAppointment: false,
         isNewPatient: false,
         newPatient: {}
@@ -614,7 +614,7 @@ if (newPractice.isNewPatient) {
         error: '',
         motif: '',
         duration: DEFAULT_DURATION,
-        id_pratique: practiceDialog.newPractice.id_pratique || selectedPractice.id_pratique,
+        id_pratique: null,
         createAppointment: false,
         isNewPatient: false,
         newPatient: {}
@@ -644,20 +644,23 @@ if (newPractice.isNewPatient) {
           <div className="flex items-center justify-between w-full mb-2 bg-gray-50 h-[40px]">
             <div className="flex items-center gap-1">
               <Button
+                variant="outline"
                 disabled={startOfDay(currentDate).getTime() <= startOfDay(new Date()).getTime()}
-                className="flex items-center gap-2 border-none bg-[#F4F4F5] hover:bg-gray-200 text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2"
+                className="flex items-center gap-2 border-none bg-[#F4F4F5] hover:bg-gray-200 text-black shadow-none rounded text-xs h-full py-2 font-bold px-2"
                 onClick={goPrev}
               >
                 <ChevronLeft />
               </Button>
               <Button
-                className="flex items-center gap-2 border-none bg-[#F4F4F5] hover:bg-gray-200 text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2"
+                variant="outline"
+                className="flex items-center gap-2 border-none bg-[#F4F4F5] hover:bg-gray-200 text-black shadow-none rounded text-xs h-full py-2 font-bold px-2"
                 onClick={goToday}
               >
                 Aujourd'hui
               </Button>
               <Button
-                className="flex items-center gap-2 border-none bg-[#F4F4F5] hover:bg-gray-200 text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2"
+                variant="outline"
+                className="flex items-center gap-2 border-none bg-[#F4F4F5] hover:bg-gray-200 text-black shadow-none rounded text-xs h-full py-2 font-bold px-2"
                 onClick={goNext}
               >
                 <ChevronRight />
@@ -665,26 +668,30 @@ if (newPractice.isNewPatient) {
             </div>
             <div className="flex items-center gap-2">
               <Button
-                className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${viewMode === 'day' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'}`}
+                variant="outline"
+                className={`flex items-center gap-2 border-none text-black shadow-none rounded text-xs h-full py-2 font-bold px-2 ${viewMode === 'day' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'}`}
                 onClick={() => setViewMode('day')}
               >
                 Jour
               </Button>
               <Button
-                className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${viewMode === 'week' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'}`}
+                variant="outline"
+                className={`flex items-center gap-2 border-none text-black shadow-none rounded text-xs h-full py-2 font-bold px-2 ${viewMode === 'week' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'}`}
                 onClick={() => setViewMode('week')}
               >
                 Semaine
               </Button>
               <Button
-                className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${viewMode === 'month' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'}`}
+                variant="outline"
+                className={`flex items-center gap-2 border-none text-black shadow-none rounded text-xs h-full py-2 font-bold px-2 ${viewMode === 'month' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'}`}
                 onClick={() => setViewMode('month')}
               >
                 Mois
               </Button>
             </div>
             <Button
-              className={`flex items-center gap-2 border-none text-black shadow-none rounded-sm text-xs h-full py-2 font-bold px-2 ${viewMode === 'list' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'}`}
+              variant="outline"
+              className={`flex items-center gap-2 border-none text-black shadow-none rounded text-xs h-full py-2 my-2 font-bold px-2 ${viewMode === 'list' ? 'bg-[#565D6D] text-white' : 'bg-[#F4F4F5] hover:bg-gray-200'}`}
               onClick={() => setViewMode('list')}
             >
               Tous les Rendez‑vous

@@ -101,9 +101,9 @@ useEffect(() => {
     <>
       <DialogDescription className="flex items-center justify-start gap-2 mb-3">
         <div className="flex items-center justify-between text-xs">
-          <p>Date</p>
+          <p>Date du</p>
         </div>
-        <div className="flex items-center justify-between border gap-2 p-1 rounded-md text-xs h-[30px] font-bold text-gray-700">
+        <div className="flex items-center justify-between border gap-2 p-1 rounded-md text-xs h-[35px] font-bold text-gray-700">
           {formattedDate}
           <Calendar size={15} />
         </div>
@@ -115,7 +115,7 @@ useEffect(() => {
             <select
               value={practiceDialog.newPractice.type}
               onChange={handleTypeChange}
-              className="border p-1 rounded w-full mt-1 h-[30px]"
+              className="border p-1 rounded w-full mt-1 h-[35px]"
               required
               disabled={!!idPractice}  // Désactivation si une pratique fixe est fournie
             >
@@ -158,7 +158,7 @@ useEffect(() => {
                   }));
                 }
               }}
-              className="border p-1 rounded w-full mt-1 h-[30px]"
+              className="border p-1 rounded w-full mt-1 h-[35px]"
               required
               step="900"
               min={practiceDialog.parentSlot?.start}
@@ -182,7 +182,7 @@ useEffect(() => {
                   }
                 }));
               }}
-              className="border p-1 rounded w-full mt-1 h-[30px]"
+              className="border p-1 rounded w-full mt-1 h-[35px]"
               placeholder="minutes"
               min="15"
               step="15"

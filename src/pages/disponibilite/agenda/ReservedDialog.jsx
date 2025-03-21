@@ -42,7 +42,7 @@ const ReservedDialog = ({ reservedDialog, setReservedDialog, refreshSchedule }) 
 
   useEffect(() => {
     // Génère une URL de photo de profil aléatoire au montage du composant
-    setProfileImg(`https://i.pravatar.cc/80?img=${Math.floor(Math.random() * 70)}`);
+    setProfileImg(`https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png`);
   }, []);
 
   if (!reservedDialog.isOpen) return null;
