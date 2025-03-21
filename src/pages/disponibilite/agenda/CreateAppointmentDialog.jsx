@@ -175,10 +175,8 @@ const CreateAppointmentDialog = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-xl">
         <div className="flex flex-col gap-4">
-          <h3 className="text-lg font-semibold">Nouveau rendez‑vous</h3>
-          
-          <div className="text-sm text-gray-600">
-            {formattedDate()} - Créneau : {formData.newPractice.start} à {formData.newPractice.end}
+         <div className="text-sm text-gray-600">
+             Ouverture de {formData.newPractice.start} à {formData.newPractice.end}
           </div>
 
           <AppointmentDetails
@@ -212,7 +210,7 @@ const CreateAppointmentDialog = ({
             <Button onClick={onClose} variant="outline">
               Annuler
             </Button>
-            <Button onClick={handleSave} className="bg-blue-600 text-white">
+            <Button onClick={handleSave} className="bg-[#0f2b3d] text-white">
               <Save className="mr-2" /> Enregistrer
             </Button>
           </div>

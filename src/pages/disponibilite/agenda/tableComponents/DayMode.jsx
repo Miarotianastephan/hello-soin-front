@@ -425,7 +425,7 @@ const DayMode = ({
                           display: 'grid',
                           gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr',
                           gap: '2px',
-                          alignItems: 'center'
+                          alignItems: 'start'
                         }}
                       >
                         <div className="text-xs font-bold text-start">

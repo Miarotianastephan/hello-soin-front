@@ -24,14 +24,14 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
           },
         }))
       }
-      className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+      className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
       required
     >
-      <option value="">Ne pas définir</option>
-      <option value="Mr">Monsieur</option>
-      <option value="Mme">Madame</option>
-      <option value="Mlle">Mademoiselle</option>
-      <option value="Enfant">Enfant</option>
+      <option className='text-xs' value="">Ne pas définir</option>
+      <option className='text-xs' value="Mr">Monsieur</option>
+      <option className='text-xs' value="Mme">Madame</option>
+      <option className='text-xs' value="Mlle">Mademoiselle</option>
+      <option className='text-xs' value="Enfant">Enfant</option>
      
     </select>
   </div>
@@ -54,7 +54,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
           },
         }))
       }
-      className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+      className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
       placeholder="Nom"
       required
     />
@@ -83,7 +83,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
                 },
               }))
             }
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
             placeholder="Prénom"
             required
           />
@@ -107,7 +107,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
                 },
               }))
             }
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
             required
           />
         </div>
@@ -139,7 +139,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
                 },
               }));
             }}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
             placeholder="Téléphone"
             required
           />
@@ -168,7 +168,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
                 },
               }));
             }}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
             placeholder="Mobile"
             required
           />
@@ -195,7 +195,7 @@ const NewPatientForm = ({ practiceDialog, setPracticeDialog }) => {
               },
             }))
           }
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
           placeholder="Email"
           required
         />

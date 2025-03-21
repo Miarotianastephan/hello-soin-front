@@ -13,7 +13,7 @@ const ExistingPatientDisplay = ({ selectedPatient, practiceDialog, setPracticeDi
               type="text"
               value={selectedPatient?.genre || ''}
               disabled
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
             />
           </div>
         <div className="flex-1">
@@ -24,7 +24,7 @@ const ExistingPatientDisplay = ({ selectedPatient, practiceDialog, setPracticeDi
             type="text"
             value={selectedPatient?.nom || ''}
             disabled
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
           />
         </div>
        
@@ -40,7 +40,7 @@ const ExistingPatientDisplay = ({ selectedPatient, practiceDialog, setPracticeDi
             type="text"
             value={selectedPatient?.prenom || ''}
             disabled
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
           />
         </div>
         <div className="flex-1">
@@ -51,7 +51,7 @@ const ExistingPatientDisplay = ({ selectedPatient, practiceDialog, setPracticeDi
             type="date"
             value={selectedPatient?.dateNaissance || ''}
             disabled
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
           />
         </div>
       </div>
@@ -66,7 +66,7 @@ const ExistingPatientDisplay = ({ selectedPatient, practiceDialog, setPracticeDi
             type="text"
             value={selectedPatient?.numero || ''}
             disabled
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
           />
         </div>
         <div className="flex-1">
@@ -77,7 +77,7 @@ const ExistingPatientDisplay = ({ selectedPatient, practiceDialog, setPracticeDi
             type="text"
             value={selectedPatient?.mobile || ''}
             disabled
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
           />
         </div>
       </div>
@@ -91,7 +91,7 @@ const ExistingPatientDisplay = ({ selectedPatient, practiceDialog, setPracticeDi
           type="email"
           value={selectedPatient?.email || ''}
           disabled
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[30px] text-xs"
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-none p-2 h-[35px] text-xs"
         />
       </div>
 
