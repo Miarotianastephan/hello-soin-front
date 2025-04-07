@@ -119,8 +119,6 @@ export const LoginForm = ({ className, ...props }) => {
                       <Input 
                         {...register("mot_de_passe", {
                           required: 'Vous devez remplir ce champ',
-                          minLength: { value: 8, message: "Le mot de passe doit contenir au moins 8 caractères" },
-                          maxLength: { value: 20, message: "Le mot de passe ne peut pas dépasser 20 caractères" },
                         })}
                         id="password"
                         type={showPassword ? "text" : "password"}

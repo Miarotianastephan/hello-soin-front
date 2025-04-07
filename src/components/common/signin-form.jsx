@@ -28,10 +28,16 @@ const SignInForm = () => {
   const [showPasswordConf, setShowPasswordConf] = useState(false);
   const navigate = useNavigate();
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     console.log("Données soumises :", data);
-    // Ajout du fonction pour l'inscriptionj
-    navigate("/praticien/dashboard");
+    // Ajout du fonction pour l'inscription
+    try {
+      const insertUser = "";
+      console.log(insertUser);
+    } catch (error) {
+      console.error(error);
+    }
+    // navigate("/praticien/dashboard");
     // alert("Inscription réussie !");  
   };
 
@@ -52,7 +58,7 @@ const SignInForm = () => {
       if (isValid) setStep(3)
     }
     else if (step === 3) {
-      const isValid = await trigger(["mail", "new_mot_de_passe", "confirm_mot_de_passe"]);
+      const isValid = await trigger(["mail", "new_mot_de_passe", "confirm_mot_de_passe", "ciret_number"]);
       if (isValid) setStep(4)
     }
   };
@@ -139,7 +145,7 @@ const SignInForm = () => {
                 <Label>Prénom</Label>
                 <Input
                   {...register("prenom")}
-                  placeholder="Email"
+                  placeholder="Prénom(s)"
                   type="text"
                   className="w-full"
                 />
@@ -172,8 +178,8 @@ const SignInForm = () => {
                     className="h-24 w-24 rounded-lg object-cover"
                   />
                 ) : (
-                  <div  className="h-24 w-24 rounded-lg border border-dashed border-helloGray flex items-center justify-center">
-                    <span className="text-gray-400 text-sm">Photo vide</span>
+                  <div  className="h-24 w-24 rounded-lg border-2 border-dashed border-helloBlue flex items-center justify-center">
+                    <span className="text-helloBlue text-sm font-bold">Photo vide</span>
                   </div>
                 )}
               </div>
@@ -362,7 +368,15 @@ const SignInForm = () => {
               <div className="grid gap-2">
                 <Label>Numero de Ciret</Label>
                 <Input
-                  {...register("ciret_number")}
+                  {...register("ciret_number", {
+                    required: "Veuillez renseigner votre numero de Ciret",
+                    pattern: {
+                      value: /^[0-9]{13}$/,
+                      message: "Veuillez entrer un numero de Ciret valide (ex: 1234567890123)",
+                    },
+                    minLength: { value: 14, message: "Le numero de ciret doit etre en 14 chiffres" },
+                    maxLength: { value: 14, message: "Le numero de ciret doit etre en 14 chiffres" }
+                  })}
                   type="number"
                   placeholder="Entrer votre numero de Ciret"
                   className="w-full"

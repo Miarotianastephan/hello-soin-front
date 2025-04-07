@@ -68,3 +68,13 @@ export const getProfilPraticien = () =>{
   return data_user;
 }
 
+export const register_user = async(requestData) => {
+  try {
+    const response = await axios.post(`${API_URL}/register`, requestData);
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response.data.message;
+    console.error("Erreur lors de l'inscription", errorMessage);
+    throw errorMessage;
+  }
+}
