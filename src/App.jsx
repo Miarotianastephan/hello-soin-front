@@ -17,7 +17,9 @@ import Disponibilités from './pages/disponibilite/disponibilite';
 import Crenaux from './pages/crenaux/crenaux';
 import Accueil from './pages/accueil/Accueil';
 import PatientsPraticien from './pages/praticien/PatientsPraticien';
-
+import CompleteProfile from './pages/praticien/ProfileComponents/CompleteProfile';
+import EditFormation from './pages/praticien/ProfileComponents/EditFormation';
+import TroubleConfig from './pages/praticien/ProfileComponents/TroubleConfig';
 function App() {  
   const location = useLocation(); // route actuelle
 
@@ -48,6 +50,9 @@ function App() {
             <Route path="/plage-horaire" element={<Disponibilités />} />
             <Route path="/type-rendez-vous" element={<Crenaux />} />
             <Route path="/praticien/patients" element={<PatientsPraticien />} />
+            <Route path="/completeProfile" element={<CompleteProfile/>}/>
+            <Route path="/editFormation" element={<EditFormation/>}/>
+            <Route path="/troubleConfig" element={<TroubleConfig/>}/>
 
             {/* PATIENTS */}
             <Route path="/about" element={<ProfilPatient />} />

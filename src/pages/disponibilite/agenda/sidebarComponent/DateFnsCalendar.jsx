@@ -182,7 +182,7 @@ const DateFnsCalendar = ({ selected, onSelect, locale, renderHeader, dayClassNam
           <div key={index}>{d}</div>
         ))}
       </div>
-      <div>{rows}</div>
+      <div className="text-xs">{rows}</div>
     </div>
   );
 };

@@ -487,34 +487,34 @@ class GeneralEntreDates extends Component {
       <div>
         {/* Saisie de la plage de dates */}
         <div className="mb-4">
-          <p className='font-bold my-4 text-[#0f2b3d]'>Programmer une date spécifique</p>
-          <div className="flex gap-4 items-center justify-start">
+          <p className='font-bold my-4 text-[#0f2b3d] text-sm'>Programmer une date spécifique</p>
+          <div className="flex items-center justify-start gap-4 text-sm">
             <p>De</p>
-            <div>
+            <div className="text-xs">
               <DatePicker
                 selected={startDate}
                 onChange={(date) => this.handleDateChange("startDate", date)}
                 dateFormat="dd-MM-yyyy"
                 placeholderText="jour-mois-année"
-                className="border p-2 rounded"
+                className="p-2 border rounded"
                 minDate={new Date()}
                 todayButton="Aujourd'hui"
               />
             </div>
-            <p>à</p>
-            <div>
+            <p className="text-xs">à</p>
+            <div className="text-xs">
               <DatePicker
                 selected={endDate}
                 onChange={(date) => this.handleDateChange("endDate", date)}
                 dateFormat="dd-MM-yyyy"
                 placeholderText="jour-mois-année"
-                className="border p-2 rounded"
+                className="p-2 border rounded"
                 minDate={startDate ? startDate : new Date()}
                 todayButton="Aujourd'hui"
               />
             </div>
             <div>
-              <Button onClick={this.handleLoadDays} className="bg-[#2b7a72] text-white">
+              <Button onClick={this.handleLoadDays} className="bg-[#2b7a72] text-white text-xs">
                 <Check /> Confirmer
               </Button>
             </div>
@@ -524,11 +524,11 @@ class GeneralEntreDates extends Component {
         {/* Affichage du planning */}
         {days.length > 0 && (
           <div>
-            <div className="flex w-full border-y-2 py-4 items-center justify-between">
+            <div className="flex items-center justify-between w-full py-4 border-y-2">
               <div>
-                <div className="flex flex-wrap gap-6">
+                <div className="flex flex-wrap gap-6 text-xs">
                   {days.map((day, index) => (
-                    <label key={day.name} className="flex items-center space-x-2">
+                    <label key={day.name} className="flex items-center space-x-2 text-xs">
                       <input
                         type="checkbox"
                         checked={day.selected}
@@ -538,12 +538,12 @@ class GeneralEntreDates extends Component {
                     </label>
                   ))}
                 </div>
-                <div className="flex flex-wrap gap-2 my-2 items-center text-gray-500 text-sm">
+                <div className="flex flex-wrap items-center gap-2 my-2 text-xs text-gray-500">
                   <InfoIcon/>
-                  <p>Seuls les jours sélectionnés seront modifiés par rapport à l'agenda général.</p>
+                  <p className="text-xs">Seuls les jours sélectionnés seront modifiés par rapport à l'agenda général.</p>
                 </div>
               </div>
-              <Button type="submit" className="flex items-center bg-[#0f2b3d]" onClick={this.handleSave}>
+              <Button type="submit" className="flex items-center text-xs bg-[#0f2b3d]" onClick={this.handleSave}>
                 <SaveIcon /> Enregistrer
               </Button>
             </div>
@@ -552,25 +552,25 @@ class GeneralEntreDates extends Component {
               {days.map((day, index) => {
                 if (!day.selected) return null;
                 return (
-                  <div key={day.name} className="mb-4 border p-4 rounded-lg">
-                    <div className="grid grid-cols-3 gap-4 items-start">
+                  <div key={day.name} className="p-4 mb-4 border rounded-lg">
+                    <div className="grid items-start grid-cols-3 gap-4">
                       {/* Colonne 1 : Nom du jour */}
-                      <div className="flex text-left items-start justify-start font-bold">
+                      <div className="flex items-start justify-start text-xs font-bold text-left">
                         {day.name}
                       </div>
                       {/* Colonne 2 : Plages horaires ou message indisponible */}
-                      <div className="flex flex-col items-center justify-center">
+                      <div className="flex flex-col items-center justify-center text-xs">
                         {day.work === false ? (
-                          <p className="text-gray-500 font-bold text-center">Marqué comme non disponible</p>
+                          <p className="text-xs font-bold text-center text-gray-500">Marqué comme non disponible</p>
                         ) : (
                           day.times.map((time, timeIndex) => (
                             <div key={timeIndex} className="flex flex-col gap-2 mb-2">
-                              <div className="flex items-center justify-center gap-2">
+                              <div className="flex items-center justify-center gap-2 ">
                                 {this.renderTimeInput(index, timeIndex, 'start')}
                                 <span>à</span>
                                 {this.renderTimeInput(index, timeIndex, 'end')}
                                 <Button
-                                  className="bg-red-500 text-white"
+                                  className="text-xs text-white bg-red-500"
                                   onClick={() => this.handleRemoveTimeSlot(index, timeIndex)}
                                 >
                                   <Trash2 size={16} />
@@ -584,14 +584,14 @@ class GeneralEntreDates extends Component {
                       <div className="flex flex-col items-end">
                         {day.work !== false && (
                           <Button
-                            className="flex items-center bg-[#2b7a72] text-white mb-2"
+                            className="flex items-center bg-[#2b7a72] text-white mb-2 text-xs"
                             onClick={() => this.handleAddTimeSlot(index)}
                           >
                             <PlusCircle size={16} /> Ajouter une plage horaire
                           </Button>
                         )}
                         <Button
-                          className="bg-gray-500 text-white"
+                          className="text-xs text-white bg-gray-500"
                           onClick={() => this.handleNotWorking(index)}
                         >
                           <Ban /> Ne pas travailler

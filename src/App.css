@@ -81,6 +81,14 @@
   }
 }
 
+/* Réduction de l'affichage à 80% */
+/* html {
+  zoom: 80%; 
+  -moz-transform: scale(0.8); 
+  -moz-transform-origin: 0 0;
+} */
+
+
 
 /* Masquer la barre de scroll pour WebKit (Chrome, Safari) */
 .scrollbar-hidden::-webkit-scrollbar {

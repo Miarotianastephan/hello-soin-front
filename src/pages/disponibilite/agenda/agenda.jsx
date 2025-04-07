@@ -12,7 +12,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import CreateAppointmentDialog from './CreateAppointmentDialog';
 import fr from 'date-fns/locale/fr';
 import BASE_URL from '@/pages/config/baseurl';
-
+import './agenda.css'
 // Helpers pour la gestion des horaires sans reformatage inutile
 const timeToMinutes = (timeStr) => {
   const [hours, minutes] = timeStr.split(':').map(Number);
@@ -625,7 +625,7 @@ if (newPractice.isNewPatient) {
   };
 
   return (
-    <div className="p-4 flex gap-4 border">
+    <div className="flex h-full with-full containertail border mx-2 p-2">
       <AgendaSidebar
         todayAppointments={todayAppointments}
         currentDate={currentDate}

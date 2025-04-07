@@ -1,175 +1,208 @@
-import { Separator } from "@/components/ui/separator";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Typography,
-  Chip,
-  Button,
-} from "@material-tailwind/react";
-import { Phone,MailIcon,Calendar } from "lucide-react";
-import {getProfilPraticien} from '@/services/api.js';
-import { useEffect, useState } from "react";
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
+import {
+  Camera,
+  CheckCircle,
+  MapPin,
+  HouseIcon,
+  Video,
+  SquarePen,
+  Mail,
+  Linkedin,
+  Facebook,
+  Building2
+} from "lucide-react";
+import Information from "./ProfileComponents/Information";
+import Formation from "./ProfileComponents/Formation";
+import TroubleManager from "./ProfileComponents/TroubleManager";
+import Avis from "./ProfileComponents/Avis";
+const TABS = [
+  { id: "informations", label: "Informations" },
+  { id: "formations", label: "Formations et expériences" },
+  { id: "troubles", label: "Troubles et solutions" },
+  { id: "cabinets", label: "Cabinets" },
+  { id: "avis", label: "Avis patients" },
+];
 
 const PraticienProfil = () => {
-  
-  const [user, setUser] = useState(null);
-  const [isLoading, setLoading] = useState(true);
+  const [profilePic, setProfilePic] = useState("");
+  const [activeTab, setActiveTab] = useState("informations"); // Onglet par défaut
+  const navigate = useNavigate();
 
+  // Au montage du composant, on vérifie si une URL est stockée dans le localStorage
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const data = await getProfilPraticien();
-        setUser(data);
-      } catch (error) {
-        console.error("Erreur lors de la récupération du profil :", error);
-      } finally{
-        setLoading(false);
-      }
-    };
-    fetchUser();
+    const storedProfilePic = localStorage.getItem("profilePic");
+    if (storedProfilePic) {
+      setProfilePic(storedProfilePic);
+    }
   }, []);
 
+  const handleChangePhoto = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setProfilePic(url);
+      // Enregistrer l'URL dans le localStorage
+      localStorage.setItem("profilePic", url);
+    }
+  };
+
+  const handleModifyProfile = () => {
+    navigate("/completeProfile");
+  };
+
   return (
-    <>
-        { isLoading ? 
-        (<p>Chargement en cours...</p>)
-        : (
-          user ? (
-          <div className="flex flex-1 flex-col gap-4 p-2 bg-gray-100 rounded-xl">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm max-w-4xl w-full p-6 transition-all duration-300 animate-fade-in">
-              <div className="flex flex-col items-start md:flex-row gap-6">
-                <div className="md:w-1/3 w-full text-center mb-8 md:mb-0">
-                  <img
-                    src="https://i.pravatar.cc/300"
-                    alt="Profile Picture"
-                    className="rounded-full w-48 h-48 mx-auto mb-4 transition-transform duration-300 hover:scale-105"
-                  />
-                  <div className="mt-4 flex flex-col">
-                    <Button className="bg-helloSoin" size="sm">
-                      Modifier profil
-                    </Button>
-                  </div>
-                </div>
-                <div className="md:w-2/3 md:pl-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <Typography variant="h5" className="mt-1 font-bold">
-                    {user.user_forname && user.user_name ? (
-                      <p>{user.user_name} {user.user_forname}</p>
-                    ) : (
-                      <p>Aucune infromation trouvée</p>
-                    )}
-                    </Typography>
-                    <Chip
-                      variant="ghost"
-                      color="green"
-                      size="sm"
-                      value="Active"
-                      icon={
-                        <span className="mx-auto mt-1 block h-2 w-2 rounded-full bg-green-900 content-['']" />
-                      }
-                      className="w-max h-max"
-                    />
-                  </div>
-                  <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                    <li className="flex items-center gap-2">
-                      <Phone className="h-5 w-5"/>
-                      {user.user_phone ? (
-                        user.user_phone
-                      ) : (
-                        <p>Aucune infromation trouvée</p>
-                      )}
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <MailIcon className="h-5 w-5"/>
-                      {user.user_mail ? (
-                        user.user_mail
-                      ) : (
-                        <p>Aucune infromation trouvée</p>
-                      )}
-                    </li>
-                  </ul>
-                  <div className="flex flex-wrap gap-2 mt-6">
-                    <div className="flex items-start gap-1 rounded-lg p-2 border  max-w-max min-h-[50px]">
-                        <Calendar className="w-5 h-5"/>
-                        <div className="flex flex-col font-bold">22<span className="font-normal">Total des rendez-vous</span></div>
-                    </div>
-                    <div className="flex items-start gap-1 rounded-lg p-2 border  max-w-max min-h-[50px]">
-                        <Calendar className="w-5 h-5"/>
-                        <div className="flex flex-col font-bold">3<span className="font-normal">Nombre de pratiques</span></div>
-                    </div>
-                  </div>
-                </div>
+    <div>
+      {/* Carte du praticien */}
+      <div className="flex items-center justify-between p-4 mx-5 border rounded ">
+        {/* Colonne gauche : Avatar et informations */}
+        <div className="flex items-center space-x-4">
+          {/* Avatar */}
+          <div className="relative">
+            <Avatar className="w-24 h-24 overflow-hidden ring-4 ring-gray-300">
+              <AvatarImage
+                src={profilePic}
+                alt="Photo de profil"
+                className="object-cover w-full h-full"
+              />
+              <AvatarFallback>
+                <svg
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  className="w-6 h-6 text-gray-500"
+                >
+                  <path d="M12 12c2.7 0 4.89-2.2 4.89-4.89S14.7 2.22 12 2.22 7.11 4.41 7.11 7.11 9.3 12 12 12zm0 2.67c-3.13 0-9.33 1.57-9.33 4.67v1.78h18.67v-1.78c0-3.1-6.2-4.67-9.34-4.67z" />
+                </svg>
+              </AvatarFallback>
+            </Avatar>
+
+            {/* Icône pour changer la photo */}
+            <label
+              htmlFor="profilePic"
+              className="absolute bottom-0 right-0 p-1 bg-white rounded-full cursor-pointer ring-2 ring-gray-300"
+            >
+              <Camera className="w-4 h-4 text-gray-500" />
+            </label>
+            <input
+              type="file"
+              id="profilePic"
+              className="hidden"
+              accept="image/*"
+              onChange={handleChangePhoto}
+            />
+          </div>
+
+          {/* Informations du praticien */}
+          <div className="flex flex-col space-y-3">
+            {/* Nom + badge Confirmé */}
+            <div className="flex items-center space-x-2">
+              <h2 className="text-lg font-semibold text-gray-800">
+                Durand Paul
+              </h2>
+              <div className="flex items-center px-2 py-1 space-x-1 text-xs text-green-700 bg-green-100 rounded">
+                <CheckCircle className="w-4 h-4" />
+                <span>Confirmé</span>
               </div>
             </div>
-            {/* Section pour l'info complet */}
-            <div className="bg-white w-full rounded-xl min-h-5 p-6">
-              
-              <Typography variant="h5" className="mt-1 font-bold">
-              Informations Professionnelles
-              </Typography>
-              <div className="mt-3">
-                <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                  {/* les pratiques */}
-                  <li className="flex justify-between px-2 py-1 hover:bg-gray-200 rounded-lg">
-                    <strong>Type de pratiques (Specialités):</strong> 
-                    {user && user.specialite ? (
-                      user.specialite.join(", ")
-                    ) : (
-                      <p>Aucune spécialité trouvée</p>
-                    )}
-                  </li>
-                  {/* numero de telephone */}
-                  <li className="flex justify-between px-2 py-1 hover:bg-gray-200 rounded-lg">
-                    <strong>Téléphone:</strong> 
-                    {user.user_phone ? (
-                      user.user_phone
-                    ) : (
-                      <p>Numero telephone non trouvée</p>
-                    )}
-                  </li>
-                  {/* Ville */}
-                  <li className="flex justify-between px-2 py-1 hover:bg-gray-200 rounded-lg">
-                    <strong>Ville:</strong> 
-                    {user.ville ? (
-                      user.ville
-                    ) : (
-                      <p>Aucune ville trouvée</p>
-                    )}
-                  </li>
-                  {/* Numero de siret */}
-                  <li className="flex justify-between px-2 py-1 hover:bg-gray-200 rounded-lg">
-                    <strong>Numero de Siret:</strong> 
-                    {user.siret_number ? (
-                      user.siret_number
-                    ) : (
-                      <p>Aucun numero de siret trouvée</p>
-                    )}
-                  </li>
-                  {/* Nombre */}
-                  <li className="flex justify-between px-2 py-1 hover:bg-gray-200 rounded-lg">
-                    <strong>Experiences:</strong> 
-                    {user.xp ? (
-                       <p>{user.xp} ans</p>
-                    ) : (
-                      <p>Experience non confirme</p>
-                    )}
-                  </li>
-                  <li className="flex justify-between px-2 py-1 hover:bg-gray-200 rounded-lg">
-                    <strong>Type de consultation:</strong>
-                    {user && user.consultation ? (
-                      user.consultation.join(", ")
-                    ) : (
-                      <p>Aucune type de consultation trouvée</p>
-                    )}
-                  </li>
-                </ul>
+
+            {/* Email */}
+            <div className="flex items-center mt-1 space-x-2 text-xs text-gray-800">
+              <Mail className="w-4 h-4" color="white" fill="currentColor" />
+              <span>moniela@gmail.com</span>
+            </div>
+
+            {/* Adresse */}
+            <div className="flex items-center mt-1 space-x-2 text-xs text-gray-800">
+              <MapPin className="w-4 h-4" color="white" fill="currentColor" />
+              <span>
+                1 boulevard des jeux olympiques sud, 78000 Versailles
+              </span>
+            </div>
+
+            {/* Modalités (cabinet, distance, visio) */}
+            <div className="flex items-center mt-2 space-x-4">
+              <div className="flex items-center space-x-1 text-xs text-gray-600">
+                <Building2 className="w-4 h-4" />
+                <span>En cabinet</span>
+              </div>
+              <div className="flex items-center space-x-1 text-xs text-gray-600">
+                <HouseIcon className="w-4 h-4" />
+                <span>A domicile</span>
+              </div>
+              <div className="flex items-center space-x-1 text-xs text-gray-600">
+                <Video className="w-4 h-4" />
+                <span>En visio</span>
               </div>
             </div>
-        </div>) : (<p>Utilisateur introuvable ou erreur de connexion</p>)
+          </div>
+        </div>
+
+        {/* Colonne droite : icônes réseaux sociaux (en haut) + bouton Modifier (en bas) */}
+        <div className="flex flex-col items-end justify-between h-full space-y-10">
+          {/* Icônes en haut */}
+          <div className="flex mb-2 space-x-2">
+            <button className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+              <Linkedin className="w-4 h-4 text-gray-600" />
+            </button>
+            <button className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+              <Facebook className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
+
+          {/* Bouton Modifier le profil (en bas) */}
+          <button
+            onClick={handleModifyProfile}
+            className="inline-flex items-center px-4 py-2 mt-auto text-xs font-medium text-white bg-[#0f2b3d] rounded-sm hover:bg-[#14384f]"
+          >
+            <SquarePen className="w-4 h-4 mr-2" />
+            Modifier le profil
+          </button>
+        </div>
+      </div>
+
+      {/* Barre d'onglets */}
+      <div className="flex items-center justify-start px-6 mt-4 space-x-6 text-sm">
+        {TABS.map((tab) => {
+          const isActive = tab.id === activeTab;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`pb-1 ${
+                isActive
+                  ? "text-[#5DA781] border-b-2 border-[#5DA781] font-semibold"
+                  : "text-gray-700 hover:text-gray-900 font-semibold"
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Contenu conditionnel selon l'onglet actif */}
+      <div className="mx-5 mt-4">
+        {activeTab === "informations" && <Information />}
+        {activeTab === "formations" && <Formation />}
+        {activeTab === "troubles" && (<TroubleManager/>)}
+        {activeTab === "cabinets" && (
+          <div className="p-4 bg-white rounded shadow">
+            <h2 className="text-lg font-semibold text-gray-800">Cabinets</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Contenu à venir...
+            </p>
+          </div>
         )}
-    </>
+        {activeTab === "avis" && (
+          <Avis/>
+        )}
+      </div>
+    </div>
   );
 };
 
