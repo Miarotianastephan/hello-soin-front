@@ -513,7 +513,7 @@ export class General extends Component {
               onClick={() => this.setState({ successDialog: { isOpen: false, message: '' } })}
               className="bg-[#0f2b3d] w-1/4 h-full p-1 flex justify-center items-center rounded-lg"
             >
-              <span className="text-white font-bold">Ok</span>
+              <span className="font-bold text-white">Ok</span>
             </Link>
           </DialogFooter>
         </DialogContent>
@@ -527,7 +527,7 @@ export class General extends Component {
     // Affichage d'un indicateur de chargement
     if (isLoading) {
       return (
-        <div className="flex justify-center items-center h-screen">
+        <div className="flex items-center justify-center h-screen">
           <p>Chargement...</p>
         </div>
       );
@@ -535,16 +535,16 @@ export class General extends Component {
 
     return (
       <div>
-        <div className="flex w-full border-b-2 py-3 items-center justify-between">
-          <p className="text-[ #0f2b3d] font-bold">Planifier la disponibilité</p>
+        <div className="flex items-center justify-between w-full py-3 border-b-2">
+          <p className="text-[ #0f2b3d] font-bold text-sm">Planifier la disponibilité</p>
         </div>
 
         <div className="py-4">
-          <div className="flex items-center justify-between w-full px-2 border-b-2 py-3">
+          <div className="flex items-center justify-between w-full px-2 py-3 border-b-2">
             <div className="w-full">
               <div className="flex flex-wrap gap-6">
                 {days.map((day, index) => (
-                  <label key={day.name} className="flex items-center space-x-2">
+                  <label key={day.name} className="flex items-center space-x-2 text-xs">
                     <input
                       type="checkbox"
                       checked={day.selected}
@@ -554,14 +554,14 @@ export class General extends Component {
                   </label>
                 ))}
               </div>
-              <div className="flex flex-wrap gap-2 my-2 items-center text-gray-500 text-sm">
+              <div className="flex flex-wrap items-center gap-2 my-2 text-xs text-gray-500">
                 <InfoIcon />
                 <p>
                   Les jours et pratiques sélectionnés seront considérés comme vos jours de travail par défaut !
                 </p>
               </div>
             </div>
-            <Button type="submit" className="flex items-center bg-[#0f2b3d]" onClick={this.handleSave}>
+            <Button type="submit" className="flex items-center bg-[#0f2b3d] text-xs" onClick={this.handleSave}>
               <SaveIcon /> Enregistrer
             </Button>
           </div>
@@ -569,18 +569,18 @@ export class General extends Component {
             {days.map((day, index) => {
               if (!day.selected) return null;
               return (
-                <div key={day.name} className="mb-4 border p-4 rounded-lg">
-                  <div className="grid grid-cols-3 gap-4 items-center">
-                    <div className="flex text-left items-start justify-start font-bold h-full">
+                <div key={day.name} className="p-4 mb-4 border rounded-lg">
+                  <div className="grid items-center grid-cols-3 gap-4">
+                    <div className="flex items-start justify-start h-full text-sm font-bold text-left">
                       {day.name}
                     </div>
-                    <div className="flex flex-col h-full items-start justify-center text-center">
+                    <div className="flex flex-col items-start justify-center h-full text-xs text-center">
                       {day.times.map((time, timeIndex) => (
                         <div key={timeIndex} className="flex items-center justify-center gap-2 mb-2">
                           {this.renderTimeInput(index, timeIndex, 'start')}
                           <span>à</span>
                           {this.renderTimeInput(index, timeIndex, 'end')}
-                          <Button className="bg-red-500 text-white" onClick={() => this.handleRemoveTimeSlot(index, timeIndex)}>
+                          <Button className="text-white bg-red-500" onClick={() => this.handleRemoveTimeSlot(index, timeIndex)}>
                             <Trash2 size={16} />
                           </Button>
                           {/* Pour ouvrir la boîte de dialogue pratique, décommentez le bouton suivant :
@@ -590,9 +590,9 @@ export class General extends Component {
                         </div>
                       ))}
                     </div>
-                    <div className="flex text-right items-start justify-end h-full">
-                      <Button className="flex items-center bg-[#2b7a72] text-white" onClick={() => this.handleAddTimeSlot(index)}>
-                        <PlusCircle size={16} /> Ajouter une plage horaire
+                    <div className="flex items-start justify-end h-full text-xs text-right">
+                      <Button className="flex items-center bg-[#2b7a72] text-white text-xs" onClick={() => this.handleAddTimeSlot(index)}>
+                        <PlusCircle size={15} /> Ajouter une plage horaire
                       </Button>
                     </div>
                   </div>

@@ -1,0 +1,5 @@
+.containertail {
+    zoom: 80%; /* Fonctionne dans Chrome, Safari, Edge, IE */
+    -moz-transform: scale(0.8); /* Compatibilité Firefox */
+    -moz-transform-origin: 0 0;
+}
