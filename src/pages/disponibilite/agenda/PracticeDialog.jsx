@@ -43,7 +43,7 @@ const PracticeDialog = ({
               Plage horaire :{" "}
               {practiceDialog.parentSlot
                 ? `${formatTime(practiceDialog.parentSlot.start)} à ${formatTime(practiceDialog.parentSlot.end)}`
-                : "Non définie"}
+                : "Non définie"} 
             </DialogDescription>
             <div className="w-full mb-4 border-2 p-2">
               <AppointmentDetails

@@ -113,7 +113,7 @@ const PraticienProfil = () => {
             {/* Email */}
             <div className="flex items-center mt-1 space-x-2 text-xs text-gray-800">
               <Mail className="w-4 h-4" color="white" fill="currentColor" />
-              <span>moniela@gmail.com</span>
+              <span>durant@gmail.com</span>
             </div>
 
             {/* Adresse */}

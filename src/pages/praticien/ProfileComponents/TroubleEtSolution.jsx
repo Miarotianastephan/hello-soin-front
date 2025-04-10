@@ -15,9 +15,9 @@ const data = [
         duree: "2h",
         tarif: "50€",
         solutions: [
-          { id: 1, name: "Solution 1", specialite: "Spécialité C" },
+          { id: 1, name: "Solution 1", specialite: "Spécialité B" },
           { id: 2, name: "Solution 2", specialite: "Spécialité A" },
-          { id: 3, name: "Solution 3", specialite: "Spécialité C" },
+          { id: 3, name: "Solution 3", specialite: "Spécialité B" },
         ],
       },
       {

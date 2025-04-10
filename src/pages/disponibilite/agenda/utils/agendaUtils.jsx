@@ -28,10 +28,12 @@ export const addMinutes = (time, minutes) => {
   return date;
 };
 
-export const totalDuration =
-  differenceInMinutes(parseTime(AGENDA_END), parseTime(AGENDA_START)) + 1;
+// Modifier la constante :
+export const totalDuration = 
+  differenceInMinutes(parseTime(AGENDA_END), parseTime(AGENDA_START));
 
-export const DAY_COLUMN_HEIGHT = ((1440 / 60) * 128) * 1.25; // 3840px
+// Et ajuster les calculs de hauteur :
+export const DAY_COLUMN_HEIGHT = ((1440 / 5) * 20) * 1.25; // Ajuster selon les besoins
 export const DAY_COLUMN_HEIGHTW = ((1440 / 60) * 128) * 1.50;
 export const VISIBLE_HEIGHT = 10 * 68; // 640px
 
