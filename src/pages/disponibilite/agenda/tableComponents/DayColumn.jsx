@@ -18,6 +18,7 @@ import { createPlageHoraire } from '../utils/scheduleUtils';
 import { Phone } from 'lucide-react';
 import BASE_URL from '@/pages/config/baseurl';
 import AppointmentCountBadge from './badgs/AppointmentCountBadge';
+import '../agenda.css';
 
 // Fonction utilitaire pour formater une date en toute sécurité
 const safeFormat = (dateValue, dateFormat) => {
@@ -36,7 +37,7 @@ const splitSegmentByDuration = (start, end, durationMinutes) => {
     }
     segments.push({ start: current, end: next });
     current = next;
-  }
+  } 
   return segments;
 };
 
@@ -54,7 +55,7 @@ const DayColumn = ({
   refreshSchedule,
   selectedPractice 
 }) => {
-  // Récupération des pratiques depuis l'API OU le localStorage
+  // Récupération des pratiques depuis l'API ou le localStorage
   const [practices, setPractices] = useState([]);
   useEffect(() => {
     const localPractices = localStorage.getItem('practices');
@@ -77,7 +78,6 @@ const DayColumn = ({
     return practice ? practice.code_couleur : '#000000'; // couleur par défaut
   };
 
-  // Pratique active (passée en prop)
   const activePractice = selectedPractice;
 
   // States et refs pour la gestion de la multi-sélection et du tooltip
@@ -92,7 +92,7 @@ const DayColumn = ({
   const contentHeight = DAY_COLUMN_HEIGHT - HEADER_HEIGHT;
   const now = new Date();
   const isToday = isSameDay(date, now);
-  // Pour les dates passées, on rend le jour non-sélectionnable (et n'affiche pas les dispos)
+  // Pour les dates passées, on rend le jour non-sélectionnable
   const isSelectable = startOfDay(date) >= startOfDay(now);
 
   let currentTimeTop = null;
@@ -112,12 +112,14 @@ const DayColumn = ({
     }
   }
 
-  // Gestion du clic sur le fond pour créer une plage horaire
+  // Gestion du clic sur le fond pour créer une plage horaire,
+  // en arrondissant la capture d'heure par incréments de 5 minutes.
   const handleBackgroundClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
     const rawMinutes = (clickY / contentHeight) * totalDuration;
-    const roundedMinutes = Math.round(rawMinutes / 15) * 15;
+    // Arrondi à l'intervalle de 5 minutes le plus proche
+    const roundedMinutes = Math.round(rawMinutes / 5) * 5;
     const baseTime = parseTime(AGENDA_START);
     const agendaStartDate = new Date(
       date.getFullYear(),
@@ -174,11 +176,10 @@ const DayColumn = ({
       const formattedDate = safeFormat(date, 'dd-MM-yyyy');
       const formattedTime = safeFormat(clickedTime, 'HH:mm');
       onOpenCreateAppointment(formattedDate, formattedTime);
-      console.log('a verifier');
     }
   };
 
-  // Gestion du clic sur un slot spécifique
+  // Gestion du clic sur un slot spécifique (inchangé)
   const handleClick = (e, daySchedule, slotIndex, sourceType, clickedSlot, slotHeight) => {
     const clickY = e.clientY - e.currentTarget.getBoundingClientRect().top;
     const slotStart = parseTime(clickedSlot.start);
@@ -186,7 +187,8 @@ const DayColumn = ({
     const slotDuration = differenceInMinutes(slotEnd, slotStart);
     const minutesPerPixel = slotDuration / slotHeight;
     const rawMinutes = clickY * minutesPerPixel;
-    const offsetMinutes = Math.round(rawMinutes / 15) * 15;
+    // Ici, nous arrondissons en fonction d'incréments de 15 minutes
+    const offsetMinutes = Math.round(rawMinutes / 5) * 5;
     const clampedMinutes = Math.max(0, Math.min(offsetMinutes, slotDuration));
     const newTime = new Date(slotStart.getTime() + clampedMinutes * 60000);
     const formattedTime = safeFormat(newTime, 'HH:mm');
@@ -196,9 +198,10 @@ const DayColumn = ({
     });
   };
 
-  const totalIntervals = 24 * 4; // 96 intervalles de 15 minutes
+  // Nombre total d'intervalles de 5 minutes sur une journée (pour l'affichage du hover)
+  const totalIntervals = 24 * 12; // 288 intervalles
 
-  // Gestion du mouvement de la souris pour le tooltip et le bloc de survol
+  // Gestion du mouvement de la souris pour le tooltip et la zone de survol
   const throttledHandleMouseMove = (e) => {
     const { clientX, clientY } = e;
     const target = e.currentTarget;
@@ -208,9 +211,13 @@ const DayColumn = ({
       const rect = target.getBoundingClientRect();
       const offsetY = clientY - rect.top;
       const offsetX = clientX - rect.left;
+      
+      // Calcul du block de 5 minutes en fonction de la hauteur de la zone d'affichage
       const blockHeight = contentHeight / totalIntervals;
       const blockIndex = Math.floor(offsetY / blockHeight);
-      const newTimeMinutes = Math.round((offsetY / contentHeight) * totalDuration / 15) * 15;
+      
+      // On calcule le nombre de minutes écoulées en arrondissant à l'intervalle de 5 minutes
+      const newTimeMinutes = Math.round(((offsetY / contentHeight) * totalDuration) / 5) * 5;
       const baseTime = parseTime(AGENDA_START);
       const agendaStartDate = new Date(
         date.getFullYear(),
@@ -220,7 +227,8 @@ const DayColumn = ({
         baseTime.getMinutes()
       );
       const newTime = addMinutes(agendaStartDate, newTimeMinutes);
-      
+
+      // Mise à jour du tooltip pour afficher l'heure au format "HH:mm"
       if (tooltipRef.current) {
         tooltipRef.current.style.left = `${offsetX + 5}px`;
         tooltipRef.current.style.top = `${offsetY + HEADER_HEIGHT + 10}px`;
@@ -228,6 +236,7 @@ const DayColumn = ({
         tooltipRef.current.style.display = 'block';
       }
       
+      // Mise à jour de la zone surlignée (hover block) en fonction du bloc de 5 minutes
       if (hoverBlockRef.current) {
         const blockTop = blockIndex * blockHeight;
         hoverBlockRef.current.style.top = `${blockTop + HEADER_HEIGHT}px`;
@@ -272,8 +281,8 @@ const DayColumn = ({
   }, []);
 
   return (
-    <div className="relative border-r h-full bg-gray-200" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
-      {/* Tooltip */}
+    <div className="relative border-r h-full bg-gray-200 containertail" style={{ height: `${DAY_COLUMN_HEIGHT}px` }}>
+      {/* Tooltip pour afficher l'heure en incréments de 5 minutes */}
       <div
         ref={tooltipRef}
         style={{
@@ -289,7 +298,7 @@ const DayColumn = ({
         }}
         className='ml-10'
       />
-      {/* Bloc de surbrillance lors du hover */}
+      {/* Bloc de surbrillance du hover (zone de clic) */}
       <div
         ref={hoverBlockRef}
         style={{
@@ -383,7 +392,7 @@ const DayColumn = ({
                 handleClick(e, daySchedule, idx, daySchedule.sourceType, slot, slotHeight);
               }) : null}
             >
-              {/* Rendez-vous réservés */}
+              {/* Affichage des rendez-vous réservés */}
               {appointments
                 .filter(app => {
                   const appDate = parse(app.date, 'dd-MM-yyyy', new Date());
@@ -445,11 +454,10 @@ const DayColumn = ({
                   );
                 })
               }
-              {/* Affichage des disponibilités pour la pratique sélectionnée uniquement si la date est aujourd'hui ET future */}
+              {/* Affichage des disponibilités selon la pratique sélectionnée */}
               {activePractice && isSelectable && (() => {
                 const sStart = parseTime(slot.start);
                 const sEnd = parseTime(slot.end);
-                // Filtrer les rendez-vous dans le slot
                 const appointmentsInSlot = appointments.filter(app => {
                   const appDate = parse(app.date, 'dd-MM-yyyy', new Date());
                   if (safeFormat(appDate, 'dd-MM-yyyy') !== safeFormat(date, 'dd-MM-yyyy')) return false;
@@ -471,13 +479,10 @@ const DayColumn = ({
                   freeSegments.push({ start: current, end: sEnd });
                 }
                 
-                // Si la date est aujourd'hui, on ajuste le début des segments si besoin
                 if (isToday) {
                   freeSegments = freeSegments
                     .map(seg => {
-                      // Si le segment se termine avant maintenant, on ne le garde pas
                       if (seg.end <= now) return null;
-                      // Si le segment commence avant maintenant, on ajuste son début à now
                       if (seg.start < now) {
                         return { start: now, end: seg.end };
                       }
@@ -486,7 +491,6 @@ const DayColumn = ({
                     .filter(seg => seg !== null);
                 }
                 
-                // Récupérer la durée en minutes de la pratique sélectionnée
                 const practiceObj = practices.find(p => p.nom_discipline.toLowerCase() === activePractice.toLowerCase());
                 const durationMinutes = practiceObj ? Math.round(practiceObj.duree * 1) : 60;
                 
@@ -496,7 +500,6 @@ const DayColumn = ({
                 });
 
                 return splittedSegments.map((seg, index) => {
-                  // Si le segment est complètement dans le passé, on ne l'affiche pas
                   if (isToday && seg.end <= now) return null;
                   const segStartOffset = (differenceInMinutes(seg.start, sStart) / differenceInMinutes(sEnd, sStart)) * 100;
                   const segHeight = (differenceInMinutes(seg.end, seg.start) / differenceInMinutes(sEnd, sStart)) * 100;

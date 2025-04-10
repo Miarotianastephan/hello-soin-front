@@ -5,10 +5,10 @@ const HEADER_HEIGHT = 60;
 
 const TimeColumn = () => {
   const intervals = [];
-  const totalIntervals = 24 * 4; // 96 intervalles de 15 minutes
+  const totalIntervals = 24 * 12; // 288 intervalles de 5 minutes
   for (let i = 0; i < totalIntervals; i++) {
-    const hour = Math.floor(i / 4);
-    const minute = (i % 4) * 15;
+    const hour = Math.floor(i / 12);
+    const minute = (i % 12) * 5;
     const timeLabel =
       (hour < 10 ? '0' : '') +
       hour +

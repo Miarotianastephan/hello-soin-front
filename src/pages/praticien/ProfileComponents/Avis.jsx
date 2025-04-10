@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Save, Paperclip, SendHorizonal, MessageSquareReply , Undo2} from 'lucide-react';
+import { Save, Paperclip, SendHorizonal, MessageSquareReply , Undo2, Heart} from 'lucide-react';
 
 // Exemple d'icône trombone en SVG
 const TromboneIcon = () => (
@@ -47,7 +47,7 @@ const Comment = ({ comment, onLike, onSelectReplyTarget }) => {
       <div className="flex items-start justify-start">
         <div className="flex items-start justify-start">
           <Button variant="ghost" size="sm" onClick={() => onLike(comment.id)}>
-            <span className="text-red-500">❤️</span> {comment.likes}
+            <span className="text-gray-700"><Heart/></span> {comment.likes}
           </Button>
           <Button className="border-none shadow-none" variant="outline" size="sm" onClick={() => onSelectReplyTarget(comment.id)}>
             <MessageSquareReply size={15}/>

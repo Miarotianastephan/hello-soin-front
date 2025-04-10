@@ -114,7 +114,7 @@ const DayMode = ({
     const rect = e.currentTarget.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
     const rawMinutes = (clickY / contentHeight) * totalDuration;
-    const roundedMinutes = Math.round(rawMinutes / 15) * 15;
+    const roundedMinutes = Math.round(rawMinutes / 5) * 5;
     const baseTime = parseTime(AGENDA_START);
     const agendaStartDate = new Date(
       date.getFullYear(),
@@ -193,7 +193,7 @@ const DayMode = ({
     });
   };
 
-  const totalIntervals = 24 * 4; // 96 intervalles de 15 min
+  const totalIntervals = 24 * 12; // 288 intervalles de 5 minutes // 96 intervalles de 15 min
 
   // Gestion du mouvement de la souris
   const throttledHandleMouseMove = (e) => {
