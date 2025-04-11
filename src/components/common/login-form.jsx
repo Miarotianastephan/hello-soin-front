@@ -140,7 +140,7 @@ export const LoginForm = ({ className, ...props }) => {
                     Se souvenir de moi
                   </label>
                 </div>
-                <Button type="submit" className="w-full rounded-lg shadow-none hover:bg-green-400 bg-[#5DA781]">
+                <Button type="submit" className="w-full rounded-lg shadow-none  bg-[#5DA781]">
                   {loading ? '...Connexion' : 'Se connecter' }
                 </Button>
             </div>

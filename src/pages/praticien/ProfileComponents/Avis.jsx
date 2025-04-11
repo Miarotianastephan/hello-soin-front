@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Save, Paperclip, SendHorizonal, MessageSquareReply , Undo2, Heart} from 'lucide-react';
-
 // Exemple d'icône trombone en SVG
 const TromboneIcon = () => (
   <svg

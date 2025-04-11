@@ -20,6 +20,8 @@ import PatientsPraticien from './pages/praticien/PatientsPraticien';
 import CompleteProfile from './pages/praticien/ProfileComponents/CompleteProfile';
 import EditFormation from './pages/praticien/ProfileComponents/EditFormation';
 import TroubleConfig from './pages/praticien/ProfileComponents/TroubleConfig';
+import PremierPas from './pages/praticien/PremierPas';
+import AccountCreationContainer from './components/common/AccountCreationContainer';
 function App() {  
   const location = useLocation(); // route actuelle
 
@@ -35,7 +37,7 @@ function App() {
           <Routes>
             {/* Pages d'inscription et de connexion */}
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/signin" element={<SignInPage />} />
+            <Route path="/signin" element={<AccountCreationContainer />} />
             {/* Les pages de navigations */}
 
             {/* Accueil principale de l'application */}
@@ -44,6 +46,7 @@ function App() {
 
             {/* PRATICIEN */}
             <Route path="/praticien/dashboard" element={<AccueilPraticien />} />
+            <Route path="/praticien/premierPas" element={<PremierPas/>} />
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/pratiques" element={<Pratiques />} />
             <Route path="/profil" element={<PraticienProfil />} />
