@@ -30,10 +30,11 @@ function App() {
 
   return (
     <SidebarProvider>
+      {/* className="bg-[#F9FAFB]" */}
       {!isLoginPage && <AppSidebar />}
-      <SidebarInset>
+      <SidebarInset  >
         {!isLoginPage && <AppHeader />}
-        <div className="">
+        <div>
           <Routes>
             {/* Pages d'inscription et de connexion */}
             <Route path="/login" element={<LoginPage />} />

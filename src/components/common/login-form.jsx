@@ -3,7 +3,6 @@ import LoginOptions from "./login-options"
 import { setLocalData } from '@/services/common-services'
 import { login_user } from "@/services/api"
 import { AlertCircle, X } from "lucide-react"
-import Logo from './icone/googleIcon.png'
 import {
   Alert,
   AlertDescription,
@@ -50,6 +49,7 @@ export const LoginForm = ({ className, ...props }) => {
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+
       {visible && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div 

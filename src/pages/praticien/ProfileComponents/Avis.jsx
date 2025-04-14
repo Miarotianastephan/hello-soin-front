@@ -21,7 +21,7 @@ const TromboneIcon = () => (
 
 const Comment = ({ comment, onLike, onSelectReplyTarget }) => {
   return (
-    <div className="w-full mb-6">
+    <div className="w-full mb-6 bg-white p-3 rounded">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm">
           <Avatar>

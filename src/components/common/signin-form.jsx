@@ -154,6 +154,9 @@ const SignInForm = ({ onAccountCreated }) => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4">
+      <div className="fixed top-0 w-full flex items-center justify-start bg-white z-50">
+        <img src={logo} className="mt-2 px-4 w-[130px] h-[40px]"/>
+      </div>
       <div className="w-full max-w-xl bg-white rounded-md px-6 pt-4">
         <CardHeader className="text-center mb-4">
           <CardTitle className="text-md mt-4 font-bold text-gray-900">
@@ -221,20 +224,21 @@ const SignInForm = ({ onAccountCreated }) => {
                       rules={{ required: "Veuillez renseigner votre numéro de téléphone" }}
                       render={({ field: { onChange, value, ref } }) => (
                         <PhoneInput
-                          country="fr"
-                          localization="fr"
-                          onlyCountries={["fr"]}
-                          value={value}
-                          onChange={onChange}
-                          inputProps={{
-                            name: "phone_number",
-                            required: true,
-                            ref: ref,
-                          }}
-                          inputStyle={{ width: "100%", height: "20px", fontSize: "12px", border: "1px solid #e5e5e5" }}
-                          containerClass="phone-input"
-                          specialLabel=""
-                        />
+                        country="fr"
+                        localization="fr"
+                        onlyCountries={["fr", "de", "be", "it", "lu", "ch"]}
+                        value={value}
+                        onChange={onChange}
+                        inputProps={{
+                          name: "phone_number",
+                          required: true,
+                          ref: ref,
+                        }}
+                        inputStyle={{ width: "100%", height: "20px", fontSize: "12px", border: "1px solid #e5e5e5" }}
+                        containerClass="phone-input"
+                        specialLabel=""
+                      />
+                      
                       )}
                     />
                     {errors.phone_number && <p className="text-red-500 text-xs mt-1">{errors.phone_number.message}</p>}

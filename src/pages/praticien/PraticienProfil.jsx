@@ -59,7 +59,7 @@ const PraticienProfil = () => {
   return (
     <div>
       {/* Carte du praticien */}
-      <div className="flex items-center justify-between p-4 mx-5 border rounded ">
+      <div className="flex items-center justify-between p-4 mx-5 border rounded bg-white ">
         {/* Colonne gauche : Avatar et informations */}
         <div className="flex items-center space-x-4">
           {/* Avatar */}

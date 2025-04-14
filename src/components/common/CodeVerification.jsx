@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "../ui/label";
+import logo from "../../assets/hs2.svg";
 
 const CodeVerification = ({ onVerify }) => {
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -35,7 +36,10 @@ const CodeVerification = ({ onVerify }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen ">
+      <div className="fixed top-0 w-full flex items-center justify-start bg-white z-50">
+        <img src={logo} className="mt-2 px-4 w-[130px] h-[40px]"/>
+      </div>
       <div className="w-full max-w-md bg-white flex justify-center items-center flex-col rounded-md px-6 pt-4">
         <div className="text-center mb-4 w-full  flex justify-center items-center ">
           <div className="text-md mt-4 font-bold text-gray-900 mb-8">
