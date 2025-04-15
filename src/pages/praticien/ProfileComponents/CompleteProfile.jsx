@@ -9,16 +9,18 @@ import {
   ArrowLeftCircle,
   Linkedin,
   Facebook,
-  Save
+  Save,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import PhoneInput from "react-phone-input-2";
 
-const TOTAL_FIELDS = 15;
+const MANDATORY_FIELDS = 15; // Nombre total de champs obligatoires
 
 const CompleteProfile = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
-  // États pour la photo de profil et pour chaque champ
+  // États pour les champs du formulaire et les erreurs
   const [profilePic, setProfilePic] = useState("");
   const [civilite, setCivilite] = useState("Monsieur");
   const [nom, setNom] = useState("");
@@ -34,9 +36,13 @@ const CompleteProfile = () => {
   const [linkedinLink, setLinkedinLink] = useState("");
   const [facebookLink, setFacebookLink] = useState("");
   const [description, setDescription] = useState("");
+  const [consultationTypes, setConsultationTypes] = useState([]); // ex: Cabinet, Visio, Domicile
+  const [patientTypes, setPatientTypes] = useState([]);         // ex: Tous publics, Hommes, Femmes, etc.
+  const [paymentMethods, setPaymentMethods] = useState([]);       // ex: Carte bancaire, Chèque, Espèce
   const [progress, setProgress] = useState(0);
+  const [errors, setErrors] = useState({});
 
-  // Au montage du composant, on récupère les données du localStorage
+  // Récupération des données depuis le localStorage au montage
   useEffect(() => {
     const storedProfilePic = localStorage.getItem("profilePic");
     if (storedProfilePic) setProfilePic(storedProfilePic);
@@ -56,31 +62,103 @@ const CompleteProfile = () => {
     setDescription(localStorage.getItem("description") || "");
   }, []);
 
-  // Calcul et mise à jour du pourcentage de complétion
+  // Mise à jour du pourcentage de complétion pour les champs obligatoires
   useEffect(() => {
     const fields = [
-      profilePic,
-      civilite,
-      nom,
-      prenom,
-      dateNaissance,
-      email,
-      telephone,
-      mobile,
-      adresse,
-      codePostal,
-      ville,
-      siret,
-      linkedinLink,
-      facebookLink,
-      description
+      profilePic ? 1 : 0,
+      civilite && civilite.trim() !== "" ? 1 : 0,
+      nom && nom.trim() !== "" ? 1 : 0,
+      prenom && prenom.trim() !== "" ? 1 : 0,
+      dateNaissance && dateNaissance.trim() !== "" ? 1 : 0,
+      email && email.trim() !== "" ? 1 : 0,
+      mobile && mobile.trim() !== "" ? 1 : 0,
+      adresse && adresse.trim() !== "" ? 1 : 0,
+      codePostal && codePostal.trim() !== "" ? 1 : 0,
+      ville && ville.trim() !== "" ? 1 : 0,
+      siret && siret.trim() !== "" ? 1 : 0,
+      description && description.trim() !== "" ? 1 : 0,
+      consultationTypes.length > 0 ? 1 : 0,
+      patientTypes.length > 0 ? 1 : 0,
+      paymentMethods.length > 0 ? 1 : 0,
     ];
-    const filled = fields.filter((f) => f && f.trim() !== "").length;
-    setProgress(Math.round((filled / TOTAL_FIELDS) * 100));
-  }, [profilePic, civilite, nom, prenom, dateNaissance, email, telephone, mobile, adresse, codePostal, ville, siret, linkedinLink, facebookLink, description]);
+    const filled = fields.reduce((acc, cur) => acc + cur, 0);
+    setProgress(Math.round((filled / MANDATORY_FIELDS) * 100));
+  }, [
+    profilePic,
+    civilite,
+    nom,
+    prenom,
+    dateNaissance,
+    email,
+    mobile,
+    adresse,
+    codePostal,
+    ville,
+    siret,
+    description,
+    consultationTypes,
+    patientTypes,
+    paymentMethods,
+  ]);
 
-  // Sauvegarde toutes les informations dans le localStorage
+  // Fonction générique pour basculer l'état d'une option dans les groupes de checkbox
+  const handleToggle = (option, state, setState) => {
+    if (state.includes(option)) {
+      setState(state.filter((item) => item !== option));
+    } else {
+      setState([...state, option]);
+    }
+  };
+
+  // Fonction de validation des champs obligatoires
+  const validateFields = () => {
+    const newErrors = {};
+
+    if (!profilePic) newErrors.profilePic = "La photo de profil est requise.";
+    if (!civilite.trim()) newErrors.civilite = "La civilité est requise.";
+    if (!nom.trim()) newErrors.nom = "Le nom est requis.";
+    if (!prenom.trim()) newErrors.prenom = "Le prénom est requis.";
+    if (!dateNaissance.trim())
+      newErrors.dateNaissance = "La date de naissance est requise.";
+    if (!email.trim()) {
+      newErrors.email = "L'email est requis.";
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+      newErrors.email = "Le format de l'email est invalide.";
+    }
+    // Téléphone est optionnel
+
+    if (!mobile.trim()) newErrors.mobile = "Le numéro mobile est requis.";
+    if (mobile && mobile.replace(/\D/g, "").length < 10)
+      newErrors.mobile = "Le numéro mobile est invalide.";
+    if (!adresse.trim()) newErrors.adresse = "L'adresse est requise.";
+    if (!codePostal.trim())
+      newErrors.codePostal = "Le code postal est requis.";
+    if (!ville.trim()) newErrors.ville = "La ville est requise.";
+    if (!siret.trim()) newErrors.siret = "Le numéro de Siret est requis.";
+    if (!description.trim())
+      newErrors.description = "La description est requise.";
+
+    // Validation des groupes de checkbox (au moins une option doit être sélectionnée)
+    if (consultationTypes.length === 0)
+      newErrors.consultationTypes =
+        "Veuillez sélectionner au moins un type de consultation.";
+    if (patientTypes.length === 0)
+      newErrors.patientTypes =
+        "Veuillez sélectionner au moins un type de patient.";
+    if (paymentMethods.length === 0)
+      newErrors.paymentMethods =
+        "Veuillez sélectionner au moins un moyen de paiement.";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Sauvegarde dans le localStorage après validation
   const handleSave = () => {
+    if (!validateFields()) {
+      alert("Veuillez corriger les erreurs avant de sauvegarder.");
+      return;
+    }
     localStorage.setItem("profilePic", profilePic);
     localStorage.setItem("civilite", civilite);
     localStorage.setItem("nom", nom);
@@ -96,10 +174,11 @@ const CompleteProfile = () => {
     localStorage.setItem("linkedinLink", linkedinLink);
     localStorage.setItem("facebookLink", facebookLink);
     localStorage.setItem("description", description);
+    // Vous pouvez aussi sauvegarder les tableaux de checkbox si nécessaire.
     alert("Informations sauvegardées !");
   };
 
-  // Fonctions de gestion de l'image
+  // Gestion de la photo de profil
   const handleFile = (file) => {
     if (file) {
       const url = URL.createObjectURL(file);
@@ -133,69 +212,57 @@ const CompleteProfile = () => {
 
   return (
     <div className="relative">
-      {/* En-tête avec informations du praticien */}
-      <div className="flex items-center justify-between px-4  rounded">
+      {/* En-tête */}
+      <div className="flex items-center justify-between px-4 my-2 rounded">
         <div className="flex items-start space-x-4">
-          <div className="relative">
-            <button
-              onClick={handleModifyProfile}
-              className="inline-flex items-center px-4 py-2 mt-auto text-xs font-medium text-white bg-[#0f2b3d] rounded hover:bg-[#14384f]"
-            >
-              <ArrowLeftCircle className="w-4 h-4" size={15} />
-            </button>
-          </div>
+          <button
+            onClick={handleModifyProfile}
+            className="inline-flex items-center px-4 py-2 mt-auto text-xs font-medium text-white bg-[#0f2b3d] rounded hover:bg-[#14384f]"
+          >
+            <ArrowLeftCircle className="w-4 h-4" size={15} />
+          </button>
           <div className="flex flex-col">
-            <div className="flex items-center space-x-2">
-              <h2 className="text-sm font-semibold text-gray-800">
-                Informations de votre profil
-              </h2>
-            </div>
-            <div className="flex items-center mt-1 space-x-2 text-xs text-gray-800">
-              <span>
-                Il s'agit de vos informations personnelles que vous pouvez mettre à jour à tout moment.
-              </span>
-            </div>
+            <h2 className="text-sm font-semibold text-gray-800">
+              Informations de votre profil
+            </h2>
+            <span className="text-xs text-gray-800">
+              Mettez à jour vos informations personnelles.
+            </span>
           </div>
         </div>
-        {/* Cercle de progression dynamique */}
+        {/* Cercle de progression */}
         <div className="flex flex-col items-end justify-between h-full space-y-10">
-          <div className="flex mb-2 space-x-2">
-            <button className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
-              <svg className="w-8 h-8" viewBox="0 0 36 36">
-                <path
-                  className="text-gray-300"
-                  strokeWidth="3.8"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845
-                     a 15.9155 15.9155 0 0 1 0 31.831
-                     a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  className="text-blue-600"
-                  strokeWidth="3.8"
-                  strokeDasharray={`${progress}, 100`}
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845
-                     a 15.9155 15.9155 0 0 1 0 31.831
-                     a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <text
-                  x="18"
-                  y="20.35"
-                  className="text-xs font-semibold fill-gray-600"
-                  textAnchor="middle"
-                >
-                  {progress}%
-                </text>
-              </svg>
-            </button>
-          </div>
+          <button className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+            <svg className="w-8 h-8" viewBox="0 0 36 36">
+              <path
+                className="text-gray-300"
+                strokeWidth="3.8"
+                stroke="currentColor"
+                fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+              <path
+                className="text-blue-600"
+                strokeWidth="3.8"
+                strokeDasharray={`${progress}, 100`}
+                stroke="currentColor"
+                fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+              <text
+                x="18"
+                y="20.35"
+                className="text-xs font-semibold fill-gray-600"
+                textAnchor="middle"
+              >
+                {progress}%
+              </text>
+            </svg>
+          </button>
         </div>
       </div>
 
-      {/* Carte de chargement de la photo */}
+      {/* Section photo de profil */}
       <div className="flex items-center justify-between p-4 mx-5 mb-4 border rounded-md">
         <div className="flex items-center space-x-4">
           <div className="relative">
@@ -206,15 +273,14 @@ const CompleteProfile = () => {
                 className="object-cover w-full h-full rounded-none"
               />
               <AvatarFallback>
-                <svg
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  className="w-6 h-6 text-gray-500"
-                >
+                <svg fill="currentColor" viewBox="0 0 24 24" className="w-6 h-6 text-gray-500">
                   <path d="M12 12c2.7 0 4.89-2.2 4.89-4.89S14.7 2.22 12 2.22 7.11 4.41 7.11 7.11 9.3 12 12 12zm0 2.67c-3.13 0-9.33 1.57-9.33 4.67v1.78h18.67v-1.78c0-3.1-6.2-4.67-9.34-4.67z" />
                 </svg>
               </AvatarFallback>
             </Avatar>
+            {errors.profilePic && (
+              <span className="text-xs text-red-600">{errors.profilePic}</span>
+            )}
             <span className="text-xs font-semibold text-gray-700">
               Photo de profil
             </span>
@@ -265,234 +331,395 @@ const CompleteProfile = () => {
           </span>
           <div className="mb-4 mt-4">
             <label className="block mb-1 text-xs font-medium text-gray-700">
-              Civilité *
+              Civilité <span className="text-red-700">*</span>
             </label>
             <select
-              className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
+              className={`border ${
+                errors.civilite ? "border-red-500" : "border-gray-300"
+              } rounded px-3 py-2 w-full text-xs`}
               value={civilite}
               onChange={(e) => setCivilite(e.target.value)}
             >
-              <option className="text-xs">Monsieur</option>
-              <option className="text-xs">Madame</option>
-              <option className="text-xs">Mademoiselle</option>
+              <option>Monsieur</option>
+              <option>Madame</option>
+              <option>Mademoiselle</option>
             </select>
+            {errors.civilite && (
+              <span className="text-xs text-red-600">{errors.civilite}</span>
+            )}
           </div>
           <div className="mb-4">
             <label className="block mb-1 text-xs font-medium text-gray-700">
-              Nom *
+              Nom <span className="text-red-700">*</span>
             </label>
             <input
               type="text"
-              className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
+              className={`border ${
+                errors.nom ? "border-red-500" : "border-gray-300"
+              } rounded px-3 py-2 w-full text-xs`}
               placeholder="Dupont"
               value={nom}
               onChange={(e) => setNom(e.target.value)}
             />
+            {errors.nom && (
+              <span className="text-xs text-red-600">{errors.nom}</span>
+            )}
           </div>
           <div className="mb-4">
             <label className="block mb-1 text-xs font-medium text-gray-700">
-              Prénom *
+              Prénom <span className="text-red-700">*</span>
             </label>
             <input
               type="text"
-              className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
+              className={`border ${
+                errors.prenom ? "border-red-500" : "border-gray-300"
+              } rounded px-3 py-2 w-full text-xs`}
               placeholder="Elise"
               value={prenom}
               onChange={(e) => setPrenom(e.target.value)}
             />
+            {errors.prenom && (
+              <span className="text-xs text-red-600">{errors.prenom}</span>
+            )}
           </div>
           <div className="mb-4">
             <label className="block mb-1 text-xs font-medium text-gray-700">
-              Date de naissance *
+              Date de naissance <span className="text-red-700">*</span>
             </label>
             <input
               type="date"
-              className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
+              className={`border ${
+                errors.dateNaissance ? "border-red-500" : "border-gray-300"
+              } rounded px-3 py-2 w-full text-xs`}
               value={dateNaissance}
               onChange={(e) => setDateNaissance(e.target.value)}
             />
+            {errors.dateNaissance && (
+              <span className="text-xs text-red-600">{errors.dateNaissance}</span>
+            )}
           </div>
           <div className="mb-4">
             <label className="block mb-1 text-xs font-medium text-gray-700">
-              Email *
+              Email <span className="text-red-700">*</span>
             </label>
             <input
               type="email"
-              className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
+              className={`border ${
+                errors.email ? "border-red-500" : "border-gray-300"
+              } rounded px-3 py-2 w-full text-xs`}
               placeholder="dupont@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+            {errors.email && (
+              <span className="text-xs text-red-600">{errors.email}</span>
+            )}
           </div>
           <div className="mb-4">
             <label className="block mb-1 text-xs font-medium text-gray-700">
-              Téléphone
+              Téléphone (facultatif)
             </label>
-            <input
-              type="tel"
-              className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
-              placeholder="06 35 36 00 92"
+            <PhoneInput
+              country="fr"
+              localization="fr"
+              onlyCountries={["fr", "de", "be", "it", "lu", "ch"]}
               value={telephone}
-              onChange={(e) => setTelephone(e.target.value)}
+              onChange={(value) => setTelephone(value)}
+              inputProps={{ name: "telephone", required: false }}
+              inputStyle={{
+                width: "100%",
+                height: "20px",
+                fontSize: "12px",
+                border: "1px solid #e5e5e5",
+              }}
+              containerClass="phone-input"
+              specialLabel=""
             />
           </div>
           <div className="mb-4">
             <label className="block mb-1 text-xs font-medium text-gray-700">
-              Mobile
+              Mobile <span className="text-red-700">*</span>
             </label>
-            <input
-              type="tel"
-              className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
-              placeholder="06 36 36 00 92"
+            <PhoneInput
+              country="fr"
+              localization="fr"
+              onlyCountries={["fr", "de", "be", "it", "lu", "ch"]}
               value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
+              onChange={(value) => setMobile(value)}
+              inputProps={{ name: "mobile", required: true }}
+              inputStyle={{
+                width: "100%",
+                height: "20px",
+                fontSize: "12px",
+                border: "1px solid #e5e5e5",
+              }}
+              containerClass="phone-input"
+              specialLabel=""
             />
+            {errors.mobile && (
+              <span className="text-xs text-red-600">{errors.mobile}</span>
+            )}
           </div>
           <div className="mb-4">
             <label className="block mb-1 text-xs font-medium text-gray-700">
-              Adresse
+              Adresse <span className="text-red-700">*</span>
             </label>
             <input
               type="text"
-              className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
+              className={`border ${
+                errors.adresse ? "border-red-500" : "border-gray-300"
+              } rounded px-3 py-2 w-full text-xs`}
               placeholder="15 Rue des Lilas"
               value={adresse}
               onChange={(e) => setAdresse(e.target.value)}
             />
+            {errors.adresse && (
+              <span className="text-xs text-red-600">{errors.adresse}</span>
+            )}
           </div>
           <div className="mb-4 flex space-x-4">
             <div className="w-1/2">
               <label className="block mb-1 text-xs font-medium text-gray-700">
-                Code Postal
+                Code Postal <span className="text-red-700">*</span>
               </label>
               <input
                 type="text"
-                className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
+                className={`border ${
+                  errors.codePostal ? "border-red-500" : "border-gray-300"
+                } rounded px-3 py-2 w-full text-xs`}
                 placeholder="10015"
                 value={codePostal}
                 onChange={(e) => setCodePostal(e.target.value)}
               />
+              {errors.codePostal && (
+                <span className="text-xs text-red-600">{errors.codePostal}</span>
+              )}
             </div>
             <div className="w-1/2">
               <label className="block mb-1 text-xs font-medium text-gray-700">
-                Ville
+                Ville <span className="text-red-700">*</span>
               </label>
               <input
                 type="text"
-                className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
+                className={`border ${
+                  errors.ville ? "border-red-500" : "border-gray-300"
+                } rounded px-3 py-2 w-full text-xs`}
                 placeholder="Versailles"
                 value={ville}
                 onChange={(e) => setVille(e.target.value)}
               />
+              {errors.ville && (
+                <span className="text-xs text-red-600">{errors.ville}</span>
+              )}
             </div>
           </div>
           <div className="mb-4">
             <label className="block mb-1 text-xs font-medium text-gray-700">
-              Numéro de Siret
+              Numéro de Siret <span className="text-red-700">*</span>
             </label>
             <input
               type="text"
-              className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
+              className={`border ${
+                errors.siret ? "border-red-500" : "border-gray-300"
+              } rounded px-3 py-2 w-full text-xs`}
               placeholder="802 345 678 00012"
               value={siret}
               onChange={(e) => setSiret(e.target.value)}
             />
+            {errors.siret && (
+              <span className="text-xs text-red-600">{errors.siret}</span>
+            )}
           </div>
           <div className="mb-4">
             <label className="block mb-1 text-xs font-medium text-gray-700">
-              Type de consultations
-            </label>
-            <div className="flex items-center space-x-4 mt-2">
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Cabinet
-              </label>
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Visio
-              </label>
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Domicile
-              </label>
-            </div>
-          </div>
-          <div className="mb-4">
-            <label className="block mb-1 text-xs font-medium text-gray-700">
-              Type de patient
-            </label>
-            <div className="flex flex-wrap items-center gap-4 mt-2">
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Tous publics
-              </label>
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Hommes
-              </label>
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Femmes
-              </label>
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Séniors
-              </label>
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Adolescentes
-              </label>
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Enfants
-              </label>
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Jeunes mamans
-              </label>
-            </div>
-          </div>
-          <div className="mb-4">
-            <label className="block mb-1 text-xs font-medium text-gray-700">
-              Moyens de paiement
-            </label>
-            <div className="flex items-center space-x-4 mt-2">
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Carte bancaire
-              </label>
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Chèque
-              </label>
-              <label className="flex items-center text-xs text-gray-700">
-                <input type="checkbox" className="mr-1" /> Espèce
-              </label>
-            </div>
-          </div>
-          <div className="mb-4">
-            <label className="block mb-1 text-xs font-medium text-gray-700">
-              Description
+              Description <span className="text-red-700">*</span>
             </label>
             <textarea
-              className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
+              className={`border ${
+                errors.description ? "border-red-500" : "border-gray-300"
+              } rounded px-3 py-2 w-full text-xs`}
               rows={5}
               placeholder="Décrivez votre pratique, votre parcours, vos spécificités..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+            {errors.description && (
+              <span className="text-xs text-red-600">{errors.description}</span>
+            )}
           </div>
-          <div className="mb-2">
+          {/* Groupes de checkbox */}
+          <div className="mb-4">
             <label className="block mb-1 text-xs font-medium text-gray-700">
-              Images de présentation
+              Type de consultations <span className="text-red-700">*</span>
             </label>
-            <div className="flex flex-col items-center justify-center p-4 border-2 border-[#5DA781] border-dashed rounded-md cursor-pointer w-full">
-              <svg
-                className="w-5 h-5 mb-2 text-[#5DA781]"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.5}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 16.5V7.125A2.625 2.625 0 015.625 4.5h12.75A2.625 2.625 0 0121 7.125V16.5M3 16.5l3.75-3.75M21 16.5l-3.75-3.75M8.25 8.25h7.5M12 8.25v7.5"
+            <div className="flex items-center space-x-4 mt-2">
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={consultationTypes.includes("Cabinet")}
+                  onChange={() =>
+                    handleToggle("Cabinet", consultationTypes, setConsultationTypes)
+                  }
                 />
-              </svg>
-              <p className="text-xs text-[#5DA781]">Cliquer pour ajouter ou glisser-déposer</p>
-              <p className="mt-1 text-xs text-[#5DA781]">
-                SVG, PNG, JPG ou GIF (max. 400 x 400px)
-              </p>
+                Cabinet
+              </label>
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={consultationTypes.includes("Visio")}
+                  onChange={() =>
+                    handleToggle("Visio", consultationTypes, setConsultationTypes)
+                  }
+                />
+                Visio
+              </label>
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={consultationTypes.includes("Domicile")}
+                  onChange={() =>
+                    handleToggle("Domicile", consultationTypes, setConsultationTypes)
+                  }
+                />
+                Domicile
+              </label>
             </div>
+            {errors.consultationTypes && (
+              <span className="text-xs text-red-600">{errors.consultationTypes}</span>
+            )}
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-xs font-medium text-gray-700">
+              Type de patient <span className="text-red-700">*</span>
+            </label>
+            <div className="flex flex-wrap items-center gap-4 mt-2">
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={patientTypes.includes("Tous publics")}
+                  onChange={() =>
+                    handleToggle("Tous publics", patientTypes, setPatientTypes)
+                  }
+                />
+                Tous publics
+              </label>
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={patientTypes.includes("Hommes")}
+                  onChange={() =>
+                    handleToggle("Hommes", patientTypes, setPatientTypes)
+                  }
+                />
+                Hommes
+              </label>
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={patientTypes.includes("Femmes")}
+                  onChange={() =>
+                    handleToggle("Femmes", patientTypes, setPatientTypes)
+                  }
+                />
+                Femmes
+              </label>
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={patientTypes.includes("Séniors")}
+                  onChange={() =>
+                    handleToggle("Séniors", patientTypes, setPatientTypes)
+                  }
+                />
+                Séniors
+              </label>
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={patientTypes.includes("Adolescentes")}
+                  onChange={() =>
+                    handleToggle("Adolescentes", patientTypes, setPatientTypes)
+                  }
+                />
+                Adolescentes
+              </label>
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={patientTypes.includes("Enfants")}
+                  onChange={() =>
+                    handleToggle("Enfants", patientTypes, setPatientTypes)
+                  }
+                />
+                Enfants
+              </label>
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={patientTypes.includes("Jeunes mamans")}
+                  onChange={() =>
+                    handleToggle("Jeunes mamans", patientTypes, setPatientTypes)
+                  }
+                />
+                Jeunes mamans
+              </label>
+            </div>
+            {errors.patientTypes && (
+              <span className="text-xs text-red-600">{errors.patientTypes}</span>
+            )}
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-xs font-medium text-gray-700">
+              Moyens de paiement <span className="text-red-700">*</span>
+            </label>
+            <div className="flex items-center space-x-4 mt-2">
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={paymentMethods.includes("Carte bancaire")}
+                  onChange={() =>
+                    handleToggle("Carte bancaire", paymentMethods, setPaymentMethods)
+                  }
+                />
+                Carte bancaire
+              </label>
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={paymentMethods.includes("Chèque")}
+                  onChange={() =>
+                    handleToggle("Chèque", paymentMethods, setPaymentMethods)
+                  }
+                />
+                Chèque
+              </label>
+              <label className="flex items-center text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  className="mr-1"
+                  checked={paymentMethods.includes("Espèce")}
+                  onChange={() =>
+                    handleToggle("Espèce", paymentMethods, setPaymentMethods)
+                  }
+                />
+                Espèce
+              </label>
+            </div>
+            {errors.paymentMethods && (
+              <span className="text-xs text-red-600">{errors.paymentMethods}</span>
+            )}
           </div>
         </div>
 
@@ -507,7 +734,7 @@ const CompleteProfile = () => {
               <input
                 type="text"
                 className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
-                placeholder="Lien LinkedIn"
+                placeholder="Lien LinkedIn (facultatif)"
                 value={linkedinLink}
                 onChange={(e) => setLinkedinLink(e.target.value)}
               />
@@ -517,7 +744,7 @@ const CompleteProfile = () => {
               <input
                 type="text"
                 className="border border-gray-300 rounded px-3 py-2 w-full text-xs"
-                placeholder="Lien Facebook"
+                placeholder="Lien Facebook (facultatif)"
                 value={facebookLink}
                 onChange={(e) => setFacebookLink(e.target.value)}
               />
@@ -526,15 +753,15 @@ const CompleteProfile = () => {
         </div>
       </div>
 
-      {/* Bouton d'enregistrement en bas à droite */}
-      <div className="absolute bottom-4 right-4">
-        <button
+      {/* Bouton de sauvegarde */}
+      <div className="flex p-2 items-center justify-end w-full">
+        <Button
           onClick={handleSave}
-          className="flex items-center px-4 py-2 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700"
+          className="flex items-center px-4 py-2 text-white text-xs font-medium rounded hover:bg-green-700"
         >
           <Save className="w-4 h-4 mr-2" />
           Enregistrer
-        </button>
+        </Button>
       </div>
     </div>
   );

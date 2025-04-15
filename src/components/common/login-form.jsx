@@ -36,7 +36,7 @@ export const LoginForm = ({ className, ...props }) => {
       const response = await login_user(data.user_mail, data.mot_de_passe);
       console.log(response);
       setTimeout(() => {
-        setLocalData("token", response.token);
+        // setLocalData("token", response.token);
         setLoading(false);
         navigate("/praticien/dashboard");
       }, 1000);

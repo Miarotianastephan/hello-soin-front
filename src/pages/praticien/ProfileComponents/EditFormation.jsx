@@ -42,7 +42,7 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
   };
 
   return (
-    <div className="mb-4 mx-28">
+    <div className="mb-4 mx-4">
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold"></span>
         <Button
@@ -56,7 +56,7 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
         <span className="text-sm font-semibold">Formation</span>
       </div>
       <div className="flex flex-col items-start justify-center pb-4 mt-4 border-b-2">
-        <div className="w-1/2 mt-2">
+        <div className="w-full md:w-1/2 mt-2">
           <label className="block mb-1 text-xs font-medium text-gray-700">
             Année *
           </label>
@@ -68,7 +68,7 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
             className="w-full px-3 py-2 text-xs border border-gray-300 rounded"
           />
         </div>
-        <div className="w-1/2 mt-2">
+        <div className="w-full md:w-1/2 mt-2">
           <label className="block mb-1 text-xs font-medium text-gray-700">
             Diplôme *
           </label>
@@ -80,7 +80,7 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
             className="w-full px-3 py-2 text-xs border border-gray-300 rounded"
           />
         </div>
-        <div className="w-1/2 mt-2">
+        <div className="w-full md:w-1/2 mt-2">
           <label className="block mb-1 text-xs font-medium text-gray-700">
             Spécialité *
           </label>
@@ -92,7 +92,7 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
             className="w-full px-3 py-2 text-xs border border-gray-300 rounded"
           />
         </div>
-        <div className="w-1/2 mt-2">
+        <div className="w-full md:w-1/2 mt-2">
           <label className="block mb-1 text-xs font-medium text-gray-700">
             Établissement *
           </label>

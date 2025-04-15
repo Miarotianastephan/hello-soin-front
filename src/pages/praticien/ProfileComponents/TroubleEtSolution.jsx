@@ -1,5 +1,5 @@
 // TableList.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Edit, Trash, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -70,14 +70,19 @@ const groupSolutionsBySpecialite = (solutions) => {
 };
 
 const TableList = (props) => {
-  const rows = [];
+  // État pour gérer l'accordéon sur mobile
+  const [expandedTroubleIds, setExpandedTroubleIds] = useState([]);
 
-  // Remplacer la navigation par l'appel de la fonction onAddTrouble
-  const handleAddTrouble = () => {
-    props.onAddTrouble();
+  const toggleTroubleExpansion = (id) => {
+    setExpandedTroubleIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
   };
 
+  // Construction des lignes pour le tableau (affichage grand écran)
+  const rows = [];
   data.forEach((category) => {
+    // Calcul du nombre total de lignes pour la catégorie (pour gérer rowSpan)
     const totalRowsCategory = category.troubles.reduce(
       (acc, trouble) => acc + trouble.solutions.length,
       0
@@ -119,7 +124,7 @@ const TableList = (props) => {
                   {group.specialite}
                 </td>
               )}
-              {/* Colonnes Durée, Tarif et Action */}
+              {/* Colonnes Durée, Tarif et Action (affichées une seule fois par Trouble) */}
               {!troubleRendered && solIndex === 0 && (
                 <>
                   <td rowSpan={totalRowsTrouble} className="px-4 py-2 align-top border whitespace-nowrap">
@@ -129,7 +134,6 @@ const TableList = (props) => {
                     {trouble.tarif}
                   </td>
                   <td rowSpan={totalRowsTrouble} className="px-4 py-2 align-top border whitespace-nowrap">
-                    {/* Bouton Modifier avec callback onEditTrouble */}
                     <button 
                       onClick={() => props.onEditTrouble(trouble)}
                       className="mr-2 text-blue-600 hover:text-blue-900" 
@@ -154,30 +158,100 @@ const TableList = (props) => {
   });
 
   return (
-    <div className="mb-4 overflow-x-auto">
-      <table className="min-w-full bg-white border border-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Catégorie</th>
-            <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Trouble</th>
-            <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Solution</th>
-            <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Spécialité</th>
-            <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Durée</th>
-            <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Tarif</th>
-            <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Action</th>
-          </tr>
-        </thead>
-        <tbody className='text-xs'>{rows}</tbody>
-      </table>
-      <div className='flex items-center justify-start w-full mt-4 text-white'>
-        <Button 
-          onClick={handleAddTrouble} 
-          className="mt-4 inline-flex bg-white items-center px-4 py-2 text-xs font-bold text-[#0f2b3d] border-2 border-[#0f2b3d] rounded-sm hover:bg-[#14384f] hover:text-white"
-        >
-          <PlusCircle size={15} /> Ajouter une spécialité
-        </Button>
+    <>
+      {/* Vue tableau pour grand écran */}
+      <div className="hidden sm:block mb-4 overflow-x-auto">
+        <table className="min-w-full bg-white border border-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Catégorie</th>
+              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Trouble</th>
+              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Solution</th>
+              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Spécialité</th>
+              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Durée</th>
+              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Tarif</th>
+              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Action</th>
+            </tr>
+          </thead>
+          <tbody className="text-xs">
+            {rows}
+          </tbody>
+        </table>
+        <div className="flex items-center justify-start w-full mt-4">
+          <Button 
+            onClick={props.onAddTrouble} 
+            className="inline-flex bg-white items-center px-4 py-2 text-xs font-bold text-[#0f2b3d] border-2 border-[#0f2b3d] rounded-sm hover:bg-[#14384f] hover:text-white"
+          >
+            <PlusCircle size={15} /> Ajouter une spécialité
+          </Button>
+        </div>
       </div>
-    </div>
+
+      {/* Vue accordéon pour mobile */}
+      <div className="block sm:hidden">
+        {data.map((category) => (
+          <div key={category.id} className="mb-4 border rounded">
+            <div className="bg-gray-100 px-4 py-2 font-bold">
+              {category.categorie}
+            </div>
+            {category.troubles.map((trouble) => (
+              <div key={trouble.id} className="border-t">
+                <div 
+                  className="flex justify-between items-center px-4 py-2 cursor-pointer" 
+                  onClick={() => toggleTroubleExpansion(trouble.id)}
+                >
+                  <div>
+                    <div className="font-semibold">{trouble.name}</div>
+                    <div className="text-xs text-gray-600">
+                      Durée : {trouble.duree} — Tarif : {trouble.tarif}
+                    </div>
+                  </div>
+                  <div className="text-xl">
+                    {expandedTroubleIds.includes(trouble.id) ? '−' : '+'}
+                  </div>
+                </div>
+                {expandedTroubleIds.includes(trouble.id) && (
+                  <div className="px-4 py-2">
+                    {groupSolutionsBySpecialite(trouble.solutions).map((group) => (
+                      <div key={group.specialite} className="mb-2">
+                        <div className="text-sm font-bold">{group.specialite}</div>
+                        <ul>
+                          {group.solutions.map((solution) => (
+                            <li key={solution.id} className="text-sm pl-4">
+                              {solution.name}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                    <div className="flex space-x-2 mt-2">
+                      <button 
+                        onClick={() => props.onEditTrouble(trouble)} 
+                        className="text-blue-600 hover:text-blue-900"
+                        title="Modifier"
+                      >
+                        <Edit className="inline-block w-5 h-5" size={15} />
+                      </button>
+                      <button className="text-red-600 hover:text-red-900" title="Supprimer">
+                        <Trash className="inline-block w-5 h-5" size={15} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ))}
+        <div className="flex items-center justify-start w-full mt-4">
+          <Button 
+            onClick={props.onAddTrouble} 
+            className="inline-flex bg-white items-center px-4 py-2 text-xs font-bold text-[#0f2b3d] border-2 border-[#0f2b3d] rounded-sm hover:bg-[#14384f] hover:text-white"
+          >
+            <PlusCircle size={15} /> Ajouter une spécialité
+          </Button>
+        </div>
+      </div>
+    </>
   );
 };
 

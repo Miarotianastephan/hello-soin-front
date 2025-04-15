@@ -178,9 +178,11 @@ const Header = () => {
           <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white border-none shadow-none bg-[#1e5e56] text-sm">
             <BetweenHorizonalEnd /> S'inscrire
           </Button>
-          <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white border-none shadow-none bg-[#1e5e56] text-sm">
-            <UserCheck /> Êtes-vous praticien ?
-          </Button>
+          <Link to="/login">
+            <Button className="transition-colors duration-300 ease-in-out hover:bg-helloSoin  text-white border-none shadow-none bg-[#1e5e56] text-sm">
+              <UserCheck /> Êtes-vous praticien ?
+            </Button>
+          </Link>
         </div>
       )}
     </header>

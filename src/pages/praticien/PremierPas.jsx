@@ -1,33 +1,54 @@
-import React, { useState, useEffect } from "react";
+import React from "react"
+
+
 const PremierPas = () => {
-	
-	return (
-		<div className="px-6">
-			<div className="border rounded py-4 flex flex-col items-center justify-center">
-				<p className="text-xl font-bold text-gray-700"> 
-					<span className="text-4xl">🎉</span> 
-						Bienvenue sur 
-					<span className="text-[#5DA781]"> HelloSoins</span> 
-					<span className="text-4xl">🎉</span>
-				</p>
-				<p className="py-4 text-gray-500 text-md px-8 mx-8 flex flex-col items-center justify-center w-full">Nous sommes ravis de vous compter parmi nous ! <span>Votre espace praticien est maintenant prêt.</span></p>
-			</div>
-			<div className="flex items-center justify-between pt-4 gap-4">
-				<div className="w-1/2 border rounded flex flex-col items-center justify-center p-6 ">
-					<p className="flex flex-col items-center justify-center p-6 text-sm font-bold text-[#5DA781]">
-						Compléter votre profile pour mieux vous presenter 
-						<span className="text-sm font-bold text-gray-700"> à vos patients</span>
-					</p>
-				</div>
-				<div className="w-1/2 border rounded flex flex-col items-center justify-center p-6 ">
-				<p className="flex flex-col items-center justify-center p-6 text-sm font-bold text-[#5DA781]">
-					Ajouter vos disponibilités
-					<span className="text-sm font-bold text-gray-700">pour recevoir des rendez-vous</span>
-				</p>
-				</div>
+
+  // Exemple de gestion des clics sur les cartes
+  const handleProfileClick = () => {
+    console.log('Coucou') // Redirige vers la page de profil
+  }
+  const handleAvailabilityClick = () => {
+    console.log('Coucou') // Redirige vers la page de disponibilités
+  }
+
+  return (
+    <div className="flex flex-col items-center w-full px-4 py-10 md:px-6">
+      {/* En-tête avec le message de bienvenue */}
+      <div className="mb-8 text-center space-y-2">
+        <p >
+          <span className="text-2xl">🎉</span> <span className="font-bold text-xl">Bienvenue sur</span> <span className="text-[#5DA781] text-xl font-bold">Hellosoins</span> <span className="text-2xl">🎉</span>
+        </p>
+        <p className="text-sm md:text-sm text-muted-foreground">
+          Nous sommes ravis de vous compter parmi nous&nbsp;!
+          <br className="hidden md:block" />
+          Votre espace praticien est maintenant prêt.
+        </p>
+      </div>
+
+      {/* Cartes pour guider l’utilisateur */}
+      <div className="flex flex-col gap-4 md:flex-row">
+        {/* Carte 1 : Compléter le profil */}
+        <div 
+          className="w-full max-w-sm shadow-none flex items-center justify-center cursor-pointer hover:border-[#5DA781] border py-6 px-4 rounded" 
+          onClick={handleProfileClick}
+        >
+            <div className="w-full text-sm p text-gray-900 text-center">
+				<span className="text-[#5DA781] text-sm font-bold">Compléter votre profil</span> pour mieux vous présenter à vos patients
 			</div>
 		</div>
-	)
+
+        {/* Carte 2 : Ajouter vos disponibilités */}
+        <div 
+          className="w-full max-w-sm shadow-none flex items-center justify-center cursor-pointer hover:border-[#5DA781] border py-6 px-4 rounded" 
+          onClick={handleProfileClick}
+        >
+            <div className="w-full text-sm p text-gray-900 text-center">
+				<span className="text-[#5DA781] text-sm font-bold">Ajouter les disponibilités</span> pour recevoir des rendez-vous
+			</div>
+		</div>
+      </div>
+    </div>
+  )
 }
 
 export default PremierPas;

@@ -115,9 +115,9 @@ const TroubleConfig = (props) => {
         </Button>
       </div>
       
-      <div className='flex items-start justify-between w-full gap-4 mt-4 text-xs'>
+      <div className='flex flex-col md:flex-row items-start justify-between w-full gap-4 mt-4 text-xs'>
         {/* Colonne Troubles */}
-        <div className='w-1/2 px-4'>
+        <div className='w-full md:w-1/2 px-4 '>
           <div className='w-full py-2 text-gray-700 border-b-2 border-gray-700'>
             <span>Troubles</span>
           </div>
@@ -155,7 +155,7 @@ const TroubleConfig = (props) => {
         </div>
 
         {/* Colonne Solutions */}
-        <div className='w-1/2 px-4'>
+        <div className='w-full md:w-1/2 px-4 '>
           <div className='w-full py-2 text-gray-700 border-b-2 border-gray-700'>
             <span>Solutions</span>
           </div>

@@ -213,7 +213,7 @@ const CommentsList = () => {
       ))}
 
       {/* Formulaire de réponse*/}
-      <div className="fixed bottom-0 z-50 w-3/4 px-6 py-2 bg-white">
+      <div className="fixed bottom-20 z-50 w-3/4 md:px-6 py-2 bg-white md:bottom-0">
         <h2 className="flex items-center mb-4 text-xs font-bold text-gray-700">
           {replyForm.targetId ? `Répondre à ${currentTargetName}` : ''}
           {replyForm.targetId && (
