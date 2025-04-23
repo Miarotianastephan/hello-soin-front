@@ -6,20 +6,27 @@ export {
   API_URL
 }
 
-// Login API
+
 export const login_user = async (user_mail, mot_de_passe) => {
   try {
-    const response = await axios.post(`${API_URL}/login`, {
-      "email": user_mail,
-      "password": mot_de_passe
+    const response = await axios.post('http://192.168.88.193:3000/auth/login', {
+      mail: user_mail,
+      password: mot_de_passe,
     });
     return response.data;
   } catch (error) {
-    const errorMessage = error.response.data.message;
-    console.error("Erreur lors de la connexion", errorMessage);
-    throw errorMessage;
+    const errorMessage = error.response?.data?.message || 'Erreur inconnue';
+    console.error("Erreur lors de la connexion:", errorMessage);
+    throw new Error(errorMessage);
   }
 };
+
+// nouveau login sans mot de passe
+export async function login_by_email(mail) {
+  const response = await axios.post('http://192.168.88.193:3000/auth/emailLogin', { mail });
+  return response.data;
+}
+
 
 export const api_login_test = async (user_mail, mot_de_passe) => {
   try {

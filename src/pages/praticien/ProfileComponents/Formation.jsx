@@ -238,12 +238,12 @@ const Formation = () => {
                   </div>
                 </div>
                 {expandedFormationIds.includes(formation.id) && (
-                  <div className="p-2">
+                  <div className="p-2 text-xs">
                     <div className="mb-1">
-                      <span className="font-semibold">Spécialité :</span> {formation.specialite}
+                      <span className="font-semibold text-[#5DA781]">Spécialité :</span> {formation.specialite}
                     </div>
                     <div className="mb-1">
-                      <span className="font-semibold">Établissement :</span> {formation.etablissement}
+                      <span className="font-semibold text-[#5DA781]">Établissement :</span> {formation.etablissement}
                     </div>
                     <div className="flex space-x-2 mt-2">
                       <button onClick={() => handleEdit(formation.id)} className="text-blue-500 hover:text-blue-700">

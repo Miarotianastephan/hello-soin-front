@@ -30,6 +30,7 @@ import Formation from "./ProfileComponents/Formation";
 import TroubleManager from "./ProfileComponents/TroubleManager";
 import Avis from "./ProfileComponents/Avis";
 import { Button } from "@/components/ui/button";
+import Cabinets from "./ProfileComponents/Cabinets";
 
 const TABS = [
   { id: "informations", label: "Informations" },
@@ -235,12 +236,7 @@ const PraticienProfil = () => {
         {activeTab === "informations" && <Information />}
         {activeTab === "formations" && <Formation />}
         {activeTab === "troubles" && <TroubleManager />}
-        {activeTab === "cabinets" && (
-          <div className="p-4 bg-white rounded shadow">
-            <h2 className="text-lg font-semibold text-gray-800">Cabinets</h2>
-            <p className="mt-2 text-sm text-gray-600">Contenu à venir...</p>
-          </div>
-        )}
+        {activeTab === "cabinets" && <Cabinets/>}
         {activeTab === "avis" && <Avis />}
       </div>
 
