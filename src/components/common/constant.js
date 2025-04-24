@@ -11,12 +11,12 @@ import {
 const menu_principale = [
   {
     title: "Accueil",
-    url: "/praticien/dashboard",
+    url: "/praticien/premierPas",
     icon: LayoutDashboard,
   },
   {
     title: "Agenda",
-    url: "/agenda",
+    // url: "/agenda",
     icon: CalendarDays,
   },
   // {
@@ -35,17 +35,17 @@ const menu_secondaire = [
     items: [
       {
         title: "Plage horaire",
-        url: "/plage-horaire",
+        // url: "/plage-horaire",
         icon: CalendarFold,
       },
       {
         title: "Type de pratique",
-        url: "/pratiques",
+        // url: "/pratiques",
         icon: Activity,
       },
       {
         title: "Mes patients",
-        url: "/praticien/patients",
+        // url: "/praticien/patients",
         icon: Users,
       },
     ]

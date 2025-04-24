@@ -1,0 +1,10 @@
+/* Cible Chrome, Safari, Opera */
+.sidebar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Cible Firefox */
+  .sidebar {
+    scrollbar-width: none;        /* Firefox ≥64 */
+    -ms-overflow-style: none;     /* IE 10+ / Edge */
+  }

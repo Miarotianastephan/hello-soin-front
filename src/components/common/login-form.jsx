@@ -41,7 +41,7 @@ export const LoginForm = ({ className, ...props }) => {
       await setLocalData("user", JSON.stringify(response.user))
 
       // Redirection vers le dashboard praticien
-      navigate("/praticien/dashboard")
+      navigate("/praticien/premierPas")
     } catch (error) {
       setMessage(error)
       setVisible(true)

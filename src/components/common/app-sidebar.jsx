@@ -30,10 +30,10 @@ const AppSidebar = () => {
   const location = useLocation();
 
   return (
-    <Sidebar collapsible="icon" className="z-20">
+    <Sidebar collapsible="icon" className="z-20 overflow-x-hidden">
       {/* Pour l'en tete du sidebar */}
       <AppSidebarHeader />
-      <SidebarContent className="bg-white">
+      <SidebarContent className="bg-white overflow-x-hidden">
         <SidebarGroup>
           <SidebarGroupLabel>Navigation Principale</SidebarGroupLabel>
           <SidebarGroupContent>
