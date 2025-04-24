@@ -1,11 +1,35 @@
-import React from 'react'
-import { InfoIcon, MapPinHouse, Star, CreditCard } from 'lucide-react'
-const Information = () => {
+import React,{useState} from 'react'
+import { InfoIcon, MapPinHouse, Star, CreditCard} from 'lucide-react'
+const Information = ({practitionerData}) => {
+  const typePatient = JSON.parse(localStorage.getItem('patientTypes') || '[]');
     const cabinetImages = [
     "https://cdn.studiometa.fr/https://www.be-mydesk.com/img/cms/Cabinet%20m%C3%A9dical/Cab/17278.jpg?twic=v1/max=1680",
     "https://www.manohisoa-medical.com/wp-content/uploads/bfi_thumb/Slide-cabinet-medical-manohisoa-accueil-34ze9ftb74bqorb1ej0jy8.jpg","https://media.istockphoto.com/id/1171739282/fr/photo/salle-dexamen-m%C3%A9dical.jpg?s=612x612&w=0&k=20&c=tu2X2NssRW_Xu8__973BZeSQsOiJnfR5rxvMB9qLXHQ=" // Image supplémentaire pour tester la grille
     // Ajoutez d'autres images si nécessaire
   ];
+
+  const formatPhoneNumber = (phone) => {
+    if (!phone) return '';
+    // Supprimer tous les caractères non numériques
+    let cleaned = phone.replace(/\D/g, '');
+    // Remplacer le préfixe international par 0
+    if (cleaned.startsWith('33')) {
+      cleaned = '0' + cleaned.slice(2);
+    }
+    // Diviser en groupes de 2 chiffres
+    return cleaned.match(/.{1,2}/g)?.join(' ') || cleaned;
+  };
+  
+
+  const formatSIRET = (siret) => {
+    if (!siret) return '';
+    // Supprimer tous les caractères non numériques
+    const cleaned = siret.replace(/\D/g, '');
+    // Diviser en groupes de 3 chiffres
+    return cleaned.match(/.{1,3}/g)?.join(' ') || cleaned;
+  };
+  
+  
   return (
 <div className="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2">
             {/* Colonne 1 */}
@@ -21,7 +45,7 @@ const Information = () => {
       Description :
     </div>
     <div className="flex items-start justify-start w-2/3 text-left">
-      Adipiscing pariatur ad labore eiusdo quo quis. Adipiscing et deserunt proident est laboris consequat minimun Lorem cillum cupidatat iure do. Duis nisi cupidatat ea laborum id qui et proident consectetur culpa pariatur duis ad voluptate.
+    {practitionerData.practitioner_info.profil_description}
     </div>
   </div>
 
@@ -32,7 +56,7 @@ const Information = () => {
         Civilité :
       </div>
       <div className="flex items-start justify-start w-2/3 text-left">
-        Monsieur
+        {practitionerData.situation}
       </div>
     </div>
     <div className="flex mb-1">
@@ -40,7 +64,15 @@ const Information = () => {
         Type de patient :
       </div>
       <div className="flex items-start justify-start w-2/3 text-left">
-        Tous publics, Hommes, Femmes, Adultes, Enfants
+      {typePatient.length > 0 ? (
+    <div className="flex items-center justify-center gap-2">
+      {typePatient.map((type, index) => (
+        <p key={index}>{type} | </p>
+      ))}
+    </div>
+  ) : (
+    <span>Aucun type de patient défini.</span>
+  )}
       </div>
     </div>
     <div className="flex mb-1">
@@ -48,7 +80,7 @@ const Information = () => {
         Téléphone :
       </div>
       <div className="flex items-start justify-start w-2/3 text-left">
-        802 345 678 00012
+      {formatPhoneNumber(practitionerData.phone_number)}
       </div>
     </div>
     <div className="flex mb-1">
@@ -56,7 +88,7 @@ const Information = () => {
         SIRET :
       </div>
       <div className="flex items-start justify-start w-2/3 text-left">
-        802 345 678 00012
+      {formatSIRET(practitionerData.practitioner_info.siret)}
       </div>
     </div>
   </div>

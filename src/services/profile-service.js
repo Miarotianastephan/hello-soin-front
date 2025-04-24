@@ -1,0 +1,23 @@
+// src/services/profile-service.js
+import axios from 'axios';
+
+// src/services/profile-service.js
+export const getPraticienInfo = async () => {
+    const token = localStorage.getItem('token');
+  
+    // Si le token est manquant, lancez une erreur
+    if (!token) {
+      throw new Error("Token non trouvé. Connectez-vous.");
+    }
+  
+    const response = await axios.get(
+      'http://localhost:3000/profile/get-info-praticien',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // Format correct : "Bearer <token>"
+        },
+      }
+    );
+  
+    return response.data.data;
+  };

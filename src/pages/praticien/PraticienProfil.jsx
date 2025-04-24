@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Avatar,
   AvatarFallback,
@@ -30,7 +30,9 @@ import Formation from "./ProfileComponents/Formation";
 import TroubleManager from "./ProfileComponents/TroubleManager";
 import Avis from "./ProfileComponents/Avis";
 import { Button } from "@/components/ui/button";
-
+import Cabinets from "./ProfileComponents/Cabinets";
+import axios from "axios";
+import { Link } from "react-router-dom";
 const TABS = [
   { id: "informations", label: "Informations" },
   { id: "formations", label: "Formations et expériences" },
@@ -38,6 +40,7 @@ const TABS = [
   { id: "cabinets", label: "Cabinets" },
   { id: "avis", label: "Avis patients" },
 ];
+import { TailSpin } from 'react-loader-spinner';
 
 const tabIcons = {
   informations: <User className="w-6 h-6" />,
@@ -48,10 +51,48 @@ const tabIcons = {
 };
 
 const PraticienProfil = () => {
-  const [profilePic, setProfilePic] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Récupère profileNow passé depuis CompleteProfile
+  const passedProfileNow = location.state?.profileNow || null;
+
+  const [practitionerData, setPractitionerData] = useState(null);
+  const [profilePic, setProfilePic] = useState(passedProfileNow);
+  const [imgFile, setImgFile] = useState(passedProfileNow);
   const [activeTab, setActiveTab] = useState("informations"); // Onglet par défaut
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchPractitionerData = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        console.log(passedProfileNow);
+        const response = await axios.get(
+          "http://localhost:3000/profile/get-info-praticien",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data.success) {
+          setPractitionerData(response.data.data);
+          setImgFile(response.data.data.profil_photo)
+          console.log(imgFile)
+        }
+      } catch (error) {
+        console.error("Erreur de récupération des données:", error);
+        if (error.response?.status === 401) {
+          localStorage.clear();
+          navigate("/login");
+        }
+      }
+    };
+
+    fetchPractitionerData();
+  }, [navigate]);
 
   // Configuration du viewport pour éviter le zoom manuel
   useEffect(() => {
@@ -97,6 +138,17 @@ const PraticienProfil = () => {
     navigate("/completeProfile");
   };
 
+  if (!practitionerData) {
+    return <div className="p-4 text-center w-full flex items-center justify-center h-full"><TailSpin
+    height="40"
+    width="40"
+    color="#4fa94d"
+    ariaLabel="tail-spin-loading"
+    radius="1"
+    visible={true}
+  /></div>;
+  }
+
   return (
     <div className="md:flex-row">
       {/* Profil du praticien */}
@@ -104,36 +156,31 @@ const PraticienProfil = () => {
         <div className="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-4">
           {/* Avatar + changement de photo */}
           <div className="relative">
-            <Avatar className="w-24 h-24 overflow-hidden ring-4 ring-gray-300">
+          <Avatar className="w-24 h-24 overflow-hidden ring-4 ring-gray-300">
               <AvatarImage
-                src={profilePic}
+                src={`http://localhost:3000/image${practitionerData.profil_photo}` || ""}
                 alt="Photo de profil"
                 className="object-cover w-full h-full"
               />
               <AvatarFallback>
-                <svg
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  className="w-6 h-6 text-gray-500"
-                >
-                  <path d="M12 12c2.7 0 4.89-2.2 4.89-4.89S14.7 2.22 12 2.22 7.11 4.41 7.11 7.11 9.3 12 12 12zm0 2.67c-3.13 0-9.33 1.57-9.33 4.67v1.78h18.67v-1.78c0-3.1-6.2-4.67-9.34-4.67z" />
-                </svg>
+                {practitionerData.firstname[0]}
+                {practitionerData.lastname[0]}
               </AvatarFallback>
             </Avatar>
             {/* Icône pour changer la photo */}
             <label
               htmlFor="profilePic"
-              className="absolute bottom-0 right-0 p-1 bg-white rounded-full cursor-pointer ring-2 ring-gray-300"
+              className="absolute bottom-0 right-0 p-1 bg-white rounded-full ring-2 ring-gray-300"
             >
               <Camera className="w-4 h-4 text-gray-500" />
             </label>
-            <input
+            {/* <input
               type="file"
               id="profilePic"
               className="hidden"
               accept="image/*"
               onChange={handleChangePhoto}
-            />
+            /> */}
           </div>
 
           {/* Informations du praticien */}
@@ -141,49 +188,59 @@ const PraticienProfil = () => {
             {/* Nom et badge confirmé */}
             <div className="flex items-center space-x-2">
               <h2 className="text-lg font-semibold text-gray-800">
-                Durand Paul
+                {practitionerData.firstname} {practitionerData.lastname}
               </h2>
-              <div className="flex items-center px-2 py-1 space-x-1 text-xs text-green-700 bg-green-100 rounded">
-                <CheckCircle className="w-4 h-4" />
-                <span>Confirmé</span>
-              </div>
+              {practitionerData.is_validated === 1 && (
+                <div className="flex items-center px-2 py-1 space-x-1 text-xs text-green-700 bg-green-100 rounded">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Confirmé</span>
+                </div>
+              )}
             </div>
-            {/* Email */}
+            
             <div className="flex items-center mt-1 space-x-2 text-xs text-gray-800">
               <Mail className="w-4 h-4" color="white" fill="currentColor" />
-              <span>durant@gmail.com</span>
+              <span>{practitionerData.mail}</span>
             </div>
-            {/* Adresse */}
+            
             <div className="flex items-center mt-1 space-x-2 text-xs text-gray-800">
               <MapPin className="w-4 h-4" color="white" fill="currentColor" />
               <span>
-                1 boulevard des jeux olympiques sud, 78000 Versailles
+                {[practitionerData.adress, practitionerData.postal_code, practitionerData.city]
+                  .filter(Boolean)
+                  .join(", ")}
               </span>
             </div>
-            {/* Modalités (cabinet, domicile, visio) */}
+
+            {/* Modalités */}
             <div className="flex items-center mt-2 space-x-4">
-              <div className="flex items-center space-x-1 text-xs text-gray-600">
-                <Building2 className="w-4 h-4" />
-                <span>En cabinet</span>
-              </div>
-              <div className="flex items-center space-x-1 text-xs text-gray-600">
-                <HouseIcon className="w-4 h-4" />
-                <span>A domicile</span>
-              </div>
-              <div className="flex items-center space-x-1 text-xs text-gray-600">
-                <Video className="w-4 h-4" />
-                <span>En visio</span>
-              </div>
+              {practitionerData.practitioner_info.is_office_consult === 1 && (
+                <div className="flex items-center space-x-1 text-xs text-gray-600">
+                  <Building2 className="w-4 h-4" />
+                  <span>En cabinet</span>
+                </div>
+              )}
+              {practitionerData.practitioner_info.is_home_consult === 1 && (
+                <div className="flex items-center space-x-1 text-xs text-gray-600">
+                  <HouseIcon className="w-4 h-4" />
+                  <span>A domicile</span>
+                </div>
+              )}
+              {practitionerData.practitioner_info.is_visio_consult === 1 && (
+                <div className="flex items-center space-x-1 text-xs text-gray-600">
+                  <Video className="w-4 h-4" />
+                  <span>En visio</span>
+                </div>
+              )}
             </div>
             {/* Bouton Modifier affiché uniquement sur mobile/tablette */}
             <div className="mt-4 md:hidden">
-              <Button
-                onClick={handleModifyProfile}
-                className="inline-flex items-center px-2 py-2 text-xs font-medium text-white bg-[#0f2b3d] rounded-sm hover:bg-[#14384f]"
-              >
-                <SquarePen className="w-4 h-4 mr-2" />
-                Modifier le profil
-              </Button>
+            <Link to="/completeProfile" state={{ imgFile }}>
+      <Button className="inline-flex items-center px-4 py-2 text-xs font-medium text-white bg-[#0f2b3d] rounded-sm hover:bg-[#14384f]">
+        <SquarePen className="w-4 h-4 mr-2" />
+        Modifier le profil
+      </Button>
+    </Link>
             </div>
           </div>
         </div>
@@ -192,12 +249,26 @@ const PraticienProfil = () => {
         <div className="hidden md:flex flex-col items-end justify-between space-y-8 h-full">
           {/* Icônes réseaux sociaux */}
           <div className="flex mb-2 space-x-2">
-            <button className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
-              <Linkedin className="w-4 h-4 text-gray-600" />
-            </button>
-            <button className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
-              <Facebook className="w-4 h-4 text-gray-600" />
-            </button>
+            {practitionerData.practitioner_info.linkedin_link && (
+              <a 
+                // href={practitionerData.practitioner_info.linkedin_link} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"
+              >
+                <Linkedin className="w-4 h-4 text-gray-600" />
+              </a>
+            )}
+            {practitionerData.practitioner_info.facebook_link && (
+              <a 
+                // href={practitionerData.practitioner_info.facebook_link} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"
+              >
+                <Facebook className="w-4 h-4 text-gray-600" />
+              </a>
+            )}
           </div>
           {/* Bouton Modifier le profil */}
           <Button
@@ -232,16 +303,11 @@ const PraticienProfil = () => {
 
       {/* Contenu conditionnel selon l'onglet actif */}
       <div className="mx-5 mt-4 mb-20 md:mb-4">
-        {activeTab === "informations" && <Information />}
-        {activeTab === "formations" && <Formation />}
-        {activeTab === "troubles" && <TroubleManager />}
-        {activeTab === "cabinets" && (
-          <div className="p-4 bg-white rounded shadow">
-            <h2 className="text-lg font-semibold text-gray-800">Cabinets</h2>
-            <p className="mt-2 text-sm text-gray-600">Contenu à venir...</p>
-          </div>
-        )}
-        {activeTab === "avis" && <Avis />}
+        {activeTab === "informations" && <Information practitionerData={practitionerData}/>}
+        {activeTab === "formations" && <Formation practitionerData={practitionerData}/>}
+        {activeTab === "troubles" && <TroubleManager practitionerData={practitionerData}/>}
+        {activeTab === "cabinets" && <Cabinets practitionerData={practitionerData}/>}
+        {activeTab === "avis" && <Avis practitionerData={practitionerData}/>}
       </div>
 
       {/* Barre d'onglets flottante pour mobile, placée en bas */}

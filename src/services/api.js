@@ -1,25 +1,80 @@
 import axios from 'axios';
 import { user_test } from '@/components/common/constant';
+import { jwtDecode } from 'jwt-decode';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 export {
   API_URL
 }
 
-// Login API
+
+// Login avec mot de passe
 export const login_user = async (user_mail, mot_de_passe) => {
   try {
-    const response = await axios.post(`${API_URL}/login`, {
-      "email": user_mail,
-      "password": mot_de_passe
+    const response = await axios.post('http://192.168.88.193:3000/auth/login', {
+      mail: user_mail,
+      password: mot_de_passe,
     });
+
+    // Sauvegarde du token et données utilisateur
+    if (response.data.token) {
+      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('userData', JSON.stringify(response.data.user));
+      localStorage.setItem('tokenExpiration', jwtDecode(response.data.token).exp);
+    }
+
     return response.data;
   } catch (error) {
-    const errorMessage = error.response.data.message;
-    console.error("Erreur lors de la connexion", errorMessage);
-    throw errorMessage;
+    // Gestion d'erreur améliorée
+    const errorMessage = error.response?.data?.message || error.message;
+    console.error("Erreur lors de la connexion:", errorMessage);
+    throw new Error(errorMessage);
   }
 };
+
+// Login sans mot de passe
+export async function login_by_email(mail) {
+  try {
+    const response = await axios.post('http://192.168.88.193:3000/auth/emailLogin', { mail });
+    
+    // Si le login est immédiat (magic link déjà cliqué)
+    if (response.data.token) {
+      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('userData', JSON.stringify(response.data.user));
+      localStorage.setItem('tokenExpiration', jwtDecode(response.data.token).exp);
+    }
+
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message;
+    console.error("Erreur lors de la connexion sans mot de passe:", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+// Fonction utilitaire pour vérifier la validité du token
+export function isAuthenticated() {
+  const token = localStorage.getItem('authToken');
+  if (!token) return false;
+
+  const decoded = jwtDecode(token);
+  return decoded.exp > Date.now() / 1000;
+}
+
+// Exemple d'utilisation dans un composant
+/*
+async function handlePasswordlessLogin(email) {
+  try {
+    const result = await login_by_email(email);
+    if (!result.token) {
+      // Afficher un message "Check your email"
+    }
+  } catch (err) {
+    // Gérer l'erreur
+  }
+}
+*/
+
 
 export const api_login_test = async (user_mail, mot_de_passe) => {
   try {

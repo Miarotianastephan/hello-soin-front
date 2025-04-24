@@ -1,4 +1,5 @@
 import React from "react"
+import { useNavigate } from "react-router-dom"
 
 
 const PremierPas = () => {
@@ -9,6 +10,11 @@ const PremierPas = () => {
   }
   const handleAvailabilityClick = () => {
     console.log('Coucou') // Redirige vers la page de disponibilités
+  }
+  const navigate = useNavigate();
+
+  const handleNavigate = () => {
+    navigate('/completeProfile')
   }
 
   return (
@@ -30,7 +36,7 @@ const PremierPas = () => {
         {/* Carte 1 : Compléter le profil */}
         <div 
           className="w-full max-w-sm shadow-none flex items-center justify-center cursor-pointer hover:border-[#5DA781] border py-6 px-4 rounded" 
-          onClick={handleProfileClick}
+          onClick={handleNavigate}
         >
             <div className="w-full text-sm p text-gray-900 text-center">
 				<span className="text-[#5DA781] text-sm font-bold">Compléter votre profil</span> pour mieux vous présenter à vos patients
