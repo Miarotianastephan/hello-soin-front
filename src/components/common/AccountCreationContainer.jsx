@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SignInForm from "./signin-form";
 import CodeVerification from "./CodeVerification";
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 const AccountCreationContainer = () => {
   const [showVerification, setShowVerification] = useState(false);
@@ -12,7 +13,7 @@ const AccountCreationContainer = () => {
     try {
       // Envoi du code de validation
       const sendCodeResponse = await fetch(
-        "http://192.168.88.193:3000/validation/send-code",
+        `${API_URL}/validation/send-code`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -34,7 +35,7 @@ const AccountCreationContainer = () => {
     try {
       // Vérification du code
       const verifyResponse = await fetch(
-        "http://192.168.88.193:3000/validation/verify-code",
+        `${API_URL}/validation/verify-code`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -49,7 +50,7 @@ const AccountCreationContainer = () => {
 
       // Enregistrement après vérification réussie
       const registerResponse = await fetch(
-        "http://192.168.88.193:3000/auth/register",
+        `${API_URL}http://192.168.88.193:3000/auth/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

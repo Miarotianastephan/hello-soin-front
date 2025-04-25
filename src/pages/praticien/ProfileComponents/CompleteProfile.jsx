@@ -16,6 +16,7 @@ import PhoneInput from "react-phone-input-2";
 import axios from "axios";
 import svg from "./image.svg";
 import { useLocation } from "react-router-dom";
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 
 const MANDATORY_FIELDS = 15; // Nombre total de champs obligatoires
@@ -69,7 +70,7 @@ const [paymentMethods, setPaymentMethods] = useState(() => {
       try {
         const token = localStorage.getItem("authToken");
         const resp = await axios.get(
-          "http://localhost:3000/profile/get-info-praticien",
+          `${API_URL}/praticien/get-info-praticien`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (resp.data.success) {
@@ -227,7 +228,7 @@ const [paymentMethods, setPaymentMethods] = useState(() => {
       }
       return profilePicRef.current.url;
     }
-    if (profilePic) return `http://localhost:3000/image${profilePic}`;
+    if (profilePic) return `${API_URL}/image${profilePic}`;
     return undefined;
   };
 
@@ -295,7 +296,7 @@ const generateRandomDescription = () => {
         formPayload.append("profil_photo", profilPhotoFile);
       }
       const resp = await axios.post(
-        "http://localhost:3000/profile/complete-profil",
+        `${API_URL}/praticien/complete-profil`,
         formPayload,
         {
           headers: {

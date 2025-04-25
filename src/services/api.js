@@ -11,7 +11,7 @@ export {
 // Login avec mot de passe
 export const login_user = async (user_mail, mot_de_passe) => {
   try {
-    const response = await axios.post('http://192.168.88.193:3000/auth/login', {
+    const response = await axios.post(`${API_URL}/auth/login`, {
       mail: user_mail,
       password: mot_de_passe,
     });
@@ -35,7 +35,7 @@ export const login_user = async (user_mail, mot_de_passe) => {
 // Login sans mot de passe
 export async function login_by_email(mail) {
   try {
-    const response = await axios.post('http://192.168.88.193:3000/auth/emailLogin', { mail });
+    const response = await axios.post(`${API_URL}/auth/emailLogin`, { mail });
     
     // Si le login est immédiat (magic link déjà cliqué)
     if (response.data.token) {

@@ -28,7 +28,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export function NavUser() {
   const { isMobile } = useSidebar()
@@ -38,7 +38,7 @@ export function NavUser() {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem('authToken')
-        const response = await axios.get('http://localhost:3000/profile/get-info-praticien', {
+        const response = await axios.get(`${API_URL}/praticien/get-info-praticien`, {
           headers: {
             Authorization: `Bearer ${token}`
           }

@@ -1,5 +1,6 @@
 // src/services/profile-service.js
 import axios from 'axios';
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 // src/services/profile-service.js
 export const getPraticienInfo = async () => {
@@ -11,7 +12,7 @@ export const getPraticienInfo = async () => {
     }
   
     const response = await axios.get(
-      'http://localhost:3000/profile/get-info-praticien',
+      `${API_URL}/praticien/get-info-praticien`,
       {
         headers: {
           Authorization: `Bearer ${token}`, // Format correct : "Bearer <token>"
