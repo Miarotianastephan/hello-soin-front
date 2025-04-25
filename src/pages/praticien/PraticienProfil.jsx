@@ -41,7 +41,7 @@ const TABS = [
   { id: "avis", label: "Avis patients" },
 ];
 import { TailSpin } from 'react-loader-spinner';
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+import { API_URL } from "@/services/api";
 
 const tabIcons = {
   informations: <User className="w-6 h-6" />,
@@ -94,6 +94,7 @@ const PraticienProfil = () => {
 
     fetchPractitionerData();
   }, [navigate]);
+
 
   // Configuration du viewport pour éviter le zoom manuel
   useEffect(() => {
@@ -159,7 +160,7 @@ const PraticienProfil = () => {
           <div className="relative">
           <Avatar className="w-24 h-24 overflow-hidden ring-4 ring-gray-300">
               <AvatarImage
-                src={`${API_URL}/image${practitionerData.profil_photo}`}
+                src={`${API_URL}/image${practitionerData.profil_photo}` || ""}
                 alt="Photo de profil"
                 className="object-cover w-full h-full"
               />

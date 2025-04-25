@@ -7,7 +7,7 @@ import {
 } from "lucide-react"
 import axios from "axios"
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import {
   Avatar,
   AvatarFallback,
@@ -28,12 +28,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+import { API_URL } from "@/services/api"
+
 
 export function NavUser() {
   const { isMobile } = useSidebar()
   const [practitionerData, setPractitionerData] = useState(null)
-
+  const navigate = useNavigate()
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -59,8 +60,20 @@ export function NavUser() {
     localStorage.removeItem('authToken')
     localStorage.removeItem('tokenExpiration')
     localStorage.removeItem('userData')
+  
+    // Utiliser replace pour éviter d'ajouter au stack d'historique
+    navigate('/login', { replace: true })
+  
+    // Nettoyer l'historique du navigateur pour éviter le retour arrière
+    window.history.pushState(null, '', ' /medicalReact/login')
+    window.addEventListener('popstate', () => {
+      window.history.pushState(null, '', ' /medicalReact/login')
+    })
+  
+    // Rechargement (optionnel selon ton besoin)
     window.location.reload()
   }
+  
 
   return practitionerData ? (
     <SidebarMenu>
@@ -73,7 +86,7 @@ export function NavUser() {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage 
-                  src={practitionerData.profil_photo || ""} 
+                  src={`${API_URL}/image${practitionerData.profil_photo}` || ""}
                   alt={`${practitionerData.firstname} ${practitionerData.lastname}`} 
                 />
                 <AvatarFallback className="rounded-lg">
@@ -99,7 +112,7 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage 
-                    src={practitionerData.profil_photo || ""} 
+                    src={`${API_URL}/image${practitionerData.profil_photo}` || ""} 
                     alt={`${practitionerData.firstname} ${practitionerData.lastname}`} 
                   />
                   <AvatarFallback className="rounded-lg">
@@ -136,13 +149,14 @@ export function NavUser() {
               <LogOut className="mr-2 h-4 w-4" />
               <span>Déconnexion</span>
             </DropdownMenuItem>
+
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
   ) : (
-    <div className="px-4 py-2 text-muted-foreground">
-      Chargement...
+    <div className="px-4 py-2 text-muted-foreground text-xs">
+      En attente de connexion...
     </div>
   )
 }

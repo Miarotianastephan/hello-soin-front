@@ -17,7 +17,7 @@ const steps = [
   { id: 2, title: "Informations de connexion", icon: Lock },
 ];
 
-const SignInForm = ({ onAccountCreated }) => {
+const SignInForm = ({ onAccountCreated, isLoading}) => {
   const {
     control,
     register,
@@ -39,7 +39,6 @@ const SignInForm = ({ onAccountCreated }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConf, setShowPasswordConf] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // ← état de chargement
 
   // Champs requis pour l'étape 1 incluant code postal et ville
   const requiredFieldsStep1 = ["nom", "mail", "phone_number", "devise", "echence", "code_postale", "ville"];
@@ -283,12 +282,11 @@ const generatePassword = () => {
                       {...register("devise", { required: "Veuillez renseigner votre civilité" })}
                       onChange={(e) => setValue("devise", e.target.value, { shouldValidate: true })}
                       value={watch("devise") || ""}
-                      className="border text-gray-500 h-[35px] rounded px-2 py-1 text-xs w-full"
+                      className="border text-gray-900 h-[35px] rounded px-2 py-1 text-xs w-full"
                     >
-                      <option value="">Sélectionnez votre civilité</option>
-                      <option value="Mr">Monsieur</option>
-                      <option value="Mme">Madame</option>
-                      <option value="Mlle">Mademoiselle</option>
+                      <option value="Monsieur">Monsieur</option>
+                      <option value="Madame">Madame</option>
+                      <option value="Mademoiselle">Mademoiselle</option>
                     </select>
                     {errors.devise && <p className="text-red-500 text-xs mt-1">{errors.devise.message}</p>}
                   </div>
@@ -300,7 +298,7 @@ const generatePassword = () => {
                       {...register("echence", { required: "Veuillez renseigner votre spécialité principale" })}
                       onChange={(e) => setValue("echence", e.target.value, { shouldValidate: true })}
                       value={watch("echence") || ""}
-                      className="border text-gray-500 h-[35px] rounded px-2 py-1 text-xs w-full"
+                      className="border text-gray-900 h-[35px] rounded px-2 py-1 text-xs w-full"
                     >
                       <option value="">Spécialité principale</option>
                       <option value="meditation">Méditation</option>
@@ -415,7 +413,7 @@ const generatePassword = () => {
                     Retour
                   </Button>
                   <Button  onClick={nextStep} type="button" className="w-full sm:w-[300px] bg-helloBlue hover:bg-helloBlue/90 rounded-full text-xs">
-                    {isLoading ? "Confirmer" : "...chargement"}
+                    {!isLoading ? "Confirmer" : "...chargement"}
                   </Button>
                 </div>
     </div>

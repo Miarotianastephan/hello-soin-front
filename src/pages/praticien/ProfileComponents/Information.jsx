@@ -40,60 +40,62 @@ const Information = ({practitionerData}) => {
 
   <div className="space-y-4">
   {/* Ligne Description */}
-  <div className="flex mb-1 text-xs text-right text-gray-700 ">
-    <div className="flex items-start justify-start w-1/3 pr-2 font-semibold text-right ">
+  <div className="flex flex-col md:flex-row mb-1 text-xs text-gray-700">
+    <div className="w-full md:w-1/3 pr-2 font-semibold text-left md:text-right">
       Description :
     </div>
-    <div className="flex items-start justify-start w-2/3 text-left">
-    {practitionerData.practitioner_info.profil_description}
+    <div className="w-full md:w-2/3 text-left">
+      {practitionerData.practitioner_info.profil_description}
     </div>
   </div>
 
   {/* Autres informations */}
   <div className="space-y-4 text-xs text-gray-700">
-    <div className="flex mb-1">
-      <div className="flex items-start justify-start w-1/3 pr-2 font-semibold text-right">
+    <div className="flex flex-col md:flex-row mb-1">
+      <div className="w-full md:w-1/3 pr-2 font-semibold text-left md:text-right">
         Civilité :
       </div>
-      <div className="flex items-start justify-start w-2/3 text-left">
+      <div className="w-full md:w-2/3 text-left">
         {practitionerData.situation}
       </div>
     </div>
-    <div className="flex mb-1">
-      <div className="flex items-start justify-start w-1/3 pr-2 font-semibold text-right">
+
+    <div className="flex flex-col md:flex-row mb-1">
+      <div className="w-full md:w-1/3 pr-2 font-semibold text-left md:text-right">
         Type de patient :
       </div>
-      <div className="flex items-start justify-start w-2/3 text-left">
-      {typePatient.length > 0 ? (
-    <div className="flex items-center justify-center gap-2">
-      {typePatient.map((type, index) => (
-        <p key={index}>{type} | </p>
-      ))}
-    </div>
-  ) : (
-    <span>Aucun type de patient défini.</span>
-  )}
+      <div className="w-full md:w-2/3 text-left overflow-hidden">
+        {typePatient.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {typePatient.map((type, index) => (
+              <p key={index}>{type} |</p>
+            ))}
+          </div>
+        ) : (
+          <span>Aucun type de patient défini.</span>
+        )}
       </div>
     </div>
-    <div className="flex mb-1">
-      <div className="flex items-start justify-start w-1/3 pr-2 font-semibold text-right">
+
+    <div className="flex flex-col md:flex-row mb-1">
+      <div className="w-full md:w-1/3 pr-2 font-semibold text-left md:text-right">
         Téléphone :
       </div>
-      <div className="flex items-start justify-start w-2/3 text-left">
-      {formatPhoneNumber(practitionerData.phone_number)}
+      <div className="w-full md:w-2/3 text-left">
+        {formatPhoneNumber(practitionerData.phone_number)}
       </div>
     </div>
-    <div className="flex mb-1">
-      <div className="flex items-start justify-start w-1/3 pr-2 font-semibold text-right">
+
+    <div className="flex flex-col md:flex-row mb-1">
+      <div className="w-full md:w-1/3 pr-2 font-semibold text-left md:text-right">
         SIRET :
       </div>
-      <div className="flex items-start justify-start w-2/3 text-left">
-      {formatSIRET(practitionerData.practitioner_info.siret)}
+      <div className="w-full md:w-2/3 text-left">
+        {formatSIRET(practitionerData.practitioner_info.siret)}
       </div>
     </div>
   </div>
 </div>
-
 </div>
 
             {/* Colonne 2 */}

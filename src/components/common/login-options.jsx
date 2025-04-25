@@ -1,7 +1,16 @@
-// src/components/LoginOptions.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import Logo from './icone/googleIcon.png';
 
 import { login_by_email } from '@/services/api';
@@ -10,17 +19,12 @@ import { useNavigate } from 'react-router-dom';
 
 const LoginOptions = () => {
   const navigate = useNavigate();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        // Récupérer l'email depuis le token Google
         const { access_token } = tokenResponse;
-        // Option 1: decodez le token pour en extraire l'email (npm jwt-decode)
-        // import jwt_decode from 'jwt-decode';
-        // const { email } = jwt_decode(access_token);
-
-        // Option 2: appeler l'API Google pour obtenir le profil
         const profile = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${access_token}` }
         }).then(res => res.json());
@@ -34,10 +38,11 @@ const LoginOptions = () => {
         await setLocalData('user', JSON.stringify(result.user));
 
         // 3. Rediriger vers le dashboard praticien
-        navigate('/praticien/dashboard');
+        navigate('/praticien/premierPas');
       } catch (err) {
         console.error('Erreur login sans mot de passe :', err);
-        // Gérez votre UI d’erreur ici (modal, toast…)
+        // Si l'erreur provient d'un compte introuvable, afficher le dialogue
+        setDialogOpen(true);
       }
     },
     onError: (error) => {
@@ -47,6 +52,23 @@ const LoginOptions = () => {
 
   return (
     <>
+      {/* Dialog pour compte introuvable */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-sm">Compte introuvable</DialogTitle>
+            <DialogDescription className="text-xs">
+              Nous n'avons pas trouvé de compte associé à cet e-mail. Veuillez vérifier votre adresse e-mail ou créer un compte.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose>
+              <Button className="text-xs bg-red-800">Fermer</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="grid grid-cols-1 gap-4">
         <Button
           variant="outline"
