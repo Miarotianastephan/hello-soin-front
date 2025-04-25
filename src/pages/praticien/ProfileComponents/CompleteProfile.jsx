@@ -16,6 +16,8 @@ import PhoneInput from "react-phone-input-2";
 import axios from "axios";
 import svg from "./image.svg";
 import { useLocation } from "react-router-dom";
+import { API_URL } from "@/services/api";
+import { Pen, WandSparkles } from "lucide-react";
 
 
 const MANDATORY_FIELDS = 15; // Nombre total de champs obligatoires
@@ -47,8 +49,11 @@ const CompleteProfile = () => {
   const [siret, setSiret] = useState("");
   const [linkedinLink, setLinkedinLink] = useState("");
   const [facebookLink, setFacebookLink] = useState("");
-  const [description, setDescription] = useState("");
   const [consultationTypes, setConsultationTypes] = useState([]);
+  const [description, setDescription] = useState("");
+  const [targetDescription, setTargetDescription] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const typingIntervalRef = useRef(null);
 // Par :
 const [patientTypes, setPatientTypes] = useState(() => {
   const storedPatients = localStorage.getItem('patientTypes');
@@ -69,7 +74,7 @@ const [paymentMethods, setPaymentMethods] = useState(() => {
       try {
         const token = localStorage.getItem("authToken");
         const resp = await axios.get(
-          "http://localhost:3000/profile/get-info-praticien",
+          `${API_URL}/praticien/get-info-praticien`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (resp.data.success) {
@@ -227,7 +232,7 @@ const [paymentMethods, setPaymentMethods] = useState(() => {
       }
       return profilePicRef.current.url;
     }
-    if (profilePic) return `http://localhost:3000/image${profilePic}`;
+    if (profilePic) return `${API_URL}/image${profilePic}`;
     return undefined;
   };
 
@@ -240,9 +245,30 @@ const EXAMPLE_DESCRIPTIONS = [
 
 // Ajouter cette fonction dans le composant
 const generateRandomDescription = () => {
-  const randomIndex = Math.floor(Math.random() * EXAMPLE_DESCRIPTIONS.length);
-  setDescription(EXAMPLE_DESCRIPTIONS[randomIndex]);
+  const text = EXAMPLE_DESCRIPTIONS[
+    Math.floor(Math.random() * EXAMPLE_DESCRIPTIONS.length)
+  ];
+  setTargetDescription(text);
+  setDescription("");
+  setIsTyping(true);
 };
+
+useEffect(() => {
+  if (!isTyping || !targetDescription) return;
+
+  let idx = 0;
+  typingIntervalRef.current = setInterval(() => {
+    setDescription(prev => prev + targetDescription[idx]);
+    idx += 1;
+    if (idx >= targetDescription.length) {
+      clearInterval(typingIntervalRef.current);
+      setIsTyping(false);
+    }
+  }, 50);
+
+  return () => clearInterval(typingIntervalRef.current);
+}, [isTyping, targetDescription]);
+
 
   const handleDropZoneClick = () => fileInputRef.current?.click();
   const handleDragOver = e => e.preventDefault();
@@ -295,7 +321,7 @@ const generateRandomDescription = () => {
         formPayload.append("profil_photo", profilPhotoFile);
       }
       const resp = await axios.post(
-        "http://localhost:3000/profile/complete-profil",
+        `${API_URL}/praticien/complete-profil`,
         formPayload,
         {
           headers: {
@@ -616,30 +642,32 @@ const generateRandomDescription = () => {
           </div>
 
           {/* Description */}
-<div>
-  <div className="flex justify-between items-center">
-    <label className="block text-xs font-medium text-gray-700">
-      Description <span className="text-red-700">*</span>
-    </label>
-    <button
-      type="button"
-      onClick={generateRandomDescription}
-      className="text-xs text-[#5DA781] hover:text-[#5DA781] mb-1 underline"
-    >
-      Generer un exemple
-    </button>
+          <div>
+    <div className="flex justify-between items-center">
+      <label className="block text-xs font-medium text-gray-700">
+        Description <span className="text-red-700">*</span>
+      </label>
+      <button
+        type="button"
+        onClick={generateRandomDescription}
+        className="text-xs text-[#5DA781] hover:underline flex items-center gap-2"
+      >
+        <WandSparkles size={15}/> Générer un exemple
+      </button>
+    </div>
+    <textarea
+      rows={4}
+      value={description}
+      onChange={e => setDescription(e.target.value)}
+      placeholder="Décrivez votre pratique, votre parcours..."
+      disabled={isTyping}
+      className={`mt-1 block w-full text-xs rounded border px-3 py-2 ${
+        errors.description ? "border-red-500" : "border-gray-300"
+      }`}
+    />
+    {errors.description && <p className="text-red-600 text-xs">{errors.description}</p>}
   </div>
-  <textarea
-    rows={4}
-    value={description}
-    onChange={e => setDescription(e.target.value)}
-    placeholder="Décrivez votre pratique, votre parcours..."
-    className={`mt-1 block w-full text-xs rounded border px-3 py-2 ${
-      errors.description ? "border-red-500" : "border-gray-300"
-    }`}
-  />
-  {errors.description && <p className="text-red-600 text-xs">{errors.description}</p>}
-</div>
+
 
           {/* Checkboxes: consultations */}
           <div>
@@ -744,7 +772,7 @@ const generateRandomDescription = () => {
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="flex items-center px-4 py-2 text-white text-xs font-medium rounded bg-green-600 hover:bg-green-700"
+          className="flex items-center px-4 py-2 text-white text-xs font-medium rounded"
         >
           <Save className="w-4 h-4 mr-2" />
           {isSubmitting ? "Enregistrement..." : "Enregistrer"}

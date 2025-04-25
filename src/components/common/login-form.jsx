@@ -1,82 +1,115 @@
+import React, { useState, useEffect } from 'react'
 import logo_login from '@/assets/login_illu.jpg'
-import LoginOptions from "./login-options"
+import LoginOptions from './login-options'
 import { setLocalData } from '@/services/common-services'
-import { login_user } from "@/services/api"
-import { AlertCircle, X } from "lucide-react"
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert"
-
-import { cn } from "@/lib/utils"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "../ui/label"
-
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { Link, useNavigate } from "react-router-dom"
-import { Checkbox } from '../ui/checkbox'
+import { login_user } from '@/services/api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Eye, EyeOff } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog'
+import { useForm } from 'react-hook-form'
+import { useNavigate, Link } from 'react-router-dom'
 
 export const LoginForm = ({ className, ...props }) => {
   const navigate = useNavigate()
-  const [message, setMessage] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [visible, setVisible] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm()
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
+  const [dialogOpen, setDialogOpen] = useState(false)
+  // Nouveaux états pour le dialogue de succès
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   const onSubmit = async (data) => {
     setLoading(true)
-    setMessage("")
+    setMessage('')
 
     try {
       const response = await login_user(data.user_mail, data.mot_de_passe)
-      // Stockage du token JWT
-      await setLocalData("token", response.token)
-      // Stockage des infos utilisateur
-      await setLocalData("user", JSON.stringify(response.user))
-
-      // Redirection vers le dashboard praticien
-      navigate("/praticien/premierPas")
+      await setLocalData('token', response.token)
+      await setLocalData('user', JSON.stringify(response.user))
+      // Préparer le dialogue de bienvenue
+      setUserEmail(response.user.email || data.user_mail)
+      setSuccessDialogOpen(true)
     } catch (error) {
-      setMessage(error)
-      setVisible(true)
+      // Affiche le dialogue si le compte est introuvable
+      setMessage(error.message || 'Une erreur est survenue')
+      setDialogOpen(true)
     } finally {
       setLoading(false)
     }
   }
 
-  return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      {visible && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div
-            className="absolute inset-0 bg-black opacity-50"
-            onClick={() => setVisible(false)}
-          ></div>
-          <div className="bg-white rounded-lg shadow-lg p-6 z-10 max-w-sm w-full">
-            <div className="flex justify-between items-center mb-4">
-              <AlertTitle className="text-xl font-bold">Erreur d'authentification</AlertTitle>
-              <button onClick={() => setVisible(false)}>
-                <X className="h-6 w-6 text-gray-600" />
-              </button>
-            </div>
-            <AlertDescription className="text-destructive">
-              {message}
-            </AlertDescription>
-          </div>
-        </div>
-      )}
+  useEffect(() => {
+    const viewport = document.querySelector("meta[name=viewport]")
+    const contentValue =
+      "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    if (viewport) {
+      viewport.setAttribute("content", contentValue)
+    } else {
+      const meta = document.createElement("meta")
+      meta.name = "viewport"
+      meta.content = contentValue
+      document.head.appendChild(meta)
+    }
+  }, [])
 
-      <div className="overflow-hidden">
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="p-6 md:p-8 relative"
-        >
+  return (
+    <>
+      {/* Dialogue de bienvenue après connexion réussie */}
+      <Dialog
+        open={successDialogOpen}
+        onOpenChange={(open) => {
+          setSuccessDialogOpen(open)
+          if (!open) navigate('/praticien/premierPas')
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bienvenue {userEmail}</DialogTitle>
+            <DialogDescription className="text-xs">
+              Vous êtes connecté avec succès.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button className="text-xs bg-green-600 rounded">Continuer</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog ShadCN pour compte introuvable */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-sm">Compte introuvable</DialogTitle>
+            <DialogDescription className="text-xs">
+              {message}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button className="text-xs bg-red-800 rounded">Fermer</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className={cn('flex flex-col gap-6', className)} {...props}>
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 md:p-8 relative">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col items-center text-center">
               <h1 className="text-lg text-gray-900 font-bold">Mon espace praticien</h1>
@@ -89,10 +122,9 @@ export const LoginForm = ({ className, ...props }) => {
                 Adresse email <span className="text-red-700">*</span>
               </Label>
               <Input
-                {...register("user_mail", {
+                {...register('user_mail', {
                   required: 'Vous devez remplir ce champ',
                   pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                     message: 'Veuillez entrer un email valide (ex: hellosoin@gmail.com)',
                   },
                   maxLength: { value: 254, message: "L'email est trop long" },
@@ -112,19 +144,16 @@ export const LoginForm = ({ className, ...props }) => {
                 <Label htmlFor="password">
                   Mot de passe <span className="text-red-700">*</span>
                 </Label>
-                <Link to="#" className="ml-auto text-sm underline-offset-2 hover:underline text-helloSoin">
-                  Mot de passe oublié ?
-                </Link>
               </div>
               <div className="relative text-xs">
                 <Input
-                  {...register("mot_de_passe", {
+                  {...register('mot_de_passe', {
                     required: 'Vous devez remplir ce champ',
-                    minLength: { value: 8, message: "Le mot de passe doit contenir au moins 8 caractères" },
-                    maxLength: { value: 20, message: "Le mot de passe ne peut pas dépasser 20 caractères" },
+                    minLength: { value: 8, message: 'Le mot de passe doit contenir au moins 8 caractères' },
+                    maxLength: { value: 20, message: 'Le mot de passe ne peut pas dépasser 20 caractères' },
                   })}
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Mot de passe"
                   className="text-sm"
                 />
@@ -142,11 +171,8 @@ export const LoginForm = ({ className, ...props }) => {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox id="terms" className="checked:bg-red-500" />
-              <label
-                htmlFor="terms"
-                className="text-xs font-medium leading-none"
-              >
+              <Checkbox id="terms" />
+              <label htmlFor="terms" className="text-xs font-medium leading-none">
                 Se souvenir de moi
               </label>
             </div>
@@ -164,6 +190,6 @@ export const LoginForm = ({ className, ...props }) => {
           </div>
         </form>
       </div>
-    </div>
+    </>
   )
 }

@@ -1,18 +1,52 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "../ui/label";
 import logo from "../../assets/hs2.svg";
 
-const CodeVerification = ({ onVerify, userEmail }) => {
+const CodeVerification = ({ onVerify, userEmail, resendCode }) => {
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm();
   const inputRefs = useRef([]);
   const [isLoading, setIsLoading] = useState(false);
+  // State to manage resend cooldown (in seconds)
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    // Setup viewport for mobile
+    const viewport = document.querySelector("meta[name=viewport]");
+    const contentValue =
+      "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no";
+    if (viewport) {
+      viewport.setAttribute("content", contentValue);
+    } else {
+      const meta = document.createElement("meta");
+      meta.name = "viewport";
+      meta.content = contentValue;
+      document.head.appendChild(meta);
+    }
+  }, []);
+
+  // Countdown effect for resend timer
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   const onSubmit = async (data) => {
     try {
@@ -32,6 +66,28 @@ const CodeVerification = ({ onVerify, userEmail }) => {
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
+  };
+
+  // Handle resend click
+  const handleResend = async () => {
+    if (resendTimer > 0) return;
+    try {
+      setIsLoading(true);
+      await resendCode(userEmail);
+      // Start 10-minute (600s) cooldown
+      setResendTimer(600);
+    } catch (error) {
+      console.error("Erreur lors du renvoi du code:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Format timer as MM:SS
+  const formatTimer = (seconds) => {
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    return `${m}:${s}`;
   };
 
   return (
@@ -55,10 +111,10 @@ const CodeVerification = ({ onVerify, userEmail }) => {
         <div className="w-full flex justify-center items-center">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex space-x-2 justify-center">
-              {[1,2,3,4,5,6].map((item, index) => {
+              {[1, 2, 3, 4, 5, 6].map((item, index) => {
                 const reg = register(`code${item}`, {
                   required: "Chiffre requis",
-                  pattern: { value: /^[0-9]$/, message: "Doit être un chiffre" }
+                  pattern: { value: /^[0-9]$/, message: "Doit être un chiffre" },
                 });
 
                 return (
@@ -89,8 +145,15 @@ const CodeVerification = ({ onVerify, userEmail }) => {
               </p>
             )}
             <div className="text-center">
-              <button type="button" className="underline text-xs text-gray-600 mb-4" disabled={isLoading}>
-                Renvoyer le code
+              <button
+                type="button"
+                onClick={handleResend}
+                className="underline text-xs text-gray-600 mb-4"
+                disabled={isLoading || resendTimer > 0}
+              >
+                {resendTimer > 0
+                  ? `Renvoi possible dans ${formatTimer(resendTimer)}`
+                  : "Renvoie du code"}
               </button>
             </div>
             <Button

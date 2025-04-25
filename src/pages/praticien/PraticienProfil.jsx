@@ -41,6 +41,7 @@ const TABS = [
   { id: "avis", label: "Avis patients" },
 ];
 import { TailSpin } from 'react-loader-spinner';
+import { API_URL } from "@/services/api";
 
 const tabIcons = {
   informations: <User className="w-6 h-6" />,
@@ -69,7 +70,7 @@ const PraticienProfil = () => {
         const token = localStorage.getItem("authToken");
         console.log(passedProfileNow);
         const response = await axios.get(
-          "http://localhost:3000/profile/get-info-praticien",
+          `${API_URL}/praticien/get-info-praticien`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -93,6 +94,7 @@ const PraticienProfil = () => {
 
     fetchPractitionerData();
   }, [navigate]);
+
 
   // Configuration du viewport pour éviter le zoom manuel
   useEffect(() => {
@@ -158,7 +160,7 @@ const PraticienProfil = () => {
           <div className="relative">
           <Avatar className="w-24 h-24 overflow-hidden ring-4 ring-gray-300">
               <AvatarImage
-                src={`http://localhost:3000/image${practitionerData.profil_photo}` || ""}
+                src={`${API_URL}/image${practitionerData.profil_photo}` || ""}
                 alt="Photo de profil"
                 className="object-cover w-full h-full"
               />
