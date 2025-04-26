@@ -26,7 +26,8 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
   const [specialite, setSpecialite] = useState('');
   const [etablissement, setEtablissement] = useState('');
   const [files, setFiles] = useState([]);
-  
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 20 }, (_, i) => currentYear - i);
   // Suggestions pour établissement et spécialité
   const [etablissementSuggestions, setEtablissementSuggestions] = useState([]);
   const [specialiteSuggestions, setSpecialiteSuggestions] = useState([]);
@@ -40,21 +41,18 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
     staleTime: 1000 * 60 * 10, // données valides pendant 10 minutes
   });
 
+  // EditFormation.js - useEffect
   useEffect(() => {
     if (initialFormation) {
-      setAnnee(initialFormation.obtained_at);
-      setDiplome(initialFormation.certification_name);
-      setSpecialite(initialFormation.formation_specialities.pract_speciality.Speciality.id_speciality);
-      setEtablissement(initialFormation.institution_name);
-    } else {
-      setAnnee('');
-      setDiplome('');
-      setSpecialite('');
-      setEtablissement('');
+      setAnnee(initialFormation.obtained_at || '');
+      setDiplome(initialFormation.certification_name || '');
+      setEtablissement(initialFormation.institution_name || '');
+      setSpecialite(
+        initialFormation.formation_specialities[0]?.pract_speciality.Speciality.id_speciality || ''
+      );
     }
-    // Réinitialiser les erreurs lors d'un changement d'état initial
-    setErrors({});
   }, [initialFormation]);
+
 
   // Fonction de validation des champs
   const validate = () => {
@@ -114,7 +112,7 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
     const formData = new FormData();
     formData.append("obtained_at", annee);
     formData.append("certification_name", diplome);
-    formData.append("id_pract_speciality", specialite);
+    formData.append("id_pract_speciality", specialite); // Nom correct du champ
     formData.append("institution_name", etablissement);
     files.forEach((file, index) => {
       formData.append("support_docs", file); // nom du champ côté backend
@@ -150,20 +148,25 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
       <div className="flex flex-col items-start justify-center pb-4 mt-4 border-b-2">
         {/* Champ Année */}
         <div className="w-full md:w-1/2 mt-2">
-          <label className="block mb-1 text-xs font-medium text-gray-700">
-            Année <span className='text-red-700'>*</span>
-          </label>
-          <input
-            type="text"
-            placeholder="ex: 2021"
-            value={annee}
-            onChange={(e) => setAnnee(e.target.value)}
-            className={`w-full px-3 py-2 text-xs border rounded ${errors.annee ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.annee && (
-            <p className="text-red-500 text-xs mt-1">{errors.annee}</p>
-          )}
-        </div>
+        <label className="block mb-1 text-xs font-medium text-gray-700">
+          Année <span className='text-red-700'>*</span>
+        </label>
+        <select
+          value={annee}
+          onChange={(e) => setAnnee(e.target.value)}
+          className={`w-full px-3 py-2 text-xs border rounded ${errors.annee ? 'border-red-500' : 'border-gray-300'}`}
+        >
+          <option value="">-- Sélectionner une année --</option>
+          {years.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
+        {errors.annee && (
+          <p className="text-red-500 text-xs mt-1">{errors.annee}</p>
+        )}
+      </div>
         {/* Champ Diplôme */}
         <div className="w-full md:w-1/2 mt-2">
           <label className="block mb-1 text-xs font-medium text-gray-700">
@@ -194,8 +197,8 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
           >
             <option value="">-- Choisir une spécialité --</option>
             {specialities.map((spec) => (
-              <option key={spec.id_pract_speciality} value={spec.id_pract_speciality}>
-                {spec.Speciality.designation}
+              <option key={spec.id_speciality} value={spec.id_speciality}>
+                {spec.designation}
               </option>
             ))}
           </select>

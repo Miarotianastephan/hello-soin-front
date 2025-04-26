@@ -3,6 +3,9 @@ import { Edit, Trash, PlusCircle } from 'lucide-react';
 import EditFormation from './EditFormation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import SpecialityDesignation from './SpecialityDesignation';
+import { TailSpin } from 'react-loader-spinner';
+
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 const fetchFormations = async () => {
@@ -25,6 +28,88 @@ const Formation = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingFormation, setEditingFormation] = useState(null);
   const [expandedFormationIds, setExpandedFormationIds] = useState([]);
+  const [isEditingExperience, setIsEditingExperience] = useState(false);
+  const [newExperienceYears, setNewExperienceYears] = useState('');
+  const [newExperienceDate, setNewExperienceDate] = useState('');
+
+  // Récupération de l'expérience
+  const fetchExperience = async () => {
+    const token = localStorage.getItem('authToken');
+    const response = await axios.get(`${API_URL}/praticien/get-experience`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  };
+
+  const { data: experienceData } = useQuery({
+    queryKey: ['experience'],
+    queryFn: fetchExperience,
+  });
+
+
+
+  // Mutations pour l'expérience
+  const addExperienceMutation = useMutation({
+    mutationFn: (years) => {
+      const token = localStorage.getItem('authToken');
+      return axios.post(
+        `${API_URL}/praticien/add-experience`,
+        { years },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    },
+  });
+
+  const updateExperienceMutation = useMutation({
+    mutationFn: (years) => {
+      const token = localStorage.getItem('authToken');
+      return axios.put(
+        `${API_URL}/praticien/update-experience`,
+        { years },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    },
+  });
+
+  const handleSaveExperience = async () => {
+    if (!newExperienceDate) {
+      alert('Veuillez sélectionner une date');
+      return;
+    }
+
+    const years = calculateExperience(newExperienceDate);
+
+    try {
+      if (startDate) {
+        await updateExperienceMutation.mutateAsync(years);
+      } else {
+        await addExperienceMutation.mutateAsync(years);
+      }
+      
+      setStartDate(newExperienceDate);
+      localStorage.setItem('startDate', newExperienceDate);
+      updateExperience(newExperienceDate);
+      setIsEditingExperience(false);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      alert('Erreur lors de la sauvegarde');
+    }
+  };
+
+  const calculateExperience = (dateStr) => {
+    if (!dateStr) return 0;
+    const [year, month] = dateStr.split('-');
+    const start = new Date(year, month - 1, 1);
+    const today = new Date();
+    
+    if (start > today) return 0;
+
+    let yearsDiff = today.getFullYear() - start.getFullYear();
+    if (today.getMonth() < start.getMonth()) {
+      yearsDiff--;
+    }
+    return yearsDiff;
+  };
 
   // les formations
   const { data: formations = [], isLoading, isError, error } = useQuery({
@@ -109,6 +194,9 @@ const Formation = () => {
     if (today.getMonth() < start.getMonth() || (today.getMonth() === start.getMonth() && today.getDate() < start.getDate())) {
       diff--;
     }
+    if (diff < 0){
+      diff = 0
+    }
     setExperience(diff);
   };
 
@@ -153,36 +241,69 @@ const Formation = () => {
     );
   };
 
-  if (isLoading) return <p>Chargement des formations...</p>;
+  if (isLoading) return<div className="p-4 text-center w-full flex items-center justify-center h-full"><TailSpin
+      height="40"
+      width="40"
+      color="#4fa94d"
+      ariaLabel="tail-spin-loading"
+      radius="1"
+      visible={true}
+    /></div>;
   if (isError) return <p>Erreur : {error.message}</p>;
 
   return (
     <div className="mb-4 space-y-4 px-2">
-      {isEditing ? (
-        <EditFormation
-          onBack={handleBack}
-          onSave={handleSaveFormation}
-          initialFormation={editingFormation}
-        />
-      ) : (
-        <>
-          {/* Section supérieure : Expérience et date de début */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border rounded">
-            <div className="w-full sm:w-1/4 mb-4 sm:mb-0">
-              <span className="text-xl font-bold text-[#5DA781]">
-                {experience} ans <span className="text-xs font-semibold text-gray-700">d'expérience</span>
-              </span>
-            </div>
-            <div className="w-full sm:w-1/2">
-              <span className="text-xs font-semibold text-gray-700">Début d'expérience</span>
-              <input 
-                type="month" 
-                value={startDate}
-                onChange={handleDateChange}
-                className="w-full px-3 py-1 mt-2 text-xs border-2 border-gray-300 rounded"
+    {isEditing ? (
+      <EditFormation
+        onBack={handleBack}
+        onSave={handleSaveFormation}
+        initialFormation={editingFormation}
+      />
+    ) : (
+      <>
+        <div className="p-4 bg-white border rounded">
+          <h2 className="mb-4 text-sm font-semibold text-gray-800">Expérience</h2>
+          {isEditingExperience ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="month"
+                value={newExperienceDate}
+                onChange={(e) => setNewExperienceDate(e.target.value)}
+                className="w-40 px-2 py-1 border  text-xs rouded-none"
+                min="1900-01"
+                max={new Date().toISOString().slice(0, 7)}
               />
+              <button
+                onClick={handleSaveExperience}
+                className="px-2 py-1 text-white bg-green-500  hover:bg-green-600 text-xs rouded-none"
+              >
+                Enregistrer
+              </button>
+              <button
+                onClick={() => setIsEditingExperience(false)}
+                className="px-2 py-1 text-gray-700 bg-gray-100  hover:bg-gray-200 text-xs rouded-none"
+              >
+                Annuler
+              </button>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center gap-2 w-full justify-between">
+              <span className="text-xl font-bold text-[#5DA781]">
+                {experience} ans
+                <span className="text-xs font-semibold text-gray-700"> d'expérience</span>
+              </span>
+              <button
+                onClick={() => {
+                  setNewExperienceDate(startDate || '');
+                  setIsEditingExperience(true);
+                }}
+                className="text-[#0f2b3d] hover:text-[#14384f] flex items-center justify-center gap-2 text-sm"
+              >
+                <Edit size={16} /> Modifier
+              </button>
+            </div>
+          )}
+        </div>
 
           {/* Affichage pour grand écran : Tableau classique */}
           <div className="hidden sm:block p-4 bg-white border rounded">
@@ -203,15 +324,10 @@ const Formation = () => {
                     <td className="px-4 py-2">{new Date(formation.obtained_at).getFullYear()}</td>
                     <td className="px-4 py-2">{formation.certification_name}</td>
                     <td className="px-4 py-2">
-                      {formation.formation_specialities
-                        ? formation.formation_specialities.pract_speciality.Speciality.designation
-                        : 'Aucune'}
+                      <SpecialityDesignation id={formation.formation_specialities?.id_pract_speciality} />
                     </td>
                     <td className="px-4 py-2">{formation.institution_name}</td>
                     <td className="flex items-center space-x-2 px-4 py-2">
-                      <button onClick={() => handleEdit(formation.id_formation)} className="text-blue-500 hover:text-blue-700">
-                        <Edit size={16} />
-                      </button>
                       <button onClick={() => handleDelete(formation.id_formation)} className="text-red-500 hover:text-red-700">
                         <Trash size={16} />
                       </button>
@@ -250,19 +366,15 @@ const Formation = () => {
               <div className="p-2 text-xs">
                 <div className="mb-1">
                   <span className="font-semibold text-[#5DA781]">Spécialité :</span>{' '}
-                  {formation.formation_specialities.length > 0
-                    ? formation.formation_specialities.map((spec) => spec.name).join(', ')
-                    : 'Aucune'}
+                  <SpecialityDesignation id={formation.formation_specialities?.id_pract_speciality} />
                 </div>
                 <div className="mb-1">
                   <span className="font-semibold text-[#5DA781]">Établissement :</span> {formation.institution_name}
                 </div>
                 <div className="flex space-x-2 mt-2">
-                  <button onClick={() => handleEdit(formation.id_formation)} className="text-blue-500 hover:text-blue-700">
-                    <Edit size={16} />
-                  </button>
+                  
                   <button onClick={() => handleDelete(formation.id_formation)} className="text-red-500 hover:text-red-700">
-                    <Trash size={16} />
+                    <Trash size={16} /> 
                   </button>
                 </div>
               </div>

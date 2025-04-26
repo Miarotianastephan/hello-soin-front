@@ -254,13 +254,13 @@ const generatePassword = () => {
                         <PhoneInput
                         country="fr"
                         localization="fr"
-                        onlyCountries={["fr", "de", "be", "it", "lu", "ch"]}
+                        onlyCountries={["fr"]}
                         value={value}
                         onChange={(phone) => onChange(`+${phone}`)}
                         inputProps={{
                           name: "phone_number",
                           required: true,
-                          ref: ref,
+                          ref: ref 
                         }}
                         inputStyle={{ width: "100%", height: "20px", fontSize: "12px", border: "1px solid #e5e5e5" }}
                         containerClass="phone-input"

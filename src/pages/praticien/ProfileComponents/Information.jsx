@@ -82,7 +82,7 @@ const Information = ({practitionerData}) => {
         Téléphone :
       </div>
       <div className="w-full md:w-2/3 text-left">
-        {formatPhoneNumber(practitionerData.phone_number)}
+        {formatPhoneNumber(practitionerData.mobile_number)}
       </div>
     </div>
 
