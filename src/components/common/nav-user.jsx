@@ -65,9 +65,9 @@ export function NavUser() {
     navigate('/login', { replace: true })
   
     // Nettoyer l'historique du navigateur pour éviter le retour arrière
-    window.history.pushState(null, '', ' /medicalReact/login')
+    window.history.pushState(null, '', ' /login')
     window.addEventListener('popstate', () => {
-      window.history.pushState(null, '', ' /medicalReact/login')
+      window.history.pushState(null, '', ' /login')
     })
   
     // Rechargement (optionnel selon ton besoin)
