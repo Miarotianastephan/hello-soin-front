@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { ArrowLeftCircle, Save } from 'lucide-react';
 import { findAllSpeciality } from '@/services/speciality-services';
 import { useQuery } from '@tanstack/react-query';
