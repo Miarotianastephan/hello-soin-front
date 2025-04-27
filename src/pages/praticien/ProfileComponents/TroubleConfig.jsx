@@ -1,6 +1,6 @@
 // TroubleConfig.jsx
 import React, { useState, useRef, useEffect } from 'react';
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { ArrowLeftCircle, PlusCircle, Save, XCircle } from "lucide-react";
 
 // JSON des spécialités
