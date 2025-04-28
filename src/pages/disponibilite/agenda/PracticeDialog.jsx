@@ -1,6 +1,6 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription } from '@/components/ui/Dialog';
+import { Button } from '@/components/ui/Button';
 import AppointmentDetails from './practicesDialogDetail/AppointmentDetails';
 import PatientForm from './practicesDialogDetail/PatientForm';
 import { Save } from 'lucide-react';

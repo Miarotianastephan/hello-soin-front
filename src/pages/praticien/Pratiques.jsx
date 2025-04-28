@@ -1,4 +1,4 @@
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/Tabs";
 import { ListPratique } from "@/components/praticienComponents/list-pratique";
 import { FormAjoutPratique } from "@/components/praticienComponents/form-ajout-pratique";
 import { useEffect, useState } from "react";

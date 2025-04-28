@@ -1,5 +1,5 @@
 import { GalleryVerticalEnd } from "lucide-react";
-import { SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "../ui/sidebar";
+import { SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "../ui/Sidebar";
 import hello_soin from "@/assets/main_logo.png";
 
 const AppSidebarHeader = () => {

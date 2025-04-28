@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { format, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Calendar } from 'lucide-react';
-import { DialogDescription } from '@/components/ui/dialog';
+import { DialogDescription } from '@/components/ui/Dialog';
 import { parseTime } from '../utils/agendaUtils';
 import BASE_URL from '@/pages/config/baseurl';
 

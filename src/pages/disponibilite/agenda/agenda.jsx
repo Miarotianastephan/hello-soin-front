@@ -1,7 +1,7 @@
 // src/components/Agenda/Agenda.jsx
 import React, { useState, useEffect } from 'react';
 import { format, parse, subDays, subWeeks, subMonths, addDays, addWeeks, addMonths, startOfDay } from 'date-fns';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { dayNames, getColorByType, isValidTime } from './utils/agendaUtils';
 import AgendaTable from './AgendaTable';
 import AgendaSidebar from './AgendaSidebar';

@@ -3,11 +3,11 @@ import logo_login from '@/assets/login_illu.jpg'
 import LoginOptions from './login-options'
 import { setLocalData } from '@/services/common-services'
 import { login_user } from '@/services/api'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { Eye, EyeOff } from 'lucide-react'
 import {
   Dialog,
@@ -17,7 +17,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from '@/components/ui/dialog'
+} from '@/components/ui/Dialog'
 import { useForm } from 'react-hook-form'
 import { useNavigate, Link } from 'react-router-dom'
 

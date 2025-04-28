@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/Input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select";
+import { Button } from "@/components/ui/Button";
 import { Clock, PlusCircle, Trash2 } from "lucide-react";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale'; // Pour le format en français
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Assurez-vous d'importer Card si nécessaire
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card"; // Assurez-vous d'importer Card si nécessaire
 
 const PracticeScheduler = ({ selectedSlot, onSchedule, scheduledPractices, onDeletePractice}) => {
 

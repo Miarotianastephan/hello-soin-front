@@ -1,7 +1,7 @@
 // src/components/dialogs/PracticeDialog.jsx
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
+import { Button } from '@/components/ui/Button';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { getColorByType, getDateFromTime, getDurationInMinutes } from '../utils/scheduleUtils';
 

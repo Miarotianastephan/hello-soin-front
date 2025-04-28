@@ -1,7 +1,7 @@
 // TableList.jsx
 import React, { useState } from 'react';
 import { Edit, Trash, PlusCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 
 // Exemple de données imbriquées
 const data = [

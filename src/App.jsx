@@ -1,6 +1,6 @@
 import './App.css';
 import { Route, Routes, useLocation } from 'react-router-dom';
-import { SidebarProvider,SidebarInset, } from "@/components/ui/sidebar"
+import { SidebarProvider,SidebarInset, } from "@/components/ui/Sidebar"
 
 import AppSidebar from "./components/common/app-sidebar"
 import AppHeader from './components/common/app-header';

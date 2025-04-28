@@ -4,14 +4,14 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@/components/ui/avatar";
+} from "@/components/ui/Avatar";
 import {
   ArrowLeftCircle,
   Linkedin,
   Facebook,
   Save,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import PhoneInput from "react-phone-input-2";
 import axios from "axios";
 import svg from "./image.svg";

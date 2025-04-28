@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import DateFnsCalendar from './sidebarComponent/DateFnsCalendar';
 import "../../../App.css";
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import BASE_URL from '@/pages/config/baseurl';
 const AgendaSidebar = ({

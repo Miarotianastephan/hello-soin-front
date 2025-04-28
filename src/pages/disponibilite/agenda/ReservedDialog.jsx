@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format, parse } from 'date-fns';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Edit, Trash, Phone, CircleArrowRight, User, CalendarCheck, Calendar, Clock, Smartphone, History, PhoneOff } from 'lucide-react';
 import BASE_URL from '@/pages/config/baseurl';
 

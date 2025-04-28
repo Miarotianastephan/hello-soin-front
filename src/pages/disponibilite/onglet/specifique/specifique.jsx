@@ -4,7 +4,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { SaveIcon, PlusCircle, Trash2, Check, CalendarClock, Ban, InfoIcon } from 'lucide-react';
 import { parse, isBefore, eachDayOfInterval, format, addMinutes } from 'date-fns';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import ErrorDialog from './dialogs/ErrorDialog';
 import SuccessDialog from './dialogs/SuccessDialog';
 import OverwriteDialog from './dialogs/OverwriteDialog';

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button"; // Composant shadcn UI (assurez-vous que le chemin est correct)
+import { Button } from "@/components/ui/Button"; // Composant shadcn UI (assurez-vous que le chemin est correct)
 import "../style-soins.css"; // Import du CSS personnalisé
 
 // Section Services

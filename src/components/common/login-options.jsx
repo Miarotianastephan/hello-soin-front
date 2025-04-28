@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import {
   Dialog,
   DialogTrigger,
@@ -10,7 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog";
+} from "@/components/ui/Dialog";
 import Logo from './icone/googleIcon.png';
 
 import { login_by_email } from '@/services/api';

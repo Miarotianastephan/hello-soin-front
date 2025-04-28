@@ -26,7 +26,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-  } from "@/components/ui/table"
+  } from "@/components/ui/Table"
 import clsx from "clsx";
 
 const SearchBarFilter = () => {

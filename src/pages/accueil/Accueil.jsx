@@ -1,8 +1,8 @@
 // App.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import "./style-soins.css";
 import logo from "./image/hs.svg";
 import background from "./image/pratique fond.png";

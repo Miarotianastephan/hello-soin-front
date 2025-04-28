@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DialogDescription } from '@/components/ui/dialog';
+import { DialogDescription } from '@/components/ui/Dialog';
 import NewPatientForm from './NewPatientForm';
 import ExistingPatientSearch from './ExistingPatientSearch';
 import ExistingPatientDisplay from './ExistingPatientDisplay';

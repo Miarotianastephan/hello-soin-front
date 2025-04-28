@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
+import { Card, CardContent } from "@/components/ui/Card";
 import Specifique from "./onglet/specifique/specifique";
 import General from "./onglet/general/general";
 export default function Disponibilite() {

@@ -12,19 +12,19 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/Sidebar";
 import { NavUser } from "@/components/common/nav-user";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from "@/components/ui/Collapsible";
 import { useLocation, Link } from "react-router-dom";
 import {  ChevronRight } from "lucide-react";
 
 import { menu_principale, menu_secondaire } from "./constant";
 import AppSidebarHeader from "./app-sidebar-header";
-import { DropdownMenuSeparator } from "../ui/dropdown-menu";
+import { DropdownMenuSeparator } from "../ui/Dropdown-menu";
 
 const AppSidebar = () => {
   const location = useLocation();

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/Dialog';
+import { Button } from '@/components/ui/Button';
 import { Save } from 'lucide-react';
 import { format, parse, isValid } from 'date-fns';
 import { fr } from 'date-fns/locale';

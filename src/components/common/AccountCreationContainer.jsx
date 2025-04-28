@@ -10,7 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog";
+} from "@/components/ui/Dialog";
 import { API_URL } from "@/services/api";
 const AccountCreationContainer = () => {
   const [showVerification, setShowVerification] = useState(false);

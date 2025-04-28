@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 import { User, Lock, Eye, EyeOff } from "lucide-react";
 import { Label } from "../ui/label";
