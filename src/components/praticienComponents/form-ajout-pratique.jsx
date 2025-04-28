@@ -13,14 +13,14 @@ import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
     AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, 
     AlertDialogTitle, AlertDialogTrigger 
-  } from "@/components/ui/alert-dialog";
+  } from "@/components/ui/Alert-dialog";
 import { useForm } from "react-hook-form";
 import DatePicker from "./date-picker";
 import ColorPicker from "./color-picker";
 import MapPicker from "./map-picker";
 import { useEffect, useState } from "react";
 import { Euro, X } from "lucide-react";
-import { Label } from "../ui/label";
+import { Label } from "../ui/Label";
 import { deletePratique } from "@/services/pratiques-services";
 
 const FileUploader = ({ register }) => {

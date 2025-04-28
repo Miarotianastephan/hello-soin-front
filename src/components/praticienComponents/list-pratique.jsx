@@ -9,7 +9,7 @@ import {
   IconButton,
   Tooltip,
 } from "@material-tailwind/react";
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/components/ui/Separator";
 import { useState } from "react";
 import DetailPratiqueCard from "./detail-pratique";
 import { convertToEuroFormat, UNITE_MINUTE } from "./constant";

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 import { User, Lock, Eye, EyeOff } from "lucide-react";
-import { Label } from "../ui/label";
+import { Label } from "../ui/Label";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/material.css";
 import logo from "../../assets/hs2.svg";

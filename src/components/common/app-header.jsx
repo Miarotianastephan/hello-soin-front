@@ -6,7 +6,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/Breadcrumb"
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/components/ui/Separator"
 import {SidebarTrigger} from "@/components/ui/Sidebar"
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
