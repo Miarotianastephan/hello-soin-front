@@ -23,15 +23,13 @@ const fetchFormations = async () => {
 const Formation = () => {
   const queryClient = useQueryClient();
 
-  const [startDate, setStartDate] = useState('');
-  const [experience, setExperience] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [editingFormation, setEditingFormation] = useState(null);
   const [expandedFormationIds, setExpandedFormationIds] = useState([]);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
-  const [newExperienceYears, setNewExperienceYears] = useState('');
   const [newExperienceDate, setNewExperienceDate] = useState('');
-
+  const [startDate, setStartDate] = useState('');
+  const [experience, setExperience] = useState(0);
   // Récupération de l'expérience
   const fetchExperience = async () => {
     const token = localStorage.getItem('authToken');
@@ -46,28 +44,19 @@ const Formation = () => {
     queryFn: fetchExperience,
   });
 
-
-
-  // Mutations pour l'expérience
-  const addExperienceMutation = useMutation({
-    mutationFn: (years) => {
-      const token = localStorage.getItem('authToken');
-      return axios.post(
-        `${API_URL}/praticien/add-experience`,
-        { years },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-    },
-  });
-
+  // Mutation pour mettre à jour l'expérience
   const updateExperienceMutation = useMutation({
-    mutationFn: (years) => {
+    mutationFn: (start_date) => {
       const token = localStorage.getItem('authToken');
       return axios.put(
         `${API_URL}/praticien/update-experience`,
-        { years },
+        { start_date },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['experience']);
+      setIsEditingExperience(false);
     },
   });
 
@@ -77,39 +66,14 @@ const Formation = () => {
       return;
     }
 
-    const years = calculateExperience(newExperienceDate);
-
     try {
-      if (startDate) {
-        await updateExperienceMutation.mutateAsync(years);
-      } else {
-        await addExperienceMutation.mutateAsync(years);
-      }
-      
-      setStartDate(newExperienceDate);
-      localStorage.setItem('startDate', newExperienceDate);
-      updateExperience(newExperienceDate);
-      setIsEditingExperience(false);
+      await updateExperienceMutation.mutateAsync(newExperienceDate);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
       alert('Erreur lors de la sauvegarde');
     }
   };
 
-  const calculateExperience = (dateStr) => {
-    if (!dateStr) return 0;
-    const [year, month] = dateStr.split('-');
-    const start = new Date(year, month - 1, 1);
-    const today = new Date();
-    
-    if (start > today) return 0;
-
-    let yearsDiff = today.getFullYear() - start.getFullYear();
-    if (today.getMonth() < start.getMonth()) {
-      yearsDiff--;
-    }
-    return yearsDiff;
-  };
 
   // les formations
   const { data: formations = [], isLoading, isError, error } = useQuery({
@@ -241,6 +205,24 @@ const Formation = () => {
     );
   };
 
+  const months = [
+    { value: '01', label: 'Janvier' },
+    { value: '02', label: 'Février' },
+    { value: '03', label: 'Mars' },
+    { value: '04', label: 'Avril' },
+    { value: '05', label: 'Mai' },
+    { value: '06', label: 'Juin' },
+    { value: '07', label: 'Juillet' },
+    { value: '08', label: 'Août' },
+    { value: '09', label: 'Septembre' },
+    { value: '10', label: 'Octobre' },
+    { value: '11', label: 'Novembre' },
+    { value: '12', label: 'Décembre' },
+  ];
+  
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1985 + 1 }, (_, index) => currentYear - index);
+
   if (isLoading) return<div className="p-4 text-center w-full flex items-center justify-center h-full"><TailSpin
       height="40"
       width="40"
@@ -263,46 +245,81 @@ const Formation = () => {
       <>
         <div className="p-4 bg-white border rounded">
           <h2 className="mb-4 text-sm font-semibold text-gray-800">Expérience</h2>
-          {isEditingExperience ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="month"
-                value={newExperienceDate}
-                onChange={(e) => setNewExperienceDate(e.target.value)}
-                className="w-40 px-2 py-1 border  text-xs rouded-none"
-                min="1900-01"
-                max={new Date().toISOString().slice(0, 7)}
-              />
-              <button
-                onClick={handleSaveExperience}
-                className="px-2 py-1 text-white bg-green-500  hover:bg-green-600 text-xs rouded-none"
-              >
-                Enregistrer
-              </button>
-              <button
-                onClick={() => setIsEditingExperience(false)}
-                className="px-2 py-1 text-gray-700 bg-gray-100  hover:bg-gray-200 text-xs rouded-none"
-              >
-                Annuler
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 w-full justify-between">
-              <span className="text-xl font-bold text-[#5DA781]">
-                {experience} ans
-                <span className="text-xs font-semibold text-gray-700"> d'expérience</span>
-              </span>
-              <button
-                onClick={() => {
-                  setNewExperienceDate(startDate || '');
-                  setIsEditingExperience(true);
-                }}
-                className="text-[#0f2b3d] hover:text-[#14384f] flex items-center justify-center gap-2 text-sm"
-              >
-                <Edit size={16} /> Modifier
-              </button>
-            </div>
-          )}
+          {isEditing ? (
+        <EditFormation
+          onBack={handleBack}
+          onSave={handleSaveFormation}
+          initialFormation={editingFormation}
+        />
+      ) : (
+        <>
+          
+            {isEditingExperience ? (
+             <div className="sm:flex-row md:flex-row flex-col space-y-3  items-center gap-2">
+             <div className="flex gap-2">
+               <select
+                 value={newExperienceDate?.split('-')[1] || ''}
+                 onChange={(e) => {
+                   const month = e.target.value;
+                   const year = newExperienceDate?.split('-')[0] || currentYear;
+                   setNewExperienceDate(`${year}-${month}`);
+                 }}
+                 className="w-32 px-2 py-1 border text-xs rounded-none"
+               >
+                 {months.map((month) => (
+                   <option key={month.value} value={month.value}>
+                     {month.label}
+                   </option>
+                 ))}
+               </select>
+               <select
+                 value={newExperienceDate?.split('-')[0] || ''}
+                 onChange={(e) => {
+                   const year = e.target.value;
+                   const month = newExperienceDate?.split('-')[1] || '01';
+                   setNewExperienceDate(`${year}-${month}`);
+                 }}
+                 className="w-32 px-2 py-1 border text-xs rounded-none"
+               >
+                 {years.map((year) => (
+                   <option key={year} value={year}>
+                     {year}
+                   </option>
+                 ))}
+               </select>
+             </div>
+             <button
+               onClick={handleSaveExperience}
+               className="px-2 py-1 text-white mr-2 bg-green-900 hover:bg-green-600 text-xs rounded"
+             >
+               Enregistrer
+             </button>
+             <button
+               onClick={() => setIsEditingExperience(false)}
+               className="px-2 py-1 text-gray-700 bg-gray-100 hover:bg-gray-200 text-xs rounded"
+             >
+               Annuler
+             </button>
+           </div>
+            ) : (
+              <div className="flex items-center gap-4 w-full justify-start">
+                <span className="text-2xl font-bold text-[#5DA781]">
+                  {experienceData?.data?.experiences_years} ans
+                  <span className="text-xs font-semibold text-gray-700"> d'expériences</span>
+                </span>
+                <button
+                  onClick={() => {
+                    setNewExperienceDate(experienceData?.data?.start_date || '');
+                    setIsEditingExperience(true);
+                  }}
+                  className="text-white rounded bg-[#0f2b3d] px-2 py-1   hover:text-[#14384f] flex items-center justify-center gap-2 text-xs"
+                >
+                  <Edit size={13} /> Mettre à jour
+                </button>
+              </div>
+            )}
+        </>
+      )}
         </div>
 
           {/* Affichage pour grand écran : Tableau classique */}

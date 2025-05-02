@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Label } from "../ui/Label";
 import logo from "../../assets/hs2.svg";
 
-const CodeVerification = ({ onVerify, userEmail, resendCode }) => {
+const CodeVerification = ({ onVerify, userEmail, resendCode, phoneNumber }) => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm();
   const inputRefs = useRef([]);
@@ -68,6 +69,23 @@ const CodeVerification = ({ onVerify, userEmail, resendCode }) => {
     }
   };
 
+  // Handle paste of full code
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('Text').trim();
+    if (/^\d{6}$/.test(pasteData)) {
+      pasteData.split('').forEach((digit, idx) => {
+        const fieldName = `code${idx + 1}`;
+        setValue(fieldName, digit);
+        if (inputRefs.current[idx]) {
+          inputRefs.current[idx].value = digit;
+        }
+      });
+      // focus last input
+      inputRefs.current[5]?.focus();
+    }
+  };
+
   // Handle resend click
   const handleResend = async () => {
     if (resendTimer > 0) return;
@@ -101,16 +119,19 @@ const CodeVerification = ({ onVerify, userEmail, resendCode }) => {
             Confirmation du compte
           </div>
         </div>
-        <div className="text-sm mt-4 font-medium text-gray-500 my-8 w-full">
+        <div className="text-sm mt-4 text-center font-medium text-gray-500 my-8 w-full">
           <p className="flex flex-col items-center justify-center gap-4 w-full">
-            Un code de validation vous a été envoyé à l'adresse mail
-            <span className="underline text-[#5DA781]">{userEmail}</span>
-            <span>Saisir le code ci-dessous pour valider votre compte</span>
+            Un code de validation vous a été envoyé à l'adresse e-mail
+            <span className="text-gray-500"> <span className="underline text-[#5DA781]"> {userEmail} </span>  et au numéro <span className="underline text-[#5DA781]">{phoneNumber}</span></span> 
+            <span>Saisissez le code ci-dessous pour valider votre compte</span>
           </p>
         </div>
         <div className="w-full flex justify-center items-center">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="flex space-x-2 justify-center">
+            <div
+              className="flex space-x-2 justify-center"
+              onPaste={handlePaste}
+            >
               {[1, 2, 3, 4, 5, 6].map((item, index) => {
                 const reg = register(`code${item}`, {
                   required: "Chiffre requis",
@@ -153,7 +174,7 @@ const CodeVerification = ({ onVerify, userEmail, resendCode }) => {
               >
                 {resendTimer > 0
                   ? `Renvoi possible dans ${formatTimer(resendTimer)}`
-                  : "Renvoie du code"}
+                  : "Renvoi du code"}
               </button>
             </div>
             <Button

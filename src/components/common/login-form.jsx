@@ -119,7 +119,7 @@ export const LoginForm = ({ className, ...props }) => {
 
             <div className="grid gap-2 text-xs text-gray-700">
               <Label htmlFor="email">
-                Adresse email <span className="text-red-700">*</span>
+                Adresse mail <span className="text-red-700">*</span>
               </Label>
               <Input
                 {...register('user_mail', {
@@ -131,7 +131,7 @@ export const LoginForm = ({ className, ...props }) => {
                 })}
                 id="email"
                 type="email"
-                placeholder="email"
+                placeholder="Email"
                 className="text-sm"
               />
               <p className="text-left text-xs text-destructive">
@@ -182,11 +182,12 @@ export const LoginForm = ({ className, ...props }) => {
             </Button>
 
             <div className="flex items-center justify-center mt-2 gap-2 text-sm">
-              Vous n'avez pas de compte?{' '}
+              Vous n'avez pas de compte ?{' '}
               <Link to="/signin" className="text-helloSoin">
-                Inscrivez-vous
+                S'inscrire
               </Link>
             </div>
+
           </div>
         </form>
       </div>

@@ -46,7 +46,10 @@ const AccountCreationContainer = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mail: formData.mail }),
+          body: JSON.stringify({ 
+            mail: formData.mail, 
+            numero: formData.phone_number 
+          })
         }
       );
 
@@ -74,7 +77,10 @@ const AccountCreationContainer = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mail: userMail }),
+          body: JSON.stringify({ 
+            mail: formData.mail, 
+            numero: formData.phone_number 
+          })
         }
       );
 
@@ -171,6 +177,7 @@ const AccountCreationContainer = () => {
           resendCode={resendCode}
           onVerify={handleCodeVerification}
           userEmail={formData?.mail}
+          phoneNumber={formData?.phone_number}
           isLoadingresend={isLoading}
         />
       ) : (

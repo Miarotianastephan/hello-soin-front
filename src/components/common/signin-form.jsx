@@ -8,8 +8,11 @@ import { User, Lock, Eye, EyeOff } from "lucide-react";
 import { Label } from "../ui/Label";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/material.css";
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import logo from "../../assets/hs2.svg";
 import FormProgressBar from "./FormProgressBar";
+import { isValidPhoneNumber } from 'libphonenumber-js';
+
 
 // Tableau des étapes (deux étapes)
 const steps = [
@@ -39,6 +42,22 @@ const SignInForm = ({ onAccountCreated, isLoading}) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConf, setShowPasswordConf] = useState(false);
+
+  // Fonction de formatage à passer à react-phone-input-2
+function formatPhoneNumber(value, countryData) {
+  // value est la chaîne sans "+" et sans format
+  const number = parsePhoneNumberFromString(`+${value}`, countryData.countryCode.toUpperCase());
+  return number
+    ? number.formatNational()       // format national (ex. "01 23 45 67 89")
+    : value;
+}
+
+const handlePhoneChange = (phone, country, onChange) => {
+  // Récupère le numéro complet avec l'indicatif international
+  const fullNumber = `+${phone}`; 
+  onChange(fullNumber);
+};
+
 
   // Champs requis pour l'étape 1 incluant code postal et ville
   const requiredFieldsStep1 = ["nom", "mail", "phone_number", "devise", "echence", "code_postale", "ville"];
@@ -247,28 +266,33 @@ const generatePassword = () => {
                       Numéro de téléphone<span className="text-red-500">*</span>
                     </Label>
                     <Controller
-                      name="phone_number"
-                      control={control}
-                      rules={{ required: "Veuillez renseigner votre numéro de téléphone" }}
-                      render={({ field: { onChange, value, ref } }) => (
-                        <PhoneInput
-                        country="fr"
-                        localization="fr"
-                        onlyCountries={["fr"]}
-                        value={value}
-                        onChange={(phone) => onChange(`+${phone}`)}
-                        inputProps={{
-                          name: "phone_number",
-                          required: true,
-                          ref: ref 
-                        }}
-                        inputStyle={{ width: "100%", height: "20px", fontSize: "12px", border: "1px solid #e5e5e5" }}
-                        containerClass="phone-input"
-                        specialLabel=""
-                      />
-                      
-                      )}
-                    />
+  name="phone_number"
+  control={control}
+  rules={{
+    required: "Veuillez renseigner votre numéro de téléphone mobile",
+    validate: (value) => isValidPhoneNumber(value) // Validation avec libphonenumber-js
+  }}
+  render={({ field: { onChange, value } }) => (
+    <PhoneInput
+      country="fr" // Madagascar par défaut
+      onlyCountries={['fr', 'be', 'lu', 'de', 'ch', 'it', 'es', 'mc', 'ad', 'mg']}
+      value={value}
+      onChange={(phone, country) => handlePhoneChange(phone, country, onChange)}
+      specialLabel=""
+      inputProps={{
+        required: true,
+        placeholder: "+261 34 12 345 67"
+      }}
+      inputStyle={{ 
+        width: "100%", 
+        height: "20px", 
+        fontSize: "12px", 
+        border: "1px solid #e5e5e5" 
+      }}
+    />
+  )}
+/>
+
                     {errors.phone_number && <p className="text-red-500 text-xs mt-1">{errors.phone_number.message}</p>}
                   </div>
                 </div>
@@ -320,11 +344,24 @@ const generatePassword = () => {
                     <Label className="text-xs text-gray-700 mb-1">
                       Code postal<span className="text-red-500">*</span>
                     </Label>
-                    <Input
-                      {...register("code_postale", { required: "Veuillez renseigner votre code postal" })}
-                      placeholder="Entrer votre code postal"
-                      className="text-xs placeholder:text-xs"
-                    />
+<Input
+  {...register("code_postale", { 
+    required: "Veuillez renseigner votre code postal",
+    pattern: {
+      value: /^\d{5}$/,
+      message: "Le code postal doit contenir exactement 5 chiffres"
+    }
+  })}
+  placeholder="Entrer votre code postal"
+  className="text-xs placeholder:text-xs"
+  maxLength={5}
+  inputMode="numeric"
+  onKeyPress={(e) => {
+    if (!/[0-9]/.test(e.key)) {
+      e.preventDefault();
+    }
+  }}
+/>
                     {errors.code_postale && <p className="text-red-500 text-xs mt-1">{errors.code_postale.message}</p>}
                   </div>
                   <div className="flex flex-col">

@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react(),],
   server: {
     host: true,
-    allowedHosts: ['hello-soin-front.onrender.com']
+    allowedHosts: ['6da2-129-222-108-22.ngrok-free.app']
   },
   host: '0.0.0.0',
   resolve: {
