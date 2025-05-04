@@ -5,6 +5,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import SpecialityDesignation from './SpecialityDesignation';
 import { TailSpin } from 'react-loader-spinner';
+import { Listbox, Transition } from '@headlessui/react';
+import { ChevronDown, Check } from 'lucide-react';
+import { Fragment } from 'react';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -19,6 +22,40 @@ const fetchFormations = async () => {
   return response.json();
 };
 
+
+const Dropdown = ({ options, selected, onChange, placeholder }) => (
+  <Listbox value={selected} onChange={onChange}>
+    <div className="relative bg-white z-50">
+      <Listbox.Button className="w-full text-left px-3 py-2 text-xs border rounded-md flex justify-between items-center focus:outline-none focus:ring-1 focus:ring-green-500">
+        <span>{selected ? options.find(o => o.value === selected)?.label : placeholder}</span>
+        <ChevronDown className="w-4 h-4 text-gray-500" />
+      </Listbox.Button>
+      <Transition
+        as={Fragment}
+        leave="transition ease-in duration-100"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+      >
+        <Listbox.Options className="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-md max-h-48 overflow-auto text-xs">
+          {options.map(option => (
+            <Listbox.Option
+              key={option.value}
+              value={option.value}
+              className={({ active }) => `cursor-pointer select-none px-3 py-2 ${active ? 'bg-gray-100' : ''}`}
+            >
+              {({ selected }) => (
+                <div className="flex items-center justify-between">
+                  <span>{option.label}</span>
+                  {selected && <Check className="w-4 h-4 text-green-500" />}
+                </div>
+              )}
+            </Listbox.Option>
+          ))}
+        </Listbox.Options>
+      </Transition>
+    </div>
+  </Listbox>
+);
 
 const Formation = () => {
   const queryClient = useQueryClient();
@@ -255,38 +292,33 @@ const Formation = () => {
         <>
           
             {isEditingExperience ? (
-             <div className="sm:flex-row md:flex-row flex-col space-y-3  items-center gap-2">
+             <div className="sm:flex-row md:flex-row flex-col space-y-3 items-center gap-2">
              <div className="flex gap-2">
-               <select
-                 value={newExperienceDate?.split('-')[1] || ''}
-                 onChange={(e) => {
-                   const month = e.target.value;
-                   const year = newExperienceDate?.split('-')[0] || currentYear;
-                   setNewExperienceDate(`${year}-${month}`);
-                 }}
-                 className="w-32 px-2 py-1 border text-xs rounded-none"
-               >
-                 {months.map((month) => (
-                   <option key={month.value} value={month.value}>
-                     {month.label}
-                   </option>
-                 ))}
-               </select>
-               <select
-                 value={newExperienceDate?.split('-')[0] || ''}
-                 onChange={(e) => {
-                   const year = e.target.value;
-                   const month = newExperienceDate?.split('-')[1] || '01';
-                   setNewExperienceDate(`${year}-${month}`);
-                 }}
-                 className="w-32 px-2 py-1 border text-xs rounded-none"
-               >
-                 {years.map((year) => (
-                   <option key={year} value={year}>
-                     {year}
-                   </option>
-                 ))}
-               </select>
+               <div className="w-32">
+                 <Dropdown
+                   options={months}
+                   selected={newExperienceDate?.split('-')[1] || ''}
+                   onChange={(month) => {
+                     const year = newExperienceDate?.split('-')[0] || currentYear;
+                     setNewExperienceDate(`${year}-${month}`);
+                   }}
+                   placeholder="Mois"
+                 />
+               </div>
+<div className="w-32">
+  <Dropdown 
+    options={years.map(y => ({ 
+      value: y.toString(), // Conversion en string ici
+      label: y.toString() 
+    }))}
+    selected={newExperienceDate?.split('-')[0] || ''}
+    onChange={(year) => {
+      const month = newExperienceDate?.split('-')[1] || '01';
+      setNewExperienceDate(`${year}-${month}`);
+    }}
+    placeholder="Année"
+  />
+</div>
              </div>
              <button
                onClick={handleSaveExperience}

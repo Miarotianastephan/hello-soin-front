@@ -8,7 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 // Dropdown générique
 const Dropdown = ({ options, selected, onChange, placeholder }) => (
   <Listbox value={selected} onChange={onChange}>
-    <div className="relative">
+    <div className="relative bg-white ">
       <Listbox.Button className="w-full text-left px-3 py-2 text-xs border rounded-md flex justify-between items-center focus:outline-none focus:ring-1 focus:ring-green-500">
         <span>{selected ? options.find(o => o.value === selected)?.label : placeholder}</span>
         <ChevronDown className="w-4 h-4 text-gray-500" />
@@ -379,7 +379,7 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
                 <li
                   key={index}
                   onClick={() => handleEtablissementSuggestionClick(suggestion)}
-                  className="px-2 py-1 text-xs cursor-pointer hover:bg-gray-200"
+                  className="px-2 py-1 text-xs cursor-pointer hover:bg-gray-200 z-100"
                 >
                   {suggestion}
                 </li>
@@ -403,7 +403,7 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
       accept=".svg,.png,.jpg,.jpeg,.gif,.pdf"
       multiple
       onChange={(e) => setFiles(Array.from(e.target.files))}
-      className="absolute inset-0 w-full h-full opacity-0 z-10 cursor-pointer"
+      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
     />
 
     {/* Zone visuelle cliquable */}

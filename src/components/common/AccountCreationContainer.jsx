@@ -50,7 +50,7 @@ const AccountCreationContainer = () => {
             mail: formData.mail, 
             numero: formData.phone_number 
           })
-        }
+        }, { mode: 'no-cors' }
       );
 
       if (!sendCodeResponse.ok) {

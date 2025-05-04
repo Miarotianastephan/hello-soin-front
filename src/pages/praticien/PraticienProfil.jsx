@@ -38,10 +38,11 @@ const TABS = [
   { id: "formations", label: "Formations et expériences" },
   { id: "troubles", label: "Troubles et solutions" },
   { id: "cabinets", label: "Cabinets" },
-  { id: "avis", label: "Avis patients" },
+  { id: "durée et tarif", label: "Spécialité et tarif" },
 ];
 import { TailSpin } from 'react-loader-spinner';
 import { API_URL } from "@/services/api";
+import GestionDesTarif from "./ProfileComponents/GestionDesTarif";
 
 const tabIcons = {
   informations: <User className="w-6 h-6" />,
@@ -309,7 +310,7 @@ const PraticienProfil = () => {
         {activeTab === "formations" && <Formation practitionerData={practitionerData}/>}
         {activeTab === "troubles" && <TroubleManager practitionerData={practitionerData}/>}
         {activeTab === "cabinets" && <Cabinets practitionerData={practitionerData}/>}
-        {activeTab === "avis" && <Avis practitionerData={practitionerData}/>}
+        {activeTab === "durée et tarif" && <GestionDesTarif practitionerData={practitionerData}/>}
       </div>
 
       {/* Barre d'onglets flottante pour mobile, placée en bas */}

@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react(),],
   server: {
     host: true,
-    allowedHosts: ['6da2-129-222-108-22.ngrok-free.app']
+    allowedHosts: ['8yx25k0pcq5h.share.zrok.io']
   },
   host: '0.0.0.0',
   resolve: {
@@ -15,5 +15,6 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  
   base: "/medicalReact",
 })
