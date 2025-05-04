@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { InfoIcon, MapPinHouse, Star, CreditCard } from 'lucide-react'
+import { API_URL } from '@/services/api'
 
 const Information = ({ practitionerData }) => {
   // États pour les données fetchées
@@ -20,7 +21,7 @@ const Information = ({ practitionerData }) => {
     const token = localStorage.getItem('authToken')
 
     // Fetch des types de patients
-    fetch('http://localhost:3000/praticien/patient-types', {
+    fetch(`${API_URL}/praticien/patient-types`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
@@ -38,7 +39,7 @@ const Information = ({ practitionerData }) => {
       .finally(() => setLoadingPatients(false))
 
     // Fetch des moyens de paiement
-    fetch('http://localhost:3000/praticien/payment-methods', {
+    fetch(`${API_URL}/praticien/payment-methods`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,

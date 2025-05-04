@@ -4,7 +4,7 @@ import { ArrowLeftCircle, Save, ChevronDown, Check } from 'lucide-react';
 import { Listbox, Transition } from '@headlessui/react';
 import { findAllSpeciality } from '@/services/speciality-services';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-
+import { API_URL } from '@/services/api';
 // Dropdown générique
 const Dropdown = ({ options, selected, onChange, placeholder }) => (
   <Listbox value={selected} onChange={onChange}>
@@ -167,7 +167,7 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
     
     setIsAddingSpeciality(true);
     try {
-      const response = await fetch('http://localhost:3000/specs/addSpeciality', {
+      const response = await fetch(`${API_URL}/specs/addSpeciality`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

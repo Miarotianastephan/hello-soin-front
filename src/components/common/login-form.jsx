@@ -109,7 +109,7 @@ export const LoginForm = ({ className, ...props }) => {
       </Dialog>
 
       <div className={cn('flex flex-col gap-6', className)} {...props}>
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 md:p-8 relative">
+        <div  className="p-6 md:p-8 relative">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col items-center text-center">
               <h1 className="text-lg text-gray-900 font-bold">Mon espace praticien</h1>
@@ -117,6 +117,7 @@ export const LoginForm = ({ className, ...props }) => {
 
             <LoginOptions />
 
+            <form onSubmit={handleSubmit(onSubmit)} className='flex-1 space-y-6'>
             <div className="grid gap-2 text-xs text-gray-700">
               <Label htmlFor="email">
                 Adresse mail <span className="text-red-700">*</span>
@@ -181,15 +182,16 @@ export const LoginForm = ({ className, ...props }) => {
               {loading ? '...Connexion' : 'Se connecter'}
             </Button>
 
-            <div className="flex items-center justify-center mt-2 gap-2 text-sm">
+            <div className="flex items-center justify-center mt-4 gap-2 text-sm">
               Vous n'avez pas de compte ?{' '}
               <Link to="/signin" className="text-helloSoin">
                 S'inscrire
               </Link>
             </div>
 
+            </form>
           </div>
-        </form>
+        </div>
       </div>
     </>
   )

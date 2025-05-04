@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { PenSquare, ArrowRightCircle, Save } from 'lucide-react';
+import { PenSquare, ArrowRightCircle, Save, Trash, PlusCircle } from 'lucide-react';
 
 const practicesData = [
   { 
@@ -55,9 +55,54 @@ const practicesData = [
 
 export default function GestionDesTarif() {
   const [practices, setPractices] = useState(() => {
-    const saved = localStorage.getItem('practices');
-    return saved ? JSON.parse(saved) : practicesData;
+    const saved = localStorage.getItem('practice2');
+    const data = saved ? JSON.parse(saved) : practicesData;
+    // Ajout de la propriété isDefault
+    return data.map(practice => ({
+      ...practice,
+      consultations: practice.consultations.map(consultation => ({
+        ...consultation,
+        isDefault: [
+          'Premier RDV', 
+          'Suivi', 
+          'Urgence', 
+          'VAD (Visite à Domicile)'
+        ].includes(consultation.type)
+      }))
+    }));
   });
+
+  function handleAddConsultation() {
+    const newConsultation = { 
+      type: '', 
+      duration: '', 
+      price: '', 
+      isDefault: false 
+    };
+    setFormValues(prev => ({
+      ...prev,
+      consultations: [...prev.consultations, newConsultation]
+    }));
+  }
+// Dans la fonction handleDeleteConsultation : supprimer la vérification isDefault
+function handleDeleteConsultation(index) {
+  const updated = formValues.consultations.filter((_, i) => i !== index);
+  setFormValues(v => ({ ...v, consultations: updated }));
+}
+  function handleChange(idx, field, value) {
+    const updated = [...formValues.consultations];
+    let newValue = value;
+
+    if (field === 'duration' || field === 'price') {
+      newValue = value === '' ? '' : parseInt(value, 10) || '';
+    } else if (field === 'type') {
+      newValue = value;
+    }
+
+    updated[idx] = { ...updated[idx], [field]: newValue };
+    setFormValues(v => ({ ...v, consultations: updated }));
+  }
+
   
   const [selected, setSelected] = useState(practices[0]);
   const [isEditing, setIsEditing] = useState(false);
@@ -112,7 +157,7 @@ export default function GestionDesTarif() {
     });
     
     setPractices(updatedPractices);
-    localStorage.setItem('practices', JSON.stringify(updatedPractices));
+    localStorage.setItem('practice2', JSON.stringify(updatedPractices));
     setIsEditing(false);
     setSelected(updatedPractices.find(p => p.id === selected.id));
   }
@@ -225,30 +270,73 @@ export default function GestionDesTarif() {
                 </div>
 
                 {formValues.consultations.map((c, idx) => (
-                  <div key={idx} className='flex items-center space-x-2'>
-                    <div className='flex-1 space-y-2'>
-                      <label className='block text-xs text-gray-700'>{c.type}</label>
-                      <input
-                        type='number'
-                        value={c.duration}
-                        onChange={e => handleChange(idx, 'duration', e.target.value)}
-                        className='shadow-none border rounded p-2 w-full text-xs'
-                        placeholder='Durée en minutes'
-                      />
-                    </div>
-                    <div className='flex-1 space-y-2'>
-                      <label className='block text-xs  text-gray-700'>Tarif (€)</label>
-                      <input
-                        type='number'
-                        value={c.price}
-                        onChange={e => handleChange(idx, 'price', e.target.value)}
-                        className='shadow-none border rounded p-2 w-full text-xs'
-                        placeholder='Prix en €'
-                      />
-                    </div>
-                  </div>
-                ))}
+  <div key={idx} className="flex items-start space-x-2">
+    {/* Colonne 1 – Type */}
+    <div className="w-1/4 space-y-1">
+      <label className="block text-xs font-bold text-gray-700">
+        {c.isDefault ? c.type : 'Type de rendez‑vous'}
+      </label>
+      {!c.isDefault && (
+        <input
+          type="text"
+          value={c.type}
+          onChange={e => handleChange(idx, 'type', e.target.value)}
+          className="shadow-none border rounded p-2 w-full text-xs"
+          placeholder="Nom du type"
+        />
+      )}
+    </div>
 
+    {/* Colonne 2 – Tarif */}
+    <div className="w-1/4 space-y-1">
+      <label className="block text-xs font-bold text-gray-700">Tarif (€)</label>
+      <input
+        type="number"
+        value={c.price}
+        onChange={e => handleChange(idx, 'price', e.target.value)}
+        className="shadow-none border rounded p-2 w-full text-xs"
+        placeholder="Prix en €"
+      />
+    </div>
+
+    {/* Colonne 3 – Durée */}
+    <div className="w-1/4 space-y-1">
+      <label className="block text-xs font-bold text-gray-700">Durée (min)</label>
+      <input
+        type="number"
+        value={c.duration}
+        onChange={e => handleChange(idx, 'duration', e.target.value)}
+        className="shadow-none border rounded p-2 w-full text-xs"
+        placeholder="Durée en minutes"
+      />
+    </div>
+
+    <div className="w-1/4 space-y-1">
+      <label className="block text-xs font-bold text-white">Action</label>
+      <Button
+        type="button"
+        onClick={() => handleDeleteConsultation(idx)}
+        variant="destructive"
+        className="text-xs p-1 h-6"
+      >
+        <Trash/>
+      </Button>
+    </div>
+
+  </div>
+))}
+
+<div className='flex justify-end items-center w-full self-end'>
+<Button 
+    type='button' 
+    onClick={handleAddConsultation} 
+    variant='outline'
+    className='text-xs mt-4 border-2 rounded shadow-none text-blue-gray-700 font-bold self-end'
+  >
+    <PlusCircle/> Ajouter un type de rendez-vous
+  </Button>
+
+</div>
                 <div className='flex space-x-2'>
                   <Button onClick={handleSave} className="text-xs rounded"><Save/> Enregistrer</Button>
                   <Button variant='outline' onClick={() => setIsEditing(false)} className="text-xs rounded">Annuler</Button>

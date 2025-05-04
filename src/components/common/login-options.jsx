@@ -20,6 +20,9 @@ import { useNavigate } from 'react-router-dom';
 const LoginOptions = () => {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
+  // Nouveaux états pour le dialogue de succès
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -30,18 +33,15 @@ const LoginOptions = () => {
         }).then(res => res.json());
         const email = profile.email;
 
-        // 1. Envoyer l'email au back pour login “sans mot de passe”
         const result = await login_by_email(email);
-
-        // 2. Stocker token et user
         await setLocalData('token', result.token);
         await setLocalData('user', JSON.stringify(result.user));
 
-        // 3. Rediriger vers le dashboard praticien
-        navigate('/praticien/premierPas');
+        // Afficher le dialogue de succès au lieu de rediriger directement
+        setUserEmail(result.user.email || email);
+        setSuccessDialogOpen(true);
       } catch (err) {
         console.error('Erreur login sans mot de passe :', err);
-        // Si l'erreur provient d'un compte introuvable, afficher le dialogue
         setDialogOpen(true);
       }
     },
@@ -52,7 +52,29 @@ const LoginOptions = () => {
 
   return (
     <>
-      {/* Dialog pour compte introuvable */}
+       <Dialog
+        open={successDialogOpen}
+        onOpenChange={(open) => {
+          setSuccessDialogOpen(open);
+          if (!open) navigate('/praticien/premierPas');
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bienvenue {userEmail}</DialogTitle>
+            <DialogDescription className="text-xs">
+              Vous êtes connecté avec succès via Google.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button className="text-xs bg-green-600 rounded">Continuer</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialogue d'erreur existant */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -84,6 +106,7 @@ const LoginOptions = () => {
           Ou
         </span>
       </div>
+
     </>
   );
 };
