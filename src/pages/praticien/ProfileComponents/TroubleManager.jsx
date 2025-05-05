@@ -15,6 +15,11 @@ const TroubleManager = () => {
     setCurrentView('config');
   };
 
+
+  const handleDeleteTrouble = (trouble) => {
+    setSelectedTrouble(trouble);
+  };
+
   // Callback pour ajouter un trouble
   const handleAddTrouble = () => {
     setSelectedTrouble(null);
@@ -30,6 +35,7 @@ const TroubleManager = () => {
     <div>
       {currentView === 'table' && (
         <TableList 
+          onDeleteTrouble={handleDeleteTrouble}
           onEditTrouble={handleEditTrouble} 
           onAddTrouble={handleAddTrouble} 
         />

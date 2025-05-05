@@ -2,12 +2,14 @@
 import React, { useState } from 'react';
 import { Edit, Trash, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import { getAllPraticienApproches } from '@/services/trouble-solutions-services';
 
 // Exemple de données imbriquées
 const data = [
   {
     id: 1,
-    categorie: "Catégorie 1",
+    categorie: "Catégorie A",
     troubles: [
       {
         id: 1,
@@ -70,6 +72,12 @@ const groupSolutionsBySpecialite = (solutions) => {
 };
 
 const TableList = (props) => {
+  const { data: approches = [], isLoading: isLoadingSpecialities, isError: isErrorSpecialities } = useQuery({
+    queryKey: ['praticien-approches'],
+    queryFn: getAllPraticienApproches,
+    staleTime: 1000 * 60 * 10,
+  });
+  
   // État pour gérer l'accordéon sur mobile
   const [expandedTroubleIds, setExpandedTroubleIds] = useState([]);
 
@@ -81,7 +89,7 @@ const TableList = (props) => {
 
   // Construction des lignes pour le tableau (affichage grand écran)
   const rows = [];
-  data.forEach((category) => {
+  approches.forEach((category) => {
     // Calcul du nombre total de lignes pour la catégorie (pour gérer rowSpan)
     const totalRowsCategory = category.troubles.reduce(
       (acc, trouble) => acc + trouble.solutions.length,
@@ -157,6 +165,10 @@ const TableList = (props) => {
     });
   });
 
+  const handleDeleteTrouble = () => {
+    alert('Test');
+  }
+
   return (
     <>
       {/* Vue tableau pour grand écran */}
@@ -189,7 +201,7 @@ const TableList = (props) => {
 
       {/* Vue accordéon pour mobile */}
       <div className="block sm:hidden">
-        {data.map((category) => (
+        {approches.map((category) => (
           <div key={category.id} className="mb-4 border rounded">
             <div className="bg-gray-100 px-4 py-2 font-bold">
               {category.categorie}
@@ -232,7 +244,11 @@ const TableList = (props) => {
                       >
                         <Edit className="inline-block w-5 h-5" size={15} />
                       </button>
-                      <button className="text-red-600 hover:text-red-900" title="Supprimer">
+                      <button
+                          onClick={() => props.onDeleteTrouble(trouble)}
+                          className="text-red-600 hover:text-red-900"  
+                          title="Supprimer"
+                      >
                         <Trash className="inline-block w-5 h-5" size={15} />
                       </button>
                     </div>

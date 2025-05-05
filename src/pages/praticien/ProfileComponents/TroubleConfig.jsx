@@ -2,52 +2,45 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowLeftCircle, PlusCircle, Save, XCircle } from "lucide-react";
-
-// JSON des spécialités
-const specialties = [
-  { id: 1, name: "Cardiologie" },
-  { id: 2, name: "Dermatologie" },
-  { id: 3, name: "Neurologie" }
-];
-
-// Données initiales avec solutions
-const initialTroubles = [
-  { 
-    id: 1, 
-    name: "Trouble A", 
-    solutions: [
-      { text: "Solution A1", specialty: 1 },
-      { text: "Solution A2", specialty: 2 }
-    ] 
-  },
-  { 
-    id: 2, 
-    name: "Trouble B", 
-    solutions: [
-      { text: "Solution B1", specialty: 2 },
-      { text: "Solution B2", specialty: 3 }
-    ] 
-  },
-  { 
-    id: 3, 
-    name: "Trouble C", 
-    solutions: [
-      { text: "Solution C1", specialty: 1 },
-      { text: "Solution C2", specialty: 3 }
-    ] 
-  },
-];
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+  fetchTroubleSolutions, 
+  saveTroubleApproche 
+} from '@/services/trouble-solutions-services';
 
 const TroubleConfig = (props) => {
-  const [troubles, setTroubles] = useState(initialTroubles);
+  const queryClient = useQueryClient();
+  const [troubles, setTroubles] = useState([]);
+  const [specialties, setSpecialties] = useState([]);
+  const [newSolutionSpecialty, setNewSolutionSpecialty] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   // Si un trouble est passé en prop pour édition, on l'utilise dès le départ
   const [selectedTrouble, setSelectedTrouble] = useState(props.initialTrouble || null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [addSolutionChecked, setAddSolutionChecked] = useState(false);
   const [newSolution, setNewSolution] = useState('');
-  const [newSolutionSpecialty, setNewSolutionSpecialty] = useState(specialties[0].id);
   const dropdownRef = useRef(null);
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['trouble-solutions'],
+    queryFn: fetchTroubleSolutions,
+  });
+
+  useEffect(() => {
+    if (data) {
+      console.log(data);
+      setSpecialties(
+        data.speciality.map((s) => ({
+          id: s.id_speciality,
+          name: s.designation,
+        }))
+      );
+      setTroubles(data.troubleSolutions);
+      if (data.speciality.length > 0) {
+        setNewSolutionSpecialty(data.speciality[0].id_speciality);
+      }
+    }
+  }, [data]);
 
   // Remplacer navigate par la fonction onBack passée en props
   const handleBack = () => {
@@ -98,10 +91,34 @@ const TroubleConfig = (props) => {
     setNewSolutionSpecialty(specialties[0].id);
   };
 
+  const useSaveTroubleApproche = () => {
+    return useMutation({
+      mutationFn: saveTroubleApproche,
+      onSuccess: (data) => {
+        console.log("Approches ajoutées avec succès :", data);
+        queryClient.invalidateQueries(['praticien-approches']);
+        props.onBack();
+      },
+      onError: (error) => {
+        console.error("Erreur pendant l'ajout :", error);
+      },
+    });
+  };
+  const { mutate: saveApproche, isSaveLoading, isSaveSuccess, isSaveError, saveError } = useSaveTroubleApproche();
+
+  const handleSubmitPraticienApproches = () => {
+    alert('Test');
+    console.log(selectedTrouble);
+    saveApproche(selectedTrouble);
+  }
+
   const getSpecialtyName = (id) => {
     const spec = specialties.find(s => s.id === id);
     return spec ? spec.name : '';
   };
+  
+  if (isLoading) return <div>Chargement...</div>;
+  if (isError) return <div>Erreur : {error.message}</div>;
 
   return (
     <div className='mx-4 mb-9'>
@@ -228,7 +245,10 @@ const TroubleConfig = (props) => {
           </div>
         </div>
       </div>
-      <Button className="mt-6 ml-4 text-xs font-bold text-white rounded shadow-none">
+      <Button 
+        onClick={handleSubmitPraticienApproches}
+        className="mt-6 ml-4 text-xs font-bold text-white rounded shadow-none"
+      >
         <Save size={15}/> Enregistrer
       </Button> 
     </div>
