@@ -263,8 +263,6 @@ const expectedLength = telephoneCountry.countryCode.length + telephoneCountry.le
       newErrors.siret = "Le numéro de Siret est requis.";
     } else if (siret.replace(/\s/g, '').length !== 14) {
       newErrors.siret = "Le SIRET doit contenir exactement 14 chiffres";
-    } else if (!siretSuccess) { // Nouvelle vérification ajoutée
-      newErrors.siret = "Veuillez vérifier la validité du SIRET avant soumission";
     }
     if (!description.trim()) newErrors.description = "La description est requise.";
     if (consultationTypes.length === 0) newErrors.consultationTypes = "Veuillez sélectionner au moins un type de consultation.";
@@ -297,7 +295,7 @@ const expectedLength = telephoneCountry.countryCode.length + telephoneCountry.le
     if (cleanedSiret.length !== 14) {
       setSiretError('Le SIRET doit contenir exactement 14 chiffres');
       setSiretSuccess(false);
-      return;
+      return false;
     }
   
     setIsVerifyingSiret(true);
@@ -306,7 +304,6 @@ const expectedLength = telephoneCountry.countryCode.length + telephoneCountry.le
   
     try {
       const proxyUrl = 'https://api.corsproxy.io/';
-  
       const response = await axios.get(
         `${proxyUrl}https://data.siren-api.fr/v3/etablissements/${cleanedSiret}`,
         {
@@ -329,19 +326,21 @@ const expectedLength = telephoneCountry.countryCode.length + telephoneCountry.le
         setCodePostal(etablissement.code_postal || '');
         setVille(etablissement.libelle_commune || '');
         setSiretSuccess(true);
-        setSiretDetails(etablissement); // Stocker les détails pour le dialogue
+        setSiretDetails(etablissement);
+        return true;
       }
+      return false;
     } catch (error) {
       if (error.response?.status === 404) {
         setSiretError('SIRET non trouvé');
       } else {
         setSiretError('Erreur lors de la vérification du SIRET');
       }
+      return false;
     } finally {
       setIsVerifyingSiret(false);
     }
   };
-
   const formatSiret = (value) => {
     // Nettoyer et limiter à 14 chiffres
     const digits = value.replace(/\D/g, '').slice(0, 14);
@@ -408,10 +407,7 @@ useEffect(() => {
 
   const handleSubmit = async () => {
    const isValid = await validateFields();
-  if (!isValid) {
-    alert('Corrigez les erreurs avant.');
-    return;
-  }
+  
   
     if (!siretSuccess) {
       const confirmVerification = window.confirm(
@@ -425,6 +421,13 @@ useEffect(() => {
       const isFirstCompletion = !initialData?.practitioner_info;
       const token = localStorage.getItem('authToken');
       const formData = new FormData();
+
+      const isSiretValid = await handleVerifySiret();
+      if (!isSiretValid) {
+        setSiretError('SIRET invalide. Veuillez corriger le numéro.');
+        setIsSubmitting(false);
+        return;
+      }
   
       // Ajout de isCompletion dans formData
       formData.append('isCompletion', isFirstCompletion.toString());
@@ -1201,7 +1204,6 @@ const validateDate = () => {
         <table className="min-w-full table-auto border-collapse">
           <tbody>
             <tr className="border-b">
-              <th className="text-left px-2 py-1 font-medium">Nom</th>
               <td className="px-2 py-1 break-all">
                 {siretDetails.enseigne_1 || siretDetails.denomination_usuelle}
               </td>
