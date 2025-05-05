@@ -25,6 +25,7 @@ export const saveTroubleApproche = async (requestData) => {
             'Erreur lors de la sauvegarde des approches:',
             error.response ? error.response.data : error.message
         );
+        throw error;
     }
 }
 
@@ -60,3 +61,25 @@ export const getAllPraticienApproches = async () => {
     });
     return response.data.data;
 }
+
+export const updateTroubleApproche = async (troubleData) => {
+    const token = localStorage.getItem('authToken');
+    const api = axios.create({
+        baseURL: API_URL,
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    });
+    
+    try {
+        const response = await api.post('/praticien/update-approaches', troubleData);
+        console.log('Approches sauvegardée:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error(
+            'Erreur lors de la sauvegarde des approches:',
+            error.response ? error.response.data : error.message
+        );
+    }
+  };

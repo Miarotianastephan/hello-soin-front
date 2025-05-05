@@ -5,8 +5,11 @@ import { ArrowLeftCircle, PlusCircle, Save, XCircle } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   fetchTroubleSolutions, 
-  saveTroubleApproche 
+  saveTroubleApproche,
+  updateTroubleApproche
 } from '@/services/trouble-solutions-services';
+import { TailSpin } from 'react-loader-spinner';
+import { addToast } from "@heroui/react";
 
 const TroubleConfig = (props) => {
   const queryClient = useQueryClient();
@@ -20,12 +23,12 @@ const TroubleConfig = (props) => {
   const [addSolutionChecked, setAddSolutionChecked] = useState(false);
   const [newSolution, setNewSolution] = useState('');
   const dropdownRef = useRef(null);
+  const [isUpdate, setIsUpdate] = useState(props.isUpdate || false);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['trouble-solutions'],
     queryFn: fetchTroubleSolutions,
   });
-
   useEffect(() => {
     if (data) {
       console.log(data);
@@ -44,6 +47,7 @@ const TroubleConfig = (props) => {
 
   // Remplacer navigate par la fonction onBack passée en props
   const handleBack = () => {
+    setIsUpdate(false)
     props.onBack();
   };
 
@@ -64,7 +68,7 @@ const TroubleConfig = (props) => {
 
   const handleDeleteSolution = (solutionToDelete) => {
     if (!selectedTrouble) return;
-    const updatedSolutions = selectedTrouble.solutions.filter(sol => sol.text !== solutionToDelete.text);
+    const updatedSolutions = selectedTrouble.solutions.filter(sol => sol.name !== solutionToDelete.name);
     const updatedTroubles = troubles.map(trouble => {
       if (trouble.id === selectedTrouble.id) {
         return { ...trouble, solutions: updatedSolutions };
@@ -77,7 +81,7 @@ const TroubleConfig = (props) => {
 
   const handleAddSolution = () => {
     if (!selectedTrouble || newSolution.trim() === '') return;
-    const newSol = { text: newSolution.trim(), specialty: newSolutionSpecialty };
+    const newSol = { name: newSolution.trim(), specialty: newSolutionSpecialty };
     const updatedSolutions = [...selectedTrouble.solutions, newSol];
     const updatedTroubles = troubles.map(trouble => {
       if (trouble.id === selectedTrouble.id) {
@@ -97,19 +101,31 @@ const TroubleConfig = (props) => {
       onSuccess: (data) => {
         console.log("Approches ajoutées avec succès :", data);
         queryClient.invalidateQueries(['praticien-approches']);
+        addToast({
+          title: 'Ajout réussie de l’approche.',
+          color: 'success',
+          duration: 3000
+        });
         props.onBack();
       },
       onError: (error) => {
         console.error("Erreur pendant l'ajout :", error);
+        addToast({
+          title: `Erreur lors d'insertion: ${error.response.data.error}`,
+          color: 'danger',
+          duration: 5000
+        });
       },
     });
   };
   const { mutate: saveApproche, isSaveLoading, isSaveSuccess, isSaveError, saveError } = useSaveTroubleApproche();
-
   const handleSubmitPraticienApproches = () => {
-    alert('Test');
     console.log(selectedTrouble);
     saveApproche(selectedTrouble);
+  }
+
+  const handleUpdatePraticienApproches = () => {
+    alert("modification en cours")
   }
 
   const getSpecialtyName = (id) => {
@@ -117,7 +133,14 @@ const TroubleConfig = (props) => {
     return spec ? spec.name : '';
   };
   
-  if (isLoading) return <div>Chargement...</div>;
+  if (isLoading) return<div className="p-4 text-center w-full flex items-center justify-center h-full"><TailSpin
+      height="40"
+      width="40"
+      color="#4fa94d"
+      ariaLabel="tail-spin-loading"
+      radius="1"
+      visible={true}
+  /></div>;
   if (isError) return <div>Erreur : {error.message}</div>;
 
   return (
@@ -222,7 +245,7 @@ const TroubleConfig = (props) => {
                   {selectedTrouble.solutions.map((solution, index) => (
                     <li key={index} className="flex text-white font-bold items-center justify-between p-4 my-1 border rounded bg-[#5DA781]">
                       <span>
-                        {solution.text} 
+                        {solution.name}
                         <span className="ml-2 text-xs font-normal">
                           ({getSpecialtyName(solution.specialty)})
                         </span>
@@ -246,11 +269,11 @@ const TroubleConfig = (props) => {
         </div>
       </div>
       <Button 
-        onClick={handleSubmitPraticienApproches}
+        onClick={ isUpdate ?  handleUpdatePraticienApproches : handleSubmitPraticienApproches}
         className="mt-6 ml-4 text-xs font-bold text-white rounded shadow-none"
       >
-        <Save size={15}/> Enregistrer
-      </Button> 
+        <Save size={15}/> {isUpdate ? "Modifier" : "Enregistrer"}
+      </Button>
     </div>
   );
 };
