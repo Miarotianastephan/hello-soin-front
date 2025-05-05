@@ -4,6 +4,7 @@ import { Edit, Trash, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { getAllPraticienApproches } from '@/services/trouble-solutions-services';
+import { TailSpin } from 'react-loader-spinner';
 
 // Fonction pour regrouper les solutions par spécialité
 const groupSolutionsBySpecialite = (solutions) => {
@@ -99,13 +100,13 @@ const TableList = (props) => {
                     {trouble.tarif}
                   </td>
                   <td rowSpan={totalRowsTrouble} className="px-4 py-2 align-top border whitespace-nowrap">
-                    <button 
+                    {/* <button 
                       onClick={() => props.onEditTrouble(trouble)}
                       className="mr-2 text-blue-600 hover:text-blue-900" 
                       title="Modifier"
                     >
                       <Edit className="inline-block w-5 h-5" size={15} />
-                    </button>
+                    </button> */}
                     <button 
                       onClick={() => props.onDeleteTrouble(trouble)}
                       className="text-red-600 hover:text-red-900" 
@@ -129,6 +130,15 @@ const TableList = (props) => {
   const handleDeleteTrouble = () => {
     alert('Test');
   }
+
+  if (isLoadingSpecialities) return<div className="p-4 text-center w-full flex items-center justify-center h-full"><TailSpin
+      height="40"
+      width="40"
+      color="#4fa94d"
+      ariaLabel="tail-spin-loading"
+      radius="1"
+      visible={true}
+  /></div>;
 
   return (
     <>
