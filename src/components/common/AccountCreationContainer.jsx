@@ -48,7 +48,8 @@ const AccountCreationContainer = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             mail: formData.mail, 
-            numero: formData.phone_number 
+            numero: formData.phone_number,
+            name : formData.prenom 
           })
         }, { mode: 'no-cors' }
       );

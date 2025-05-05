@@ -12,6 +12,8 @@ import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import logo from "../../assets/hs2.svg";
 import FormProgressBar from "./FormProgressBar";
 import { isValidPhoneNumber } from 'libphonenumber-js';
+import axios from "axios";
+import { API_URL } from "@/services/api";
 
 
 // Tableau des étapes (deux étapes)
@@ -42,15 +44,26 @@ const SignInForm = ({ onAccountCreated, isLoading}) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConf, setShowPasswordConf] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [emailError, setEmailError] = useState("");
 
-  // Fonction de formatage à passer à react-phone-input-2
-function formatPhoneNumber(value, countryData) {
-  // value est la chaîne sans "+" et sans format
-  const number = parsePhoneNumberFromString(`+${value}`, countryData.countryCode.toUpperCase());
-  return number
-    ? number.formatNational()       // format national (ex. "01 23 45 67 89")
-    : value;
-}
+
+// retourne true si le mail existe déjà
+const checkEmailExists = async (mail) => {
+  setCheckingEmail(true);
+  setEmailError("");
+  try {
+    const res = await axios.post(`${API_URL}/auth/verify-email`, { mail });
+    return res.data.exists;
+  } catch (err) {
+    console.error("Erreur vérification mail", err);
+    setEmailError("Impossible de vérifier l’adresse. Réessayez.");
+    return true; // on bloque la suite
+  } finally {
+    setCheckingEmail(false);
+  }
+};
+
 
 const handlePhoneChange = (phone, country, onChange) => {
   // Récupère le numéro complet avec l'indicatif international
@@ -139,17 +152,28 @@ const generatePassword = () => {
     }
   };
 
-    const nextStep = async () => {
+  const nextStep = async () => {
     if (step === 1) {
-      const isValid = await trigger(requiredFieldsStep1);
-      if (isValid) setStep(2);
-    } else if (step === 2) {
-      const isValid = await trigger(["new_mot_de_passe", "confirm_mot_de_passe"]);
-      if (isValid) {
-        handleSubmit(onSubmit)(); // Déclenche la soumission finale
+      const valid = await trigger(requiredFieldsStep1);
+      if (!valid) return;
+  
+      // nouvelle vérification avant de passer à l’étape 2
+      const mail = watch("mail");
+       const exists = await checkEmailExists(mail);
+       if (exists) {
+         setEmailError("Cet email est déjà utilisé.");
+         return;
       }
+  
+      setEmailError("");
+      setStep(2);
+  
+    } else {
+      const valid = await trigger([...requiredFieldsStep2, "confirm_mot_de_passe"]);
+      if (valid) handleSubmit(onSubmit)();
     }
   };
+  
 
   const prevStep = () => setStep((prev) => prev - 1);
 
@@ -250,16 +274,28 @@ const generatePassword = () => {
                     </Label>
                     <Input
                       {...register("mail", {
-                        required: "Vous devez remplir ce champ",
+                        required: "Vous devez renseigner votre email.",
                         pattern: {
-                          message: "Veuillez entrer un email valide",
+                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                          message: "Veuillez entrer un email au format exemple@exemple.com",
                         },
-                        maxLength: { value: 254, message: "L'email est trop long" },
+                        // Validation asynchrone d’existence
+                        validate: async (value) => {
+                          setEmailError("");
+                          setCheckingEmail(true);
+                          const exists = await checkEmailExists(value);
+                          setCheckingEmail(false);
+                          return !exists || "Cet email est déjà utilisé.";
+                        },
                       })}
                       placeholder="Entrer votre adresse email."
                       className="text-xs placeholder:text-xs"
                     />
-                    {errors.mail && <p className="text-red-500 text-xs mt-1">{errors.mail.message}</p>}
+
+                      {errors.mail && <p className="text-red-500 text-xs mt-1">{errors.mail.message}</p>}
+                      {checkingEmail && <p className="text-gray-500 text-xs mt-1">Vérification en cours…</p>}
+                      {emailError && !checkingEmail && <p className="text-red-500 text-xs mt-1">{emailError}</p>}
+
                   </div>
                   <div className="flex flex-col">
                     <Label className="text-xs text-gray-700 mb-1">
@@ -348,7 +384,7 @@ const generatePassword = () => {
   {...register("code_postale", { 
     required: "Veuillez renseigner votre code postal",
     pattern: {
-      value: /^\d{5}$/,
+      value: /^\d{0,5}$/,
       message: "Le code postal doit contenir exactement 5 chiffres"
     }
   })}
