@@ -124,8 +124,32 @@ const TroubleConfig = (props) => {
     saveApproche(selectedTrouble);
   }
 
+  const useUpdateTroubleApproche = () => {
+    return useMutation({
+      mutationFn: updateTroubleApproche,
+      onSuccess: (data) => {
+        console.log("Approches ajoutées avec succès :", data);
+        queryClient.invalidateQueries(['praticien-approches']);
+        addToast({
+          title: 'Mise a jour réussie de l’approche.',
+          color: 'success',
+          duration: 3000
+        });
+        props.onBack();
+      },
+      onError: (error) => {
+        console.error("Erreur pendant la mise a jour :", error);
+        addToast({
+          title: error.message,
+          color: 'danger',
+          duration: 5000
+        });
+      },
+    });
+  };
+  const { mutate: updateApproche, isUpdateLoading, isUpdateSuccess, isUpdateError, UpdateError } = useUpdateTroubleApproche();
   const handleUpdatePraticienApproches = () => {
-    alert("modification en cours")
+    updateApproche(selectedTrouble);
   }
 
   const getSpecialtyName = (id) => {
@@ -146,7 +170,10 @@ const TroubleConfig = (props) => {
   return (
     <div className='mx-4 mb-9'>
       <div className='flex items-center justify-between'>
-        <span className='text-sm font-semibold'>Troubles et solutions</span>
+        <span className='text-sm font-semibold'>
+          Troubles et solutions : 
+          <span className='text-gray-500 text-small'>{isUpdate ? " Metter à jour vos approches" : " Ajouter vos approches"}</span>
+        </span>
         <Button 
           onClick={handleBack} 
           className="text-xs font-semibold text-gray-700 bg-gray-200 rounded shadow-none hover:bg-gray-400 hover:text-gray-700"
@@ -261,9 +288,17 @@ const TroubleConfig = (props) => {
                 </ul>
               </>
             ) : (
-              <p className='text-gray-500'>
-                Veuillez sélectionner un trouble pour voir et modifier ses solutions.
-              </p>
+              isUpdate ? (
+                <p className='text-helloSoin'>
+                  Veuillez sélectionner un trouble pour voir et modifier ses solutions.<br/>
+                  <strong>Vous êtes en modes edition des solutions</strong>
+                </p>
+              ) : (
+                <p className='text-gray-500'>
+                  Veuillez sélectionner un trouble pour voir et modifier ses solutions.
+                </p>
+              )
+
             )}
           </div>
         </div>

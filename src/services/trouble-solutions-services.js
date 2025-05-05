@@ -73,13 +73,16 @@ export const updateTroubleApproche = async (troubleData) => {
     });
     
     try {
+        if(!troubleData){ throw new Error("Aucune approche n'a été mise à jour"); }
+        
         const response = await api.post('/praticien/update-approaches', troubleData);
-        console.log('Approches sauvegardée:', response.data);
+        console.log('Approches mis à jour:', response.data);
         return response.data;
     } catch (error) {
         console.error(
-            'Erreur lors de la sauvegarde des approches:',
+            'Erreur lors de la mise a jour des approches:',
             error.response ? error.response.data : error.message
         );
+        throw error;
     }
-  };
+};

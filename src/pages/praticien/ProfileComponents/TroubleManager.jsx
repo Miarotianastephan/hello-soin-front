@@ -73,7 +73,7 @@ const TroubleManager = () => {
   // Update
   // Callback pour éditer un trouble
   const handleEditTrouble = (trouble) => {
-    setSelectedTrouble(trouble);
+    setSelectedTrouble(null);
     setIsUpdate(true);
     setCurrentView('config');
   };
