@@ -5,49 +5,6 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { getAllPraticienApproches } from '@/services/trouble-solutions-services';
 
-// Exemple de données imbriquées
-const data = [
-  {
-    id: 1,
-    categorie: "Catégorie A",
-    troubles: [
-      {
-        id: 1,
-        name: "Trouble 1",
-        duree: "2h",
-        tarif: "50€",
-        solutions: [
-          { id: 1, name: "Solution 1", specialite: "Spécialité B" },
-          { id: 2, name: "Solution 2", specialite: "Spécialité A" },
-          { id: 3, name: "Solution 3", specialite: "Spécialité B" },
-        ],
-      },
-      {
-        id: 2,
-        name: "Trouble 2",
-        duree: "1h30",
-        tarif: "40€",
-        solutions: [
-          { id: 3, name: "Solution 3", specialite: "Spécialité B" },
-          { id: 4, name: "Solution 4", specialite: "Spécialité A" },
-          { id: 1, name: "Solution 1", specialite: "Spécialité B" },
-        ],
-      },
-      {
-        id: 3,
-        name: "Trouble 3",
-        duree: "3h",
-        tarif: "75€",
-        solutions: [
-          { id: 5, name: "Solution 5", specialite: "Spécialité C" },
-          { id: 6, name: "Solution 6", specialite: "Spécialité C" },
-          { id: 2, name: "Solution 2", specialite: "Spécialité C" },
-        ],
-      },
-    ],
-  },
-];
-
 // Fonction pour regrouper les solutions par spécialité
 const groupSolutionsBySpecialite = (solutions) => {
   const groupsObj = solutions.reduce((acc, solution) => {
@@ -149,7 +106,11 @@ const TableList = (props) => {
                     >
                       <Edit className="inline-block w-5 h-5" size={15} />
                     </button>
-                    <button className="text-red-600 hover:text-red-900" title="Supprimer">
+                    <button 
+                      onClick={() => props.onDeleteTrouble(trouble)}
+                      className="text-red-600 hover:text-red-900" 
+                      title="Supprimer"
+                    >
                       <Trash className="inline-block w-5 h-5" size={15} />
                     </button>
                   </td>
@@ -245,7 +206,6 @@ const TableList = (props) => {
                         <Edit className="inline-block w-5 h-5" size={15} />
                       </button>
                       <button
-                          onClick={() => props.onDeleteTrouble(trouble)}
                           className="text-red-600 hover:text-red-900"  
                           title="Supprimer"
                       >
