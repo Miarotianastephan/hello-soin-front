@@ -12,12 +12,6 @@ const TroubleManager = () => {
   // On peut également passer le trouble sélectionné en cas d'édition
   const [selectedTrouble, setSelectedTrouble] = useState(null);
 
-  // Callback pour éditer un trouble
-  const handleEditTrouble = (trouble) => {
-    setSelectedTrouble(trouble);
-    setCurrentView('config');
-  };
-
   // Callback pour ajouter un trouble
   const handleAddTrouble = () => {
     setSelectedTrouble(null);
@@ -29,6 +23,7 @@ const TroubleManager = () => {
     setCurrentView('table');
   };
 
+  // Delete
   const useDeleteTroubleApproche = () => {
     return useMutation({
       mutationFn: deleteTroubleApproche,
@@ -49,6 +44,14 @@ const TroubleManager = () => {
     setSelectedTrouble(null);
   };
 
+  // Update
+  
+  // Callback pour éditer un trouble
+  const handleEditTrouble = (trouble) => {
+    setSelectedTrouble(trouble);
+    setCurrentView('config');
+  };
+
   return (
     <div>
       {currentView === 'table' && (
@@ -61,7 +64,7 @@ const TroubleManager = () => {
       {currentView === 'config' && (
         <TroubleConfig 
           onBack={handleBack} 
-          initialTrouble={selectedTrouble} 
+          initialTrouble={selectedTrouble}
         />
       )}
     </div>

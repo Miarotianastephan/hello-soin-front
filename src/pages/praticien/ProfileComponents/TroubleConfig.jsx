@@ -25,7 +25,6 @@ const TroubleConfig = (props) => {
     queryKey: ['trouble-solutions'],
     queryFn: fetchTroubleSolutions,
   });
-
   useEffect(() => {
     if (data) {
       console.log(data);
@@ -105,9 +104,7 @@ const TroubleConfig = (props) => {
     });
   };
   const { mutate: saveApproche, isSaveLoading, isSaveSuccess, isSaveError, saveError } = useSaveTroubleApproche();
-
   const handleSubmitPraticienApproches = () => {
-    alert('Test');
     console.log(selectedTrouble);
     saveApproche(selectedTrouble);
   }
@@ -222,7 +219,7 @@ const TroubleConfig = (props) => {
                   {selectedTrouble.solutions.map((solution, index) => (
                     <li key={index} className="flex text-white font-bold items-center justify-between p-4 my-1 border rounded bg-[#5DA781]">
                       <span>
-                        {solution.text} 
+                        {solution.text}
                         <span className="ml-2 text-xs font-normal">
                           ({getSpecialtyName(solution.specialty)})
                         </span>
