@@ -22,6 +22,26 @@ const fetchFormations = async () => {
   return response.json();
 };
 
+// Regroupe les formations par année, diplôme et établissement
+const groupFormations = (list) => {
+  const map = new Map();
+  list.forEach(f => {
+    const year = new Date(f.obtained_at).getFullYear();
+    const key = `${year}|${f.certification_name}|${f.institution_name}`;
+    if (!map.has(key)) {
+      map.set(key, {
+        key,
+        year,
+        diplome: f.certification_name,
+        etablissement: f.institution_name,
+        entries: []
+      });
+    }
+    map.get(key).entries.push(f);
+  });
+  return Array.from(map.values());
+};
+
 
 const Dropdown = ({ options, selected, onChange, placeholder }) => (
   <Listbox value={selected} onChange={onChange}>
@@ -153,30 +173,7 @@ const Formation = () => {
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id_formation) => {
-      const token = localStorage.getItem('authToken');
   
-      const response = await axios.post(`${API_URL}/praticien/delete-formation`, 
-        { id_formation },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return response.data;
-    },
-  
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['formations'] });
-    },
-  
-    onError: (error) => {
-      console.error("Erreur lors de la suppression :", error);
-      alert("Une erreur est survenue lors de la suppression.");
-    },
-  });
 
   // --- Experience ---
   useEffect(() => {
@@ -222,6 +219,26 @@ const Formation = () => {
     }
   };
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      const token = localStorage.getItem('authToken');
+      const response = await axios.post(
+        `${API_URL}/praticien/delete-formation`,
+        { id_formation: id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['formations']);
+    }
+  });
+
+  const handleDeleteGroup = (entries) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer toutes ces formations ?')) return;
+    entries.forEach(f => deleteMutation.mutate(f.id_formation));
+  };
+
   const handleAdd = () => {
     setEditingFormation(null);
     setIsEditing(true);
@@ -259,6 +276,8 @@ const Formation = () => {
   
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1985 + 1 }, (_, index) => currentYear - index);
+    // ------- Desktop table grouping -------
+    const grouped = groupFormations(formations.data || []);
 
   if (isLoading) return<div className="p-4 text-center w-full flex items-center justify-center h-full"><TailSpin
       height="40"
@@ -355,44 +374,57 @@ const Formation = () => {
         </div>
 
           {/* Affichage pour grand écran : Tableau classique */}
-          <div className="hidden sm:block p-4 bg-white border rounded">
-            <h2 className="mb-4 text-sm font-semibold text-gray-800">Formation</h2>
-            <table className="min-w-full text-xs text-left">
-              <thead>
-                <tr className="border-b-2">
-                  <th className="px-4 py-2">Année</th>
-                  <th className="px-4 py-2">Diplôme</th>
-                  <th className="px-4 py-2">Spécialité</th>
-                  <th className="px-4 py-2">Établissement</th>
-                  <th className="px-4 py-2">Action</th>
-                </tr>
-              </thead>
-                <tbody className="border-b-2">
-                {formations.data?.map((formation) => (
-                  <tr key={formation.id_formation} className="hover:bg-gray-50">
-                    <td className="px-4 py-2">{new Date(formation.obtained_at).getFullYear()}</td>
-                    <td className="px-4 py-2">{formation.certification_name}</td>
-                    <td className="px-4 py-2">
-                      <SpecialityDesignation id={formation.formation_specialities?.id_pract_speciality} />
-                    </td>
-                    <td className="px-4 py-2">{formation.institution_name}</td>
-                    <td className="flex items-center space-x-2 px-4 py-2">
-                      <button onClick={() => handleDelete(formation.id_formation)} className="text-red-500 hover:text-red-700">
-                        <Trash size={16} />
-                      </button>
-                    </td>
+           {/* Table Desktop */}
+           <div className="hidden sm:block p-4 bg-white border rounded">
+              <h2 className="mb-4 text-sm font-semibold text-gray-800 text-left">Formation</h2>
+              <table className="min-w-full text-xs">
+                <thead>
+                  <tr className="text-left border-2">
+                    <th className="px-4 py-2">Année</th>
+                    <th className="px-4 py-2">Diplôme</th>
+                    <th className="px-4 py-2">Spécialité</th>
+                    <th className="px-4 py-2">Établissement</th>
+                    <th className="px-4 py-2">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <button 
-              onClick={handleAdd} 
-              className="mt-4 inline-flex items-center px-4 py-2 text-xs font-bold text-[#0f2b3d] border-2 border-[#0f2b3d] rounded-sm hover:bg-[#14384f] hover:text-white"
-            >
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Ajouter plus de formation
-            </button>
-          </div>
+                </thead>
+                <tbody>
+                  {grouped.map(group => (
+                    group.entries.map((f, idx) => (
+                      <tr key={f.id_formation} className="border-b border-l border-r">
+                        {idx === 0 && (
+                          <td rowSpan={group.entries.length} className="px-4 py-2 align-top text-left">{group.year}</td>
+                        )}
+                        {idx === 0 && (
+                          <td rowSpan={group.entries.length} className="px-4 py-2 align-top text-left">{group.diplome}</td>
+                        )}
+                        <td className="px-4 py-2 text-left border-l border-r">
+                          <SpecialityDesignation id={f.formation_specialities.id_pract_speciality} />
+                        </td>
+                        {idx === 0 && (
+                          <td rowSpan={group.entries.length} className="px-4 py-2 align-top text-left">{group.etablissement}</td>
+                        )}
+                        {idx === 0 && (
+                          <td rowSpan={group.entries.length} className="px-4 py-2 align-top text-left">
+                            <button
+                              onClick={() => handleDeleteGroup(group.entries)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash size={16} />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  ))}
+                </tbody>
+              </table>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="mt-4 text-xs font-bold text-[#0f2b3d] border-2 border-[#0f2b3d] rounded-sm px-4 py-2 hover:bg-[#14384f] hover:text-white"
+              >
+                <PlusCircle className="w-4 h-4 mr-2 inline-block" />Ajouter une formation
+              </button>
+            </div>
 
           {/* Affichage pour mobile : Système dropdown/accordéon */}
           <div className="block sm:hidden">
@@ -413,9 +445,9 @@ const Formation = () => {
             </div>
             {expandedFormationIds.includes(formation.id_formation) && (
               <div className="p-2 text-xs">
-                <div className="mb-1">
-                  <span className="font-semibold text-[#5DA781]">Spécialité :</span>{' '}
-                  <SpecialityDesignation id={formation.formation_specialities?.id_pract_speciality} />
+                <div className="mb-1 ">
+                  <span className="font-semibold text-[#5DA781] ">Spécialité :</span>{' '}
+                  <SpecialityDesignation className="border" id={formation.formation_specialities?.id_pract_speciality} />
                 </div>
                 <div className="mb-1">
                   <span className="font-semibold text-[#5DA781]">Établissement :</span> {formation.institution_name}

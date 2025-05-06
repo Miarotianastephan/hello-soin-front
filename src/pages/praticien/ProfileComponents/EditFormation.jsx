@@ -1,45 +1,154 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeftCircle, Save, ChevronDown, Check } from 'lucide-react';
+import { ArrowLeftCircle, Save, ChevronDown, Check, Loader2, X } from 'lucide-react';
 import { Listbox, Transition } from '@headlessui/react';
 import { findAllSpeciality } from '@/services/speciality-services';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { API_URL } from '@/services/api';
-// Dropdown générique
-const Dropdown = ({ options, selected, onChange, placeholder }) => (
-  <Listbox value={selected} onChange={onChange}>
-    <div className="relative bg-white ">
-      <Listbox.Button className="w-full text-left px-3 py-2 text-xs border rounded-md flex justify-between items-center focus:outline-none focus:ring-1 focus:ring-green-500">
-        <span>{selected ? options.find(o => o.value === selected)?.label : placeholder}</span>
-        <ChevronDown className="w-4 h-4 text-gray-500" />
-      </Listbox.Button>
-      <Transition
-        as={Fragment}
-        leave="transition ease-in duration-100"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-      >
-        <Listbox.Options className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md max-h-48 overflow-auto text-xs">
-          {options.map(option => (
-            <Listbox.Option
-              key={option.value}
-              value={option.value}
-              className={({ active }) => `cursor-pointer select-none px-3 py-2 ${active ? 'bg-gray-100' : ''}`}
-            >
-              {({ selected }) => (
-                <div className="flex items-center justify-between">
-                  <span>{option.label}</span>
-                  {selected && <Check className="w-4 h-4 text-green-500" />}
-                </div>
-              )}
-            </Listbox.Option>
-          ))}
-        </Listbox.Options>
-      </Transition>
-    </div>
-  </Listbox>
-);
 
+// Nouveau composant Dropdown modernisé
+const Dropdown = ({ options, selected, onChange, placeholder }) => {
+  const [search, setSearch] = useState('');
+
+  const filteredOptions = options.filter(option => 
+    option.label.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <Listbox value={selected} onChange={onChange}>
+      <div className="relative bg-white">
+        <Listbox.Button className="w-full text-left px-3 py-2 text-xs border rounded-md flex justify-between items-center focus:outline-none focus:ring-1 focus:ring-green-500 hover:bg-gray-50 transition-colors">
+          <span className="truncate">
+            {selected || placeholder}
+          </span>
+          <ChevronDown className="w-4 h-4 text-gray-500 ml-2 shrink-0" />
+        </Listbox.Button>
+        
+        <Transition
+          as={Fragment}
+          leave="transition ease-in duration-100"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <Listbox.Options className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md max-h-48 overflow-auto text-xs shadow-lg">
+            <div className="sticky top-0 p-2 bg-white border-b">
+              <input
+                type="text"
+                placeholder="Rechercher une année..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full px-2 py-1 text-xs border rounded focus:ring-1 focus:ring-green-500"
+              />
+            </div>
+            {filteredOptions.map(option => (
+              <Listbox.Option
+                key={option.value}
+                value={option.value}
+                className={({ active }) => 
+                  `cursor-pointer select-none px-3 py-2 ${active ? 'bg-green-50' : ''}`
+                }
+              >
+                {({ selected }) => (
+                  <div className="flex items-center justify-between">
+                    <span>{option.label}</span>
+                    {selected && <Check className="w-4 h-4 text-green-500" />}
+                  </div>
+                )}
+              </Listbox.Option>
+            ))}
+          </Listbox.Options>
+        </Transition>
+      </div>
+    </Listbox>
+  );
+};
+
+const MultiSelectDropdown = ({ options, selected, onChange, placeholder }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const filteredOptions = options.filter(option =>
+    option.label.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleRemoveTag = (value, e) => {
+    e.stopPropagation();
+    onChange(selected.filter(v => v !== value));
+  };
+
+  return (
+    <Listbox value={selected} onChange={onChange} multiple>
+      <div className="relative bg-white">
+        <Listbox.Button className="w-full text-left px-3 py-2 text-xs border rounded-md flex justify-between items-center focus:outline-none focus:ring-1 focus:ring-green-500 min-h-[38px]">
+          <div className="flex flex-wrap gap-1 flex-1 overflow-hidden">
+            {selected.length > 0 ? (
+              selected.map((value) => {
+                const option = options.find(o => o.value === value);
+                return (
+                  <span
+                    key={value}
+                    className="inline-flex items-center px-2 py-1 bg-green-100 rounded-full text-xs text-green-800"
+                  >
+                    {option.label}
+                    <button
+                      type="button"
+                      onClick={(e) => handleRemoveTag(value, e)}
+                      className="ml-1 text-green-600 hover:text-green-800 focus:outline-none"
+                    >
+                      ×
+                    </button>
+                  </span>
+                );
+              })
+            ) : (
+              <span className="text-gray-500">{placeholder}</span>
+            )}
+          </div>
+          <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
+        </Listbox.Button>
+        
+        <Transition
+          as={Fragment}
+          leave="transition ease-in duration-100"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <Listbox.Options className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md max-h-48 overflow-auto text-xs shadow-lg">
+            <div className="sticky top-0 bg-white p-2 border-b border-gray-300">
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-green-500"
+                autoFocus
+              />
+            </div>
+            {filteredOptions.map(option => (
+              <Listbox.Option
+                key={option.value}
+                value={option.value}
+                className={({ active }) => `cursor-pointer select-none px-3 py-2 ${active ? 'bg-gray-50' : ''}`}
+              >
+                {({ selected }) => (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      readOnly
+                      className="w-4 h-4 mr-2 text-green-500 border-gray-300 rounded focus:ring-green-500"
+                    />
+                    <span className="whitespace-nowrap">{option.label}</span>
+                  </div>
+                )}
+              </Listbox.Option>
+            ))}
+          </Listbox.Options>
+        </Transition>
+      </div>
+    </Listbox>
+  );
+};
 // Liste des établissements suggérés
 const SUGGESTED_ESTABLISHMENTS = [
   "IMTC – Institut de Médecine Traditionnelle Chinoise",
@@ -136,30 +245,18 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
   const [newSpeciality, setNewSpeciality] = useState('');
   const [isAddingSpeciality, setIsAddingSpeciality] = useState(false);
   const [newSpecialityError, setNewSpecialityError] = useState('');
+  const [specialites, setSpecialites] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // les specialites
-  const { data: specialities = [] } = useQuery({
+  // Chargement des spécialités existantes
+  const { data: allSpecs = [] } = useQuery({
     queryKey: ['specialities'],
     queryFn: findAllSpeciality,
     staleTime: 600000,
   });
 
-  const specialOptions = specialities.map(spec => ({ value: spec.id_speciality, label: spec.designation }));
-
-
-  useEffect(() => {
-    if (initialFormation) {
-      setAnnee(initialFormation.obtained_at || '');
-      setDiplome(initialFormation.certification_name || '');
-      setEtablissement(initialFormation.institution_name || '');
-      setSpecialite(
-        initialFormation.formation_specialities[0]?.pract_speciality.Speciality.id_speciality || ''
-      );
-    }
-  }, [initialFormation]);
-
-   // Fonction pour ajouter une nouvelle spécialité
-   const handleAddSpeciality = async () => {
+  // Fonction pour ajouter une nouvelle spécialité
+  const handleAddSpeciality = async () => {
     if (!newSpeciality.trim()) {
       setNewSpecialityError('Veuillez entrer le nom de la spécialité.');
       return;
@@ -195,6 +292,58 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
   };
 
 
+  const specOptions = allSpecs.map(s => ({ value: s.id_speciality, label: s.designation }));
+
+  // les specialites
+  const { data: specialities = [] } = useQuery({
+    queryKey: ['specialities'],
+    queryFn: findAllSpeciality,
+    staleTime: 600000,
+  });
+
+  const specialOptions = specialities.map(spec => ({ value: spec.id_speciality, label: spec.designation }));
+
+
+  useEffect(() => {
+    if (initialFormation) {
+      setAnnee(initialFormation.obtained_at || '');
+      setDiplome(initialFormation.certification_name || '');
+      setEtablissement(initialFormation.institution_name || '');
+      const ids = initialFormation.formation_specialities
+        ?.map(f => f.pract_speciality.Speciality.id_speciality) || [];
+      setSpecialites(ids);
+    }
+  }, [initialFormation]);
+
+  const validate = () => {
+    const newErrors = {};
+    if (!annee) newErrors.annee = "L'année est requise.";
+    if (!diplome) newErrors.diplome = "Le diplôme est requis.";
+    if (specialites.length === 0) newErrors.specialites = "La spécialité est requise.";
+    if (!etablissement) newErrors.etablissement = "L'établissement est requis.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = () => {
+    if (!validate()) return;
+    if (!validate() || isSaving) return;
+    setIsSaving(true);
+    const idFormation = initialFormation?.id_formation || null;
+
+    // Pour chaque spécialité sélectionnée, on envoie une requête
+    specialites.forEach(specId => {
+      const formData = new FormData();
+      formData.append("obtained_at", annee);
+      formData.append("certification_name", diplome);
+      formData.append("id_pract_speciality", specId);
+      formData.append("institution_name", etablissement);
+      files.forEach(file => formData.append("support_docs", file));
+      onSave(formData, idFormation);
+    });
+    setIsSaving(false);
+  };
+
   // Gestion des suggestions pour l'établissement
   const handleEtablissementChange = (e) => {
     const value = e.target.value;
@@ -208,6 +357,16 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
       setEtablissementSuggestions([]);
     }
   };
+
+  // Dans le composant EditFormation
+const handleFileChange = (e) => {
+  const newFiles = Array.from(e.target.files);
+  setFiles(prev => [...prev, ...newFiles]);
+};
+
+const handleRemoveFile = (indexToRemove) => {
+  setFiles(files.filter((_, index) => index !== indexToRemove));
+};
 
   // Gestion des suggestions pour la spécialité
   const handleSpecialiteChange = (e) => {
@@ -235,28 +394,7 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
     setSpecialiteSuggestions([]);
   };
 
-  const validate = () => {
-    const newErrors = {};
-    if (!annee) newErrors.annee = "L'année est requise.";
-    if (!diplome) newErrors.diplome = "Le diplôme est requis.";
-    if (!specialite) newErrors.specialite = "La spécialité est requise.";
-    if (!etablissement) newErrors.etablissement = "L'établissement est requis.";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSave = () => {
-    if (!validate()) return;
-    const formData = new FormData();
-    formData.append("obtained_at", annee);
-    formData.append("certification_name", diplome);
-    formData.append("id_pract_speciality", specialite);
-    formData.append("institution_name", etablissement);
-    files.forEach(file => formData.append("support_docs", file));
-    const id_formation = initialFormation?.id_formation || null;
-    onSave(formData, id_formation);
-  };
-
+  
   return (
     <div className="mb-4 mx-4">
       <div className="flex items-center justify-between">
@@ -349,12 +487,11 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
             )}
           </div>
         ) : (
-          <Dropdown
-            options={specialOptions}
-            selected={specialite}
-            onChange={setSpecialite}
-            placeholder="-- Choisir une spécialité --"
-            className=" text-gray-700"
+          <MultiSelectDropdown
+            options={specOptions}
+            selected={specialites}
+            onChange={setSpecialites}
+            placeholder="-- Choisir une ou plusieurs spécialités --"
           />
         )}
         {!isNewSpeciality && errors.specialite && (
@@ -397,14 +534,14 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
   </label>
 
   <div className="relative">
-    {/* Input transparent qui recouvre la div */}
-    <input
+  <input
       type="file"
       accept=".svg,.png,.jpg,.jpeg,.gif,.pdf"
       multiple
-      onChange={(e) => setFiles(Array.from(e.target.files))}
+      onChange={handleFileChange}
       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
     />
+
 
     {/* Zone visuelle cliquable */}
     <div className="flex flex-col items-center justify-center p-4 border-2 border-[#5DA781] border-dashed rounded-md w-full">
@@ -429,10 +566,35 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
   </div>
 
   {/* Affichage des fichiers sélectionnés */}
-  {files.length > 0 && (
-    <ul className="mt-2 text-xs text-gray-700 list-disc list-inside">
+   {/* Nouvel affichage des fichiers avec suppression */}
+   {files.length > 0 && (
+    <ul className="mt-2 text-xs text-gray-700 w-full sm:w-1/2">
       {files.map((file, index) => (
-        <li key={index}>{file.name}</li>
+        <li key={index} className="flex items-center justify-between p-2 hover:bg-gray-50">
+          <div className="flex items-center truncate">
+            <svg
+              className="w-4 h-4 mr-2 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <span className="truncate">{file.name}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleRemoveFile(index)}
+            className="text-red-500 hover:text-red-700 text-xl"
+          >
+            ×
+          </button>
+        </li>
       ))}
     </ul>
   )}
@@ -442,10 +604,23 @@ const EditFormation = ({ onBack, onSave, initialFormation }) => {
         <Button onClick={onBack} className="text-xs bg-red-700 rounded shadow-none">
           Annuler
         </Button>
-        <Button onClick={handleSave} className="text-xs rounded shadow-none">
-          <Save size={15} />
-          Enregistrer
-        </Button>
+  <Button 
+    onClick={handleSave} 
+    className="text-xs rounded shadow-none"
+    disabled={isSaving}
+  >
+    {isSaving ? (
+      <>
+        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        Enregistrement...
+      </>
+    ) : (
+      <>
+        <Save size={15} />
+        Enregistrer
+      </>
+    )}
+  </Button>
       </div>
     </div>
   );
