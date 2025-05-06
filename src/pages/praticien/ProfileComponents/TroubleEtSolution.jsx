@@ -76,7 +76,7 @@ const TableList = (props) => {
               )}
               {/* Colonne Trouble */}
               {!troubleRendered && (
-                <td rowSpan={totalRowsTrouble} className="px-4 py-2 align-top border whitespace-nowrap">
+                <td rowSpan={totalRowsTrouble} className="w-[200px] whitespace-normal px-4 py-2 border">
                   {trouble.name}
                 </td>
               )}
@@ -93,12 +93,7 @@ const TableList = (props) => {
               {/* Colonnes Durée, Tarif et Action (affichées une seule fois par Trouble) */}
               {!troubleRendered && solIndex === 0 && (
                 <>
-                  <td rowSpan={totalRowsTrouble} className="px-4 py-2 align-top border whitespace-nowrap">
-                    {trouble.duree}
-                  </td>
-                  <td rowSpan={totalRowsTrouble} className="px-4 py-2 align-top border whitespace-nowrap">
-                    {trouble.tarif}
-                  </td>
+                  
                   <td rowSpan={totalRowsTrouble} className="px-4 py-2 align-top border whitespace-nowrap">
                     <button 
                       onClick={() => props.onEditTrouble(trouble)}
@@ -140,20 +135,27 @@ const TableList = (props) => {
       visible={true}
   /></div>;
 
+  const handleEditTrouble = (trouble) => {
+    // Préparer les données complètes du trouble avec ses solutions
+    const fullTroubleData = {
+      ...trouble,
+      solutions: trouble.solutions // Conserver les solutions existantes
+    };
+    props.onEditTrouble(fullTroubleData);
+  };
+
   return (
     <>
       {/* Vue tableau pour grand écran */}
       <div className="hidden sm:block mb-4 overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200">
+        <table className="min-w-full table-fixed bg-white border border-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Catégorie</th>
-              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Trouble</th>
-              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Solution</th>
-              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Spécialité</th>
-              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Durée</th>
-              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Tarif</th>
-              <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase border-b">Action</th>
+              <th className="w-1/7 px-4 py-2 text-xs font-medium text-left border-b">Catégorie</th>
+              <th className="w-1/7 px-4 py-2 text-xs font-medium text-left border-b">Trouble</th>
+              <th className="w-1/7 px-4 py-2 text-xs font-medium text-left border-b">Solution</th>
+              <th className="w-1/7 px-4 py-2 text-xs font-medium text-left border-b">Spécialité</th>
+              <th className="w-1/7 px-4 py-2 text-xs font-medium text-left border-b">Action</th>
             </tr>
           </thead>
           <tbody className="text-xs">
@@ -208,13 +210,13 @@ const TableList = (props) => {
                       </div>
                     ))}
                     <div className="flex space-x-2 mt-2">
-                      <button 
-                        onClick={() => props.onEditTrouble(trouble)} 
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Modifier"
-                      >
-                        <Edit className="inline-block w-5 h-5" size={15} />
-                      </button>
+                    <button 
+  onClick={() => handleEditTrouble(trouble)} // Utiliser la nouvelle fonction
+  className="mr-2 text-blue-600 hover:text-blue-900" 
+  title="Modifier"
+>
+  <Edit className="inline-block w-5 h-5" size={15} />
+</button>
                       <button
                           className="text-red-600 hover:text-red-900"  
                           title="Supprimer"

@@ -6,6 +6,8 @@ import {
   Inbox,
   Users,
   Settings2,
+  Mail,
+  Star
 } from "lucide-react";
 
 const menu_principale = [
@@ -42,6 +44,11 @@ const menu_secondaire = [
         title: "Type de pratique",
         // url: "/pratiques",
         icon: Activity,
+      },
+      {
+        title: "Messages",
+        // url: "/pratiques",
+        icon: Mail,
       },
       {
         title: "Mes patients",

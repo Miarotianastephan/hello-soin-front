@@ -16,9 +16,19 @@ const TroubleConfig = (props) => {
   const [troubles, setTroubles] = useState([]);
   const [specialties, setSpecialties] = useState([]);
   const [newSolutionSpecialty, setNewSolutionSpecialty] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  // Si un trouble est passé en prop pour édition, on l'utilise dès le départ
-  const [selectedTrouble, setSelectedTrouble] = useState(props.initialTrouble || null);
+  const [searchTerm, setSearchTerm] = useState(
+        props.isUpdate && props.initialTrouble
+       ? props.initialTrouble.name
+       : ''
+   );
+   const [selectedTrouble, setSelectedTrouble] = useState(
+     props.isUpdate && props.initialTrouble
+       ? {
+           ...props.initialTrouble,
+           solutions: props.initialTrouble.solutions || []
+         }
+       : null
+  );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [addSolutionChecked, setAddSolutionChecked] = useState(false);
   const [newSolution, setNewSolution] = useState('');
@@ -29,21 +39,27 @@ const TroubleConfig = (props) => {
     queryKey: ['trouble-solutions'],
     queryFn: fetchTroubleSolutions,
   });
+
+
   useEffect(() => {
-    if (data) {
-      console.log(data);
-      setSpecialties(
-        data.speciality.map((s) => ({
-          id: s.id_speciality,
-          name: s.designation,
-        }))
-      );
-      setTroubles(data.troubleSolutions);
-      if (data.speciality.length > 0) {
-        setNewSolutionSpecialty(data.speciality[0].id_speciality);
+    if (!data) return;
+  
+    // initialisation habituelle des specialties & troubles  
+    const mappedSpecialties = data.speciality.map(s => ({ id: s.id_speciality, name: s.designation }));
+    setSpecialties(mappedSpecialties);
+    setTroubles(data.troubleSolutions);
+    if (mappedSpecialties.length) setNewSolutionSpecialty(mappedSpecialties[0].id);
+  
+   // ⬅️ on ne touche pas cette partie, elle vient écraser si besoin à partir des données serveur
+   if (isUpdate && props.initialTrouble) {
+       const found = data.troubleSolutions.find(tr => tr.id === props.initialTrouble.id);
+       if (found) {
+          setSelectedTrouble(found);
+          setSearchTerm(found.name);
+        }
       }
-    }
-  }, [data]);
+  }, [data, isUpdate, props.initialTrouble]);
+  
 
   // Remplacer navigate par la fonction onBack passée en props
   const handleBack = () => {
@@ -170,9 +186,18 @@ const TroubleConfig = (props) => {
   return (
     <div className='mx-4 mb-9'>
       <div className='flex items-center justify-between'>
-        <span className='text-sm font-semibold'>
-          Troubles et solutions : 
-          <span className='text-gray-500 text-small'>{isUpdate ? " Metter à jour vos approches" : " Ajouter vos approches"}</span>
+        <span className='text-sm font-semibold'> 
+        <span className="text-[#5DA781] text-sm">
+  {isUpdate ? (
+    <>
+      Mettre à jour vos approches{' '}
+      <span className='text-gray-700 font-normal text-xs'></span>
+    </>
+  ) : (
+    'Ajouter vos approches'
+  )}
+</span>
+
         </span>
         <Button 
           onClick={handleBack} 
@@ -186,7 +211,7 @@ const TroubleConfig = (props) => {
         {/* Colonne Troubles */}
         <div className='w-full md:w-1/2 px-4 '>
           <div className='w-full py-2 text-gray-700 border-b-2 border-gray-700'>
-            <span>Troubles</span>
+            <span>Selectionner un trouble</span>
           </div>
           <div className="relative mt-2" ref={dropdownRef}>
             <input
@@ -224,7 +249,7 @@ const TroubleConfig = (props) => {
         {/* Colonne Solutions */}
         <div className='w-full md:w-1/2 px-4 '>
           <div className='w-full py-2 text-gray-700 border-b-2 border-gray-700'>
-            <span>Solutions</span>
+            <span>Présentez vos solutions</span>
           </div>
           <div className='mt-2'>
             {selectedTrouble ? (
@@ -261,9 +286,9 @@ const TroubleConfig = (props) => {
                       </select>
                       <Button 
                         onClick={handleAddSolution} 
-                        className="text-xs font-semibold text-white bg-[#5DA781] rounded shadow-none hover:bg-blue-600"
+                        className="text-xs font-semibold text-white bg-[#20273e] w-1/2 self-end rounded shadow-none hover:bg-blue-600"
                       >
-                        <PlusCircle size={15}/>
+                        <PlusCircle size={15}/> Ajouter
                       </Button>
                     </div>
                   )}
@@ -290,8 +315,7 @@ const TroubleConfig = (props) => {
             ) : (
               isUpdate ? (
                 <p className='text-helloSoin'>
-                  Veuillez sélectionner un trouble pour voir et modifier ses solutions.<br/>
-                  <strong>Vous êtes en modes edition des solutions</strong>
+                  Vous êtes en modes edition  ...
                 </p>
               ) : (
                 <p className='text-gray-500'>

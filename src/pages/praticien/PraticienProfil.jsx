@@ -38,7 +38,7 @@ const TABS = [
   { id: "formations", label: "Formations et expériences" },
   { id: "troubles", label: "Troubles et solutions" },
   { id: "cabinets", label: "Cabinets" },
-  { id: "avis", label: "Avis patient" },
+  { id: "avis", label: "Type de rendez-vous" },
 ];
 import { TailSpin } from 'react-loader-spinner';
 import { API_URL } from "@/services/api";
@@ -310,7 +310,7 @@ const PraticienProfil = () => {
         {activeTab === "formations" && <Formation practitionerData={practitionerData}/>}
         {activeTab === "troubles" && <TroubleManager practitionerData={practitionerData}/>}
         {activeTab === "cabinets" && <Cabinets practitionerData={practitionerData}/>}
-        {activeTab === "avis" && <Avis practitionerData={practitionerData}/>}
+        {activeTab === "avis" && <GestionDesTarif practitionerData={practitionerData}/>}
       </div>
 
       {/* Barre d'onglets flottante pour mobile, placée en bas */}
