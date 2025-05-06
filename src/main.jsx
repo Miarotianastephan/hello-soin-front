@@ -3,13 +3,19 @@ import { BrowserRouter } from "react-router-dom";
 import App from './App.jsx'
 // import Accueil from './pages/accueil/Accueil.jsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {HeroUIProvider} from '@heroui/react'
+import {ToastProvider} from "@heroui/toast";
+
 
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter basename='/medicalReact'>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <HeroUIProvider>
+      <ToastProvider />
+        <App />
+      </HeroUIProvider>
     </QueryClientProvider>
   </BrowserRouter>,
 )

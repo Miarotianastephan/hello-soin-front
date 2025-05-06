@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 const withMT = require("@material-tailwind/react/utils/withMT");
+const { heroui } = require("@heroui/react");
 
 export default withMT({
     darkMode: ["class"],
@@ -7,6 +8,7 @@ export default withMT({
 		"./src/**/*.{ts,tsx,js,jsx}",
 		"/@material-tailwind/react/components/**/*.{js,ts,jsx,tsx}",
 		"/@material-tailwind/react/theme/components/**/*.{js,ts,jsx,tsx}",
+		"./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}"
 	],
   theme: {
   	extend: {
@@ -75,6 +77,6 @@ export default withMT({
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), heroui()],
 })
 
